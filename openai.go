@@ -3,28 +3,25 @@ package openai
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/go-resty/resty/v2"
 )
 
-type ChatOption func(*Chat)
+type OpenAIOption func(*OpenAI)
 
-func WithModel(model string) ChatOption {
-	return func(c *Chat) {
-		c.model = model
-	}
-}
-
-func WithRole(role OpenAIRole) ChatOption {
-	return func(c *Chat) {
-		c.role = role
+func WithModel(model string) OpenAIOption {
+	return func(o *OpenAI) {
+		o.model = model
 	}
 }
 
 type OpenAI struct {
 	apiKey string
 	url    string
+	model  string
 }
 
 type Model struct {
@@ -38,6 +35,20 @@ type Chat struct {
 	url    string
 	model  string
 	role   OpenAIRole
+}
+
+type ChatOption func(*Chat)
+
+func WithChatModel(model string) ChatOption {
+	return func(c *Chat) {
+		c.model = model
+	}
+}
+
+func WithRole(role OpenAIRole) ChatOption {
+	return func(c *Chat) {
+		c.role = role
+	}
 }
 
 type Image struct {
@@ -60,8 +71,12 @@ type FineTune struct {
 	url    string
 }
 
-func NewOpenAI(apiKey string) *OpenAI {
-	return &OpenAI{apiKey: apiKey}
+func NewOpenAI(apiKey string, opts ...OpenAIOption) *OpenAI {
+	o := &OpenAI{apiKey: apiKey, model: "gpt-3.5-turbo"}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
 }
 
 func (o *OpenAI) Model() *Model {
@@ -110,7 +125,7 @@ func (o *OpenAI) Completions(message string, maxTokens int) (*CompletionResponse
 	o.url = "https://api.openai.com/v1/completions"
 	client := resty.New()
 	req := CompletionRequest{
-		Model:       "gpt-3.5-turbo",
+		Model:       o.model,
 		Prompt:      message,
 		MaxTokens:   maxTokens,
 		Temperature: 0.7,
@@ -136,7 +151,7 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 		url:    "https://api.openai.com/v1/chat/completions",
 		apiKey: o.apiKey,
 		model:  "gpt-3.5-turbo",
-		role:   "user",
+		role:   User,
 	}
 
 	for _, opt := range opts {
@@ -189,7 +204,7 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 				Content: content,
 			},
 		},
-		Instruction: "",
+		Instruction: instruction,
 	}
 
 	client := resty.New()
@@ -245,10 +260,25 @@ func (o *Image) Generate(prompt string, n int, size string) (*ImageResponse, err
 func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size string) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/edits"
 	client := resty.New()
+
+	file, err := os.Open(imagePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(imagePath)
+
+	mask, err := os.Open(maskPath)
+	if err != nil {
+		return nil, err
+	}
+	defer mask.Close()
+	maskName := filepath.Base(maskPath)
+
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetFileReader("image", imagePath, nil).
-		SetFileReader("mask", maskPath, nil).
+		SetFileReader("image", fileName, file).
+		SetFileReader("mask", maskName, mask).
 		SetFormData(map[string]string{
 			"prompt": prompt,
 			"n":      strconv.Itoa(n),
@@ -268,10 +298,18 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 
 func (o *Image) Variate(imagePath string, n int, size string) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/variations"
+
+	file, err := os.Open(imagePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(imagePath)
+
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetFileReader("image", imagePath, nil).
+		SetFileReader("image", fileName, file).
 		SetFormData(map[string]string{
 			"n":    strconv.Itoa(n),
 			"size": size,
@@ -323,10 +361,18 @@ func (o *OpenAI) Audio() *Audio {
 func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 	url := "https://api.openai.com/v1/audio/transcriptions"
 	client := resty.New()
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(filePath)
+
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", filePath, nil).
+		SetFileReader("file", fileName, file).
 		SetFormData(map[string]string{
 			"model": "whisper-1",
 		}).
@@ -345,10 +391,17 @@ func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
 	url := "https://api.openai.com/v1/audio/translations"
 	client := resty.New()
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(filePath)
+
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", filePath, nil).
+		SetFileReader("file", fileName, file).
 		SetFormData(map[string]string{
 			"model": "whisper-1",
 		}).
@@ -392,13 +445,19 @@ func (o *TuneFile) List() (*FileList, error) {
 func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
 	url := "https://api.openai.com/v1/files"
 	client := resty.New()
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(filePath)
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFormData(map[string]string{
 			"purpose": "fine-tune",
 		}).
-		SetFileReader("file", filePath, nil).
+		SetFileReader("file", fileName, file).
 		Post(url)
 	if err != nil {
 		return nil, err
