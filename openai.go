@@ -8,15 +8,15 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-type Option func(*Chat)
+type ChatOption func(*Chat)
 
-func WithModel(model string) Option {
+func WithModel(model string) ChatOption {
 	return func(c *Chat) {
 		c.model = model
 	}
 }
 
-func WithRole(role OpenAIRole) Option {
+func WithRole(role OpenAIRole) ChatOption {
 	return func(c *Chat) {
 		c.role = role
 	}
@@ -131,13 +131,18 @@ func (o *OpenAI) Completions(message string, maxTokens int) (*CompletionResponse
 	return &completionResponse, nil
 }
 
-func (o *OpenAI) Chat() *Chat {
-
-	return &Chat{
+func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
+	c := &Chat{
 		url:    "https://api.openai.com/v1/chat/completions",
 		apiKey: o.apiKey,
 		model:  "gpt-3.5-turbo",
+		role:   "user",
 	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (o *Chat) Completions(content string) (*ChatResponse, error) {
@@ -149,7 +154,7 @@ func (o *Chat) Completions(content string) (*ChatResponse, error) {
 			Content string `json:"content"`
 		}{
 			{
-				Role:    "user",
+				Role:    string(o.role),
 				Content: content,
 			},
 		},
@@ -180,7 +185,7 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 			Content string `json:"content"`
 		}{
 			{
-				Role:    "user",
+				Role:    string(o.role),
 				Content: content,
 			},
 		},

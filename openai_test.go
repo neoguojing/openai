@@ -28,12 +28,14 @@ func TestModelGet(t *testing.T) {
 	// Check that the error is nil
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	// Check that the returned ModelInfo struct has the expected values
 	expectedModelInfo := &ModelInfo{}
 	if !reflect.DeepEqual(modelInfo, expectedModelInfo) {
 		t.Errorf("unexpected ModelInfo: got %v, want %v", modelInfo, expectedModelInfo)
+		return
 	}
 }
 
