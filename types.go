@@ -1,5 +1,13 @@
 package openai
 
+type OpenAIRole string
+
+const (
+	User      OpenAIRole = "user"
+	System    OpenAIRole = "sysmtem"
+	Assistant OpenAIRole = "assistant"
+)
+
 type ModelInfo struct {
 	ID         string   `json:"id"`
 	Object     string   `json:"object"`
@@ -67,7 +75,7 @@ type ChatResponse struct {
 type EditChatRequest struct {
 	Model    string `json:"model"`
 	Messages []struct {
-		Role    string `json:"role"`
+		Role    string `json:"role"` //system, user, or assistant.
 		Content string `json:"content"`
 	} `json:"messages"`
 	Instruction string `json:"instruction"`
@@ -212,27 +220,25 @@ type FileInfo struct {
 	Purpose   string `json:"purpose"`
 }
 
-
- 
 type FineTuneJob struct {
-	ID             string `json:"id"`
-	Object         string `json:"object"`
-	Model          string `json:"model"`
-	CreatedAt      int    `json:"created_at"`
+	ID             string          `json:"id"`
+	Object         string          `json:"object"`
+	Model          string          `json:"model"`
+	CreatedAt      int             `json:"created_at"`
 	Events         []FineTuneEvent `json:"events"`
-	FineTunedModel string `json:"fine_tuned_model"`
+	FineTunedModel string          `json:"fine_tuned_model"`
 	Hyperparams    struct {
-		BatchSize          int     `json:"batch_size"`
-		LearningRateMult   float64 `json:"learning_rate_multiplier"`
-		NEpochs            int     `json:"n_epochs"`
-		PromptLossWeight   float64 `json:"prompt_loss_weight"`
+		BatchSize        int     `json:"batch_size"`
+		LearningRateMult float64 `json:"learning_rate_multiplier"`
+		NEpochs          int     `json:"n_epochs"`
+		PromptLossWeight float64 `json:"prompt_loss_weight"`
 	} `json:"hyperparams"`
-	OrganizationID string `json:"organization_id"`
-	ResultFiles    []File `json:"result_files"`
-	Status         string `json:"status"`
+	OrganizationID  string `json:"organization_id"`
+	ResultFiles     []File `json:"result_files"`
+	Status          string `json:"status"`
 	ValidationFiles []File `json:"validation_files"`
-	TrainingFiles  []File `json:"training_files"`
-	UpdatedAt      int    `json:"updated_at"`
+	TrainingFiles   []File `json:"training_files"`
+	UpdatedAt       int    `json:"updated_at"`
 }
 
 type FineTuneEvent struct {
@@ -242,32 +248,30 @@ type FineTuneEvent struct {
 	Message   string `json:"message"`
 }
 
- 
 type FineTuneJobList struct {
 	Data   []FineTuneJob `json:"data"`
 	Object string        `json:"object"`
 }
 
-
 type FineTuneJobDetail struct {
-	ID             string `json:"id"`
-	Object         string `json:"object"`
-	Model          string `json:"model"`
-	CreatedAt      int    `json:"created_at"`
+	ID             string          `json:"id"`
+	Object         string          `json:"object"`
+	Model          string          `json:"model"`
+	CreatedAt      int             `json:"created_at"`
 	Events         []FineTuneEvent `json:"events"`
-	FineTunedModel string `json:"fine_tuned_model"`
+	FineTunedModel string          `json:"fine_tuned_model"`
 	Hyperparams    struct {
-		BatchSize          int     `json:"batch_size"`
-		LearningRateMult   float64 `json:"learning_rate_multiplier"`
-		NEpochs            int     `json:"n_epochs"`
-		PromptLossWeight   float64 `json:"prompt_loss_weight"`
+		BatchSize        int     `json:"batch_size"`
+		LearningRateMult float64 `json:"learning_rate_multiplier"`
+		NEpochs          int     `json:"n_epochs"`
+		PromptLossWeight float64 `json:"prompt_loss_weight"`
 	} `json:"hyperparams"`
-	OrganizationID string `json:"organization_id"`
-	ResultFiles    []File `json:"result_files"`
-	Status         string `json:"status"`
+	OrganizationID  string `json:"organization_id"`
+	ResultFiles     []File `json:"result_files"`
+	Status          string `json:"status"`
 	ValidationFiles []File `json:"validation_files"`
-	TrainingFiles  []File `json:"training_files"`
-	UpdatedAt      int    `json:"updated_at"`
+	TrainingFiles   []File `json:"training_files"`
+	UpdatedAt       int    `json:"updated_at"`
 }
 
 type FineTuneJobResultFile struct {
@@ -296,34 +300,32 @@ type FineTuneJobEvent struct {
 }
 
 type FineTuneJobHyperparams struct {
-	BatchSize          int     `json:"batch_size"`
-	LearningRateMult   float64 `json:"learning_rate_multiplier"`
-	NEpochs            int     `json:"n_epochs"`
-	PromptLossWeight   float64 `json:"prompt_loss_weight"`
+	BatchSize        int     `json:"batch_size"`
+	LearningRateMult float64 `json:"learning_rate_multiplier"`
+	NEpochs          int     `json:"n_epochs"`
+	PromptLossWeight float64 `json:"prompt_loss_weight"`
 }
 
 type FineTuneJobResult struct {
-	ID             string `json:"id"`
-	Object         string `json:"object"`
-	Model          string `json:"model"`
-	CreatedAt      int    `json:"created_at"`
-	Events         []FineTuneJobEvent `json:"events"`
-	FineTunedModel string `json:"fine_tuned_model"`
-	Hyperparams    FineTuneJobHyperparams `json:"hyperparams"`
-	OrganizationID string `json:"organization_id"`
-	ResultFiles    []FineTuneJobResultFile `json:"result_files"`
-	Status         string `json:"status"`
-	ValidationFiles []File `json:"validation_files"`
-	TrainingFiles  []FineTuneJobTrainingFile `json:"training_files"`
-	UpdatedAt      int    `json:"updated_at"`
+	ID              string                    `json:"id"`
+	Object          string                    `json:"object"`
+	Model           string                    `json:"model"`
+	CreatedAt       int                       `json:"created_at"`
+	Events          []FineTuneJobEvent        `json:"events"`
+	FineTunedModel  string                    `json:"fine_tuned_model"`
+	Hyperparams     FineTuneJobHyperparams    `json:"hyperparams"`
+	OrganizationID  string                    `json:"organization_id"`
+	ResultFiles     []FineTuneJobResultFile   `json:"result_files"`
+	Status          string                    `json:"status"`
+	ValidationFiles []File                    `json:"validation_files"`
+	TrainingFiles   []FineTuneJobTrainingFile `json:"training_files"`
+	UpdatedAt       int                       `json:"updated_at"`
 }
 
- 
 type Input struct {
 	Text string `json:"text"`
 }
 
- 
 type TextModerationResponse struct {
 	ID      string `json:"id"`
 	Model   string `json:"model"`
@@ -363,4 +365,3 @@ func NewTextModerationRequest(text string) *TextModerationRequest {
 		},
 	}
 }
-

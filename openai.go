@@ -7,21 +7,50 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+type Option func(*Chat)
+
+func WithModel(model string) Option {
+	return func(c *Chat) {
+		c.model = model
+	}
+}
+
+func WithRole(role OpenAIRole) Option {
+	return func(c *Chat) {
+		c.role = role
+	}
+}
+
 type OpenAI struct {
 	apiKey string
 	url    string
+}
+
+type Model struct {
+	ModelList
+	apiKey string
+	url    string
+}
+
+type Chat struct {
+	apiKey string
+	url    string
+	model  string
+	role   OpenAIRole
 }
 
 func NewOpenAI(apiKey string) *OpenAI {
 	return &OpenAI{apiKey: apiKey}
 }
 
-func (o *OpenAI) Model() *OpenAI {
-	o.url = "https://api.openai.com/v1/models"
-	return o
+func (o *OpenAI) Model() *Model {
+	return &Model{
+		url:    "https://api.openai.com/v1/models",
+		apiKey: o.apiKey,
+	}
 }
 
-func (o *OpenAI) List() (*ModelList, error) {
+func (o *Model) List() (*ModelList, error) {
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
@@ -35,10 +64,11 @@ func (o *OpenAI) List() (*ModelList, error) {
 	if err != nil {
 		return nil, err
 	}
+	o.ModelList = modelList
 	return &modelList, nil
 }
 
-func (o *OpenAI) GetModelInfo(model string) (*ModelInfo, error) {
+func (o *Model) GetModelInfo(model string) (*ModelInfo, error) {
 	o.url += "/" + model
 	client := resty.New()
 	resp, err := client.R().
@@ -55,12 +85,13 @@ func (o *OpenAI) GetModelInfo(model string) (*ModelInfo, error) {
 	return &modelInfo, nil
 }
 
-func (o *OpenAI) Completions(message string) (*CompletionResponse, error) {
+func (o *OpenAI) Completions(message string, maxTokens int) (*CompletionResponse, error) {
 	o.url = "https://api.openai.com/v1/completions"
 	client := resty.New()
 	req := CompletionRequest{
 		Model:       "gpt-3.5-turbo",
-		Prompt:      "message",
+		Prompt:      message,
+		MaxTokens:   maxTokens,
 		Temperature: 0.7,
 	}
 	resp, err := client.R().
@@ -79,46 +110,77 @@ func (o *OpenAI) Completions(message string) (*CompletionResponse, error) {
 	return &completionResponse, nil
 }
 
-func (o *OpenAI) Chat() *OpenAI {
-	o.url = "https://api.openai.com/v1/models"
-	return o
+func (o *OpenAI) Chat() *Chat {
+
+	return &Chat{
+		url:    "https://api.openai.com/v1/chat/completions",
+		apiKey: o.apiKey,
+		model:  "gpt-3.5-turbo",
+	}
 }
 
-func (o *OpenAI) GetCompletions(prompt string, maxTokens int, temperature float64) ([]byte, error) {
-	url := "https://api.openai.com/v1/completions"
+func (o *Chat) Completions(content string) (*ChatResponse, error) {
 	client := resty.New()
+	req := ChatRequest{
+		Model: o.model,
+		Messages: []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{
+			{
+				Role:    "user",
+				Content: content,
+			},
+		},
+	}
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(`{
-			"model": "text-davinci-003",
-			"prompt": "` + prompt + `",
-			"max_tokens": ` + strconv.Itoa(maxTokens) + `,
-			"temperature": ` + strconv.FormatFloat(temperature, 'f', 1, 64) + `
-		}`).
-		Post(url)
+		SetBody(req).
+		Post(o.url)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var chatResponse ChatResponse
+	err = json.Unmarshal(resp.Body(), &chatResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &chatResponse, nil
 }
 
-func (o *OpenAI) GetEdits(prompt string, instruction string) ([]byte, error) {
+func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, error) {
 	url := "https://api.openai.com/v1/edits"
+
+	req := EditChatRequest{
+		Model: o.model,
+		Messages: []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{
+			{
+				Role:    "user",
+				Content: content,
+			},
+		},
+		Instruction: "",
+	}
+
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(`{
-			"model": "text-davinci-edit-001",
-			"input": "` + prompt + `",
-			"instruction": "` + instruction + `"
-		}`).
+		SetBody(req).
 		Post(url)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var output EditChatResponse
+	err = json.Unmarshal(resp.Body(), &output)
+	if err != nil {
+		return nil, err
+	}
+	return &output, nil
 }
 
 func (o *OpenAI) GetImageGenerations(prompt string, n int, size string) ([]byte, error) {
