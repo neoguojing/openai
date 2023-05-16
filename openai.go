@@ -2,6 +2,7 @@ package openai
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"strconv"
 
 	"github.com/go-resty/resty/v2"
@@ -39,6 +40,26 @@ type Chat struct {
 	role   OpenAIRole
 }
 
+type Image struct {
+	apiKey string
+	url    string
+}
+
+type Audio struct {
+	apiKey string
+	url    string
+}
+
+type TuneFile struct {
+	apiKey string
+	url    string
+}
+
+type FineTune struct {
+	apiKey string
+	url    string
+}
+
 func NewOpenAI(apiKey string) *OpenAI {
 	return &OpenAI{apiKey: apiKey}
 }
@@ -68,7 +89,7 @@ func (o *Model) List() (*ModelList, error) {
 	return &modelList, nil
 }
 
-func (o *Model) GetModelInfo(model string) (*ModelInfo, error) {
+func (o *Model) Get(model string) (*ModelInfo, error) {
 	o.url += "/" + model
 	client := resty.New()
 	resp, err := client.R().
@@ -183,25 +204,40 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 	return &output, nil
 }
 
-func (o *OpenAI) GetImageGenerations(prompt string, n int, size string) ([]byte, error) {
+func (o *OpenAI) Image() *Image {
+
+	return &Image{
+		url:    "https://api.openai.com/v1/images/",
+		apiKey: o.apiKey,
+	}
+}
+
+func (o *Image) Generate(prompt string, n int, size string) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/generations"
+
+	req := ImageRequest{
+		Prompt: prompt,
+		N:      n,
+		Size:   size,
+	}
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(`{
-			"prompt": "` + prompt + `",
-			"n": ` + strconv.Itoa(n) + `,
-			"size": "` + size + `"
-		}`).
+		SetBody(req).
 		Post(url)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var imageResponse ImageResponse
+	err = json.Unmarshal(resp.Body(), &imageResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &imageResponse, nil
 }
 
-func (o *OpenAI) GetImageEdits(imagePath string, maskPath string, prompt string, n int, size string) ([]byte, error) {
+func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size string) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/edits"
 	client := resty.New()
 	resp, err := client.R().
@@ -217,10 +253,15 @@ func (o *OpenAI) GetImageEdits(imagePath string, maskPath string, prompt string,
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var imageResponse ImageResponse
+	err = json.Unmarshal(resp.Body(), &imageResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &imageResponse, nil
 }
 
-func (o *OpenAI) GetImageVariations(imagePath string, n int, size string) ([]byte, error) {
+func (o *Image) Variate(imagePath string, n int, size string) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/variations"
 	client := resty.New()
 	resp, err := client.R().
@@ -234,27 +275,47 @@ func (o *OpenAI) GetImageVariations(imagePath string, n int, size string) ([]byt
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var imageResponse ImageResponse
+	err = json.Unmarshal(resp.Body(), &imageResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &imageResponse, nil
 }
 
-func (o *OpenAI) GetEmbeddings(input string, model string) ([]byte, error) {
+func (o *OpenAI) GetEmbeddings(input string, model string) (*EmbeddingResponse, error) {
 	url := "https://api.openai.com/v1/embeddings"
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(`{
-			"input": "` + input + `",
-			"model": "` + model + `"
-		}`).
+		SetResult(&EmbeddingResponse{}).
+		SetBody(EmbeddingRequest{
+			Input: input,
+			Model: model,
+		}).
 		Post(url)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+
+	var response EmbeddingResponse
+	err = json.Unmarshal(resp.Body(), &response)
+	if err != nil {
+		return nil, err
+	}
+	return &response, nil
 }
 
-func (o *OpenAI) GetAudioTranscriptions(filePath string) ([]byte, error) {
+func (o *OpenAI) Audio() *Audio {
+
+	return &Audio{
+		url:    "https://api.openai.com/v1/audio/",
+		apiKey: o.apiKey,
+	}
+}
+
+func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 	url := "https://api.openai.com/v1/audio/transcriptions"
 	client := resty.New()
 	resp, err := client.R().
@@ -268,10 +329,15 @@ func (o *OpenAI) GetAudioTranscriptions(filePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var audioResponse AudioResponse
+	err = json.Unmarshal(resp.Body(), &audioResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &audioResponse, nil
 }
 
-func (o *OpenAI) GetAudioTranslations(filePath string) ([]byte, error) {
+func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
 	url := "https://api.openai.com/v1/audio/translations"
 	client := resty.New()
 	resp, err := client.R().
@@ -285,10 +351,22 @@ func (o *OpenAI) GetAudioTranslations(filePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var audioResponse AudioResponse
+	err = json.Unmarshal(resp.Body(), &audioResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &audioResponse, nil
 }
 
-func (o *OpenAI) GetFiles() ([]byte, error) {
+func (o *OpenAI) TuneFile() *TuneFile {
+	return &TuneFile{
+		url:    "https://api.openai.com/v1/models",
+		apiKey: o.apiKey,
+	}
+}
+
+func (o *TuneFile) List() (*FileList, error) {
 	url := "https://api.openai.com/v1/files"
 	client := resty.New()
 	resp, err := client.R().
@@ -297,11 +375,16 @@ func (o *OpenAI) GetFiles() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fileList FileList
+	err = json.Unmarshal(resp.Body(), &fileList)
+	if err != nil {
+		return nil, err
+	}
+	return &fileList, nil
 }
 
 // New code starts here
-func (o *OpenAI) UploadFile(filePath string) ([]byte, error) {
+func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
 	url := "https://api.openai.com/v1/files"
 	client := resty.New()
 	resp, err := client.R().
@@ -315,11 +398,16 @@ func (o *OpenAI) UploadFile(filePath string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fileInfo FileInfo
+	err = json.Unmarshal(resp.Body(), &fileInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &fileInfo, nil
 }
 
 // New code starts here
-func (o *OpenAI) DeleteFile(fileID string) ([]byte, error) {
+func (o *TuneFile) DeleteFile(fileID string) (*DeleteFileResponse, error) {
 	url := "https://api.openai.com/v1/files/" + fileID
 	client := resty.New()
 	resp, err := client.R().
@@ -328,10 +416,15 @@ func (o *OpenAI) DeleteFile(fileID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var deleteFileResponse DeleteFileResponse
+	err = json.Unmarshal(resp.Body(), &deleteFileResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &deleteFileResponse, nil
 }
 
-func (o *OpenAI) GetFile(fileID string) ([]byte, error) {
+func (o *TuneFile) Get(fileID string) (*FileInfo, error) {
 	url := "https://api.openai.com/v1/files/" + fileID
 	client := resty.New()
 	resp, err := client.R().
@@ -340,22 +433,38 @@ func (o *OpenAI) GetFile(fileID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fileInfo FileInfo
+	err = json.Unmarshal(resp.Body(), &fileInfo)
+	if err != nil {
+		return nil, err
+	}
+	return &fileInfo, nil
 }
 
-func (o *OpenAI) DownloadFile(fileID string) ([]byte, error) {
+func (o *TuneFile) Content(fileID string, filePath string) error {
 	url := "https://api.openai.com/v1/files/" + fileID + "/content"
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		Get(url)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp.Body(), nil
+	err = ioutil.WriteFile(filePath, resp.Body(), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (o *OpenAI) FineTune(fileID string) ([]byte, error) {
+func (o *OpenAI) FineTune() *FineTune {
+	return &FineTune{
+		url:    "https://api.openai.com/v1/fine-tunes",
+		apiKey: o.apiKey,
+	}
+}
+
+func (o *FineTune) Create(fileID string) (*FineTuneJob, error) {
 	url := "https://api.openai.com/v1/fine-tunes"
 	client := resty.New()
 	resp, err := client.R().
@@ -368,10 +477,15 @@ func (o *OpenAI) FineTune(fileID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fineTuneJob FineTuneJob
+	err = json.Unmarshal(resp.Body(), &fineTuneJob)
+	if err != nil {
+		return nil, err
+	}
+	return &fineTuneJob, nil
 }
 
-func (o *OpenAI) ListFineTunes() ([]byte, error) {
+func (o *FineTune) List() (*FineTuneJobList, error) {
 	url := "https://api.openai.com/v1/fine-tunes"
 	client := resty.New()
 	resp, err := client.R().
@@ -380,10 +494,15 @@ func (o *OpenAI) ListFineTunes() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fineTuneJobList FineTuneJobList
+	err = json.Unmarshal(resp.Body(), &fineTuneJobList)
+	if err != nil {
+		return nil, err
+	}
+	return &fineTuneJobList, nil
 }
 
-func (o *OpenAI) GetFineTune(fine_tune_id string) ([]byte, error) {
+func (o *FineTune) Get(fine_tune_id string) (*FineTuneJob, error) {
 	url := "https://api.openai.com/v1/fine-tunes/" + fine_tune_id
 	client := resty.New()
 	resp, err := client.R().
@@ -392,11 +511,16 @@ func (o *OpenAI) GetFineTune(fine_tune_id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fineTuneJob FineTuneJob
+	err = json.Unmarshal(resp.Body(), &fineTuneJob)
+	if err != nil {
+		return nil, err
+	}
+	return &fineTuneJob, nil
 }
 
 // New code starts here
-func (o *OpenAI) CancelFineTune(fine_tune_id string) ([]byte, error) {
+func (o *FineTune) Cancel(fine_tune_id string) (*FineTuneJob, error) {
 	url := "https://api.openai.com/v1/fine-tunes/" + fine_tune_id + "/cancel"
 	client := resty.New()
 	resp, err := client.R().
@@ -405,11 +529,16 @@ func (o *OpenAI) CancelFineTune(fine_tune_id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fineTuneJob FineTuneJob
+	err = json.Unmarshal(resp.Body(), &fineTuneJob)
+	if err != nil {
+		return nil, err
+	}
+	return &fineTuneJob, nil
 }
 
-func (o *OpenAI) GetEvents() ([]byte, error) {
-	url := "https://api.openai.com/v1/fine-tunes/ft-AF1WoRqd3aJAHsqc9NY7iL8F/events"
+func (o *FineTune) Events(fine_tune_id string) (*FineTuneJobEventList, error) {
+	url := "https://api.openai.com/v1/fine-tunes/" + fine_tune_id + "/events"
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
@@ -417,10 +546,15 @@ func (o *OpenAI) GetEvents() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var fineTuneJobEventList FineTuneJobEventList
+	err = json.Unmarshal(resp.Body(), &fineTuneJobEventList)
+	if err != nil {
+		return nil, err
+	}
+	return &fineTuneJobEventList, nil
 }
 
-func (o *OpenAI) DeleteFineTune(fine_tune_id string) ([]byte, error) {
+func (o *FineTune) Delete(fine_tune_id string) (*ModelDelete, error) {
 	url := "https://api.openai.com/v1/fine-tunes/" + fine_tune_id
 	client := resty.New()
 	resp, err := client.R().
@@ -429,21 +563,30 @@ func (o *OpenAI) DeleteFineTune(fine_tune_id string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var modelDelete ModelDelete
+	err = json.Unmarshal(resp.Body(), &modelDelete)
+	if err != nil {
+		return nil, err
+	}
+	return &modelDelete, nil
 }
 
-func (o *OpenAI) GenerateModeration(input string) ([]byte, error) {
+func (o *OpenAI) Moderation(input string) (*TextModerationResponse, error) {
 	url := "https://api.openai.com/v1/moderations"
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(`{
-			"input": "` + input + `"
-		}`).
+		SetResult(&TextModerationResponse{}).
+		SetBody(TextModerationRequest{Input: input}).
 		Post(url)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Body(), nil
+	var textModerationResponse TextModerationResponse
+	err = json.Unmarshal(resp.Body(), &textModerationResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &textModerationResponse, nil
 }

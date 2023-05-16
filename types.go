@@ -104,36 +104,11 @@ type ModelList struct {
 	Object string      `json:"object"`
 }
 
-func NewModelList() *ModelList {
-	return &ModelList{
-		Data: []ModelInfo{
-			{
-				ID:         "model-id-0",
-				Object:     "model",
-				OwnedBy:    "organization-owner",
-				Permission: []string{"read", "write"},
-			},
-			{
-				ID:         "model-id-1",
-				Object:     "model",
-				OwnedBy:    "organization-owner",
-				Permission: []string{"read", "write"},
-			},
-			{
-				ID:         "model-id-2",
-				Object:     "model",
-				OwnedBy:    "openai",
-				Permission: []string{"read", "write"},
-			},
-		},
-		Object: "list",
-	}
-}
-
 type ImageRequest struct {
 	Model          string `json:"model"`
 	Prompt         string `json:"prompt"`
 	Size           string `json:"size"`
+	N              int    `json:"n"`
 	ResponseFormat string `json:"response_format"`
 }
 
@@ -162,47 +137,13 @@ type EmbeddingResponse struct {
 		TotalTokens  int `json:"total_tokens"`
 	} `json:"usage"`
 }
-
-type AudioRequest struct {
-	Model string `json:"model"`
-	File  string `json:"file"`
-}
-
 type AudioResponse struct {
 	Text string `json:"text"`
 }
 
-type File struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	Bytes     int    `json:"bytes"`
-	CreatedAt int    `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
-}
-
 type FileList struct {
-	Data   []File `json:"data"`
-	Object string `json:"object"`
-}
-
-func NewFile() *File {
-	return &File{
-		ID:        "file-XjGxS3KTG0uNmNOK362iJua3",
-		Object:    "file",
-		Bytes:     140,
-		CreatedAt: 1613779121,
-		Filename:  "mydata.jsonl",
-		Purpose:   "fine-tune",
-	}
-}
-
-type UploadResponse struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	CreatedAt int    `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
+	Data   []FileInfo `json:"data"`
+	Object string     `json:"object"`
 }
 
 type DeleteFileResponse struct {
@@ -221,24 +162,19 @@ type FileInfo struct {
 }
 
 type FineTuneJob struct {
-	ID             string          `json:"id"`
-	Object         string          `json:"object"`
-	Model          string          `json:"model"`
-	CreatedAt      int             `json:"created_at"`
-	Events         []FineTuneEvent `json:"events"`
-	FineTunedModel string          `json:"fine_tuned_model"`
-	Hyperparams    struct {
-		BatchSize        int     `json:"batch_size"`
-		LearningRateMult float64 `json:"learning_rate_multiplier"`
-		NEpochs          int     `json:"n_epochs"`
-		PromptLossWeight float64 `json:"prompt_loss_weight"`
-	} `json:"hyperparams"`
-	OrganizationID  string `json:"organization_id"`
-	ResultFiles     []File `json:"result_files"`
-	Status          string `json:"status"`
-	ValidationFiles []File `json:"validation_files"`
-	TrainingFiles   []File `json:"training_files"`
-	UpdatedAt       int    `json:"updated_at"`
+	ID              string                 `json:"id"`
+	Object          string                 `json:"object"`
+	Model           string                 `json:"model"`
+	CreatedAt       int                    `json:"created_at"`
+	Events          []FineTuneEvent        `json:"events"`
+	FineTunedModel  string                 `json:"fine_tuned_model"`
+	Hyperparams     FineTuneJobHyperparams `json:"hyperparams"`
+	OrganizationID  string                 `json:"organization_id"`
+	ResultFiles     []FileInfo             `json:"result_files"`
+	Status          string                 `json:"status"`
+	ValidationFiles []FileInfo             `json:"validation_files"`
+	TrainingFiles   []FileInfo             `json:"training_files"`
+	UpdatedAt       int                    `json:"updated_at"`
 }
 
 type FineTuneEvent struct {
@@ -253,50 +189,9 @@ type FineTuneJobList struct {
 	Object string        `json:"object"`
 }
 
-type FineTuneJobDetail struct {
-	ID             string          `json:"id"`
-	Object         string          `json:"object"`
-	Model          string          `json:"model"`
-	CreatedAt      int             `json:"created_at"`
-	Events         []FineTuneEvent `json:"events"`
-	FineTunedModel string          `json:"fine_tuned_model"`
-	Hyperparams    struct {
-		BatchSize        int     `json:"batch_size"`
-		LearningRateMult float64 `json:"learning_rate_multiplier"`
-		NEpochs          int     `json:"n_epochs"`
-		PromptLossWeight float64 `json:"prompt_loss_weight"`
-	} `json:"hyperparams"`
-	OrganizationID  string `json:"organization_id"`
-	ResultFiles     []File `json:"result_files"`
-	Status          string `json:"status"`
-	ValidationFiles []File `json:"validation_files"`
-	TrainingFiles   []File `json:"training_files"`
-	UpdatedAt       int    `json:"updated_at"`
-}
-
-type FineTuneJobResultFile struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	Bytes     int    `json:"bytes"`
-	CreatedAt int    `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
-}
-
-type FineTuneJobTrainingFile struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	Bytes     int    `json:"bytes"`
-	CreatedAt int    `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
-}
-
-type FineTuneJobEvent struct {
-	Object    string `json:"object"`
-	CreatedAt int    `json:"created_at"`
-	Level     string `json:"level"`
-	Message   string `json:"message"`
+type FineTuneJobEventList struct {
+	Data   []FineTuneEvent `json:"data"`
+	Object string          `json:"object"`
 }
 
 type FineTuneJobHyperparams struct {
@@ -306,24 +201,10 @@ type FineTuneJobHyperparams struct {
 	PromptLossWeight float64 `json:"prompt_loss_weight"`
 }
 
-type FineTuneJobResult struct {
-	ID              string                    `json:"id"`
-	Object          string                    `json:"object"`
-	Model           string                    `json:"model"`
-	CreatedAt       int                       `json:"created_at"`
-	Events          []FineTuneJobEvent        `json:"events"`
-	FineTunedModel  string                    `json:"fine_tuned_model"`
-	Hyperparams     FineTuneJobHyperparams    `json:"hyperparams"`
-	OrganizationID  string                    `json:"organization_id"`
-	ResultFiles     []FineTuneJobResultFile   `json:"result_files"`
-	Status          string                    `json:"status"`
-	ValidationFiles []File                    `json:"validation_files"`
-	TrainingFiles   []FineTuneJobTrainingFile `json:"training_files"`
-	UpdatedAt       int                       `json:"updated_at"`
-}
-
-type Input struct {
-	Text string `json:"text"`
+type ModelDelete struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
 }
 
 type TextModerationResponse struct {
@@ -354,14 +235,5 @@ type TextModerationResponse struct {
 
 type TextModerationRequest struct {
 	Model string `json:"model"`
-	Input Input  `json:"input"`
-}
-
-func NewTextModerationRequest(text string) *TextModerationRequest {
-	return &TextModerationRequest{
-		Model: "text-moderation-001",
-		Input: Input{
-			Text: text,
-		},
-	}
+	Input string `json:"input"`
 }
