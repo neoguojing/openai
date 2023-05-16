@@ -4,7 +4,7 @@
 ## Introduction
 This is a Go client for the OpenAI API. It provides a simple interface for accessing the OpenAI API, including functions for uploading files, fine-tuning models, and moderating text. To use this client, you will need an OpenAI API key. You can obtain an API key by signing up for the OpenAI API at https://beta.openai.com/signup/. Once you have an API key, you can use this client to access the OpenAI API and build powerful AI applications.
 
-# OpenAI Golang SDK
+## OpenAI Golang SDK
 
 This is a Golang SDK for the OpenAI API. It provides a simple interface for accessing the various OpenAI API endpoints.
 
