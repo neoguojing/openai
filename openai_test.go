@@ -1,4 +1,3 @@
-
 package openai
 
 import (
@@ -87,7 +86,7 @@ func TestImageGenerate(t *testing.T) {
 }
 
 func TestImageVariate(t *testing.T) {
-	resp, err := openai.Image().Variate("./771ae33922b07e8ee52c059db27243b1.jpeg", 2, "1024x1024")
+	resp, err := openai.Image().Variate("./test/771ae33922b07e8ee52c059db27243b1.jpeg", 2, "1024x1024")
 	if err != nil {
 		t.Errorf("An error occurred while generating image variate: %v", err)
 		return
@@ -150,4 +149,3 @@ func TestModeration(t *testing.T) {
 	}
 	t.Log(resp)
 }
-
