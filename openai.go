@@ -3,12 +3,10 @@ package openai
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -234,7 +232,7 @@ func (o *OpenAI) Image() *Image {
 	}
 }
 
-func (o *Image) Generate(prompt string, n int, size string) (*ImageResponse, error) {
+func (o *Image) Generate(prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/generations"
 
 	req := ImageRequest{
@@ -259,7 +257,7 @@ func (o *Image) Generate(prompt string, n int, size string) (*ImageResponse, err
 	return &imageResponse, nil
 }
 
-func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size string) (*ImageResponse, error) {
+func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/edits"
 	client := resty.New()
 
@@ -284,7 +282,7 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 		SetFormData(map[string]string{
 			"prompt": prompt,
 			"n":      strconv.Itoa(n),
-			"size":   size,
+			"size":   string(size),
 		}).
 		Post(url)
 	if err != nil {
@@ -298,7 +296,7 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 	return &imageResponse, nil
 }
 
-func (o *Image) Variate(imagePath string, n int, size string) (*ImageResponse, error) {
+func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/variations"
 
 	file, err := os.Open(imagePath)
@@ -314,7 +312,7 @@ func (o *Image) Variate(imagePath string, n int, size string) (*ImageResponse, e
 		SetFileReader("image", fileName, file).
 		SetFormData(map[string]string{
 			"n":    strconv.Itoa(n),
-			"size": size,
+			"size": string(size),
 		}).
 		Post(url)
 	if err != nil {
@@ -655,310 +653,4 @@ func (o *OpenAI) Moderation(input string) (*TextModerationResponse, error) {
 		return nil, err
 	}
 	return &textModerationResponse, nil
-}
-
-func (o *OpenAI) GenerateGinRouter(apiKey string) *gin.Engine {
-	router := gin.Default()
-	api := NewOpenAI(apiKey)
-	router.Group("/openai/api/v1")
-
-	router.POST("/files/upload", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		fileInfo, err := api.TuneFile().Upload(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fileInfo)
-
-	})
-
-	router.DELETE("/files/:file_id", func(c *gin.Context) {
-
-		fileID := c.Param("file_id")
-		fileInfo, err := api.TuneFile().Delete(fileID) // get file info using file ID
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fileInfo)
-	})
-
-	router.POST("/fine-tunes/:file_id", func(c *gin.Context) {
-		fileID := c.Param("file_id")
-		fineTuneJob, err := api.FineTune().Create(fileID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fineTuneJob)
-
-	})
-	router.GET("/files/:file_id", func(c *gin.Context) {
-
-		fileID := c.Param("file_id")
-		fileInfo, err := api.TuneFile().Get(fileID) // get file info using file ID
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fileInfo)
-
-	})
-
-	router.POST("/fine-tunes", func(c *gin.Context) {
-		fileID := c.PostForm("file_id")
-		fineTuneJob, err := api.FineTune().Create(fileID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fineTuneJob)
-
-	})
-	router.GET("/fine-tunes", func(c *gin.Context) {
-		fineTuneJobList, err := api.FineTune().List()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fineTuneJobList)
-
-	})
-	router.GET("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
-		fineTuneID := c.Param("fine_tune_id")
-		fineTuneJob, err := api.FineTune().Get(fineTuneID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fineTuneJob)
-
-	})
-	router.GET("/fine-tunes/:fine_tune_id/events", func(c *gin.Context) {
-		fineTuneID := c.Param("fine_tune_id")
-		fineTuneJobEventList, err := api.FineTune().Events(fineTuneID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, fineTuneJobEventList)
-
-	})
-	router.DELETE("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
-		fineTuneID := c.Param("fine_tune_id")
-		modelDelete, err := api.FineTune().Delete(fineTuneID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, modelDelete)
-
-	})
-	router.POST("/audio/transcriptions", func(c *gin.Context) {
-
-		// code for audio transcriptions
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		transcription, err := api.Audio().Transcriptions(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, transcription)
-
-	})
-	router.POST("/audio/translations", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		translation, err := api.Audio().Translations(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, translation)
-
-	})
-	router.POST("/embeddings", func(c *gin.Context) {
-		var input EmbeddingRequest
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		embedding, err := api.GetEmbeddings(input.Input, input.Model)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, embedding)
-
-	})
-
-	router.POST("/images/generate", func(c *gin.Context) {
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		imageInfo, err := api.Image().Generate(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, imageInfo)
-
-	})
-	router.POST("/images/edit", func(c *gin.Context) {
-
-		// code for image editing
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		edit, err := api.Image().Edit(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, edit)
-
-	})
-	router.POST("/images/variate", func(c *gin.Context) {
-
-		file, err := c.FormFile("file")
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		filePath := "/tmp/" + file.Filename
-		err = c.SaveUploadedFile(file, filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		variation, err := api.Image().Variate(filePath)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, variation)
-
-	})
-
-	router.POST("/chat/complete", func(c *gin.Context) {
-
-		var input ChatInput
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		response, err := api.Chat().Complete("")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, response)
-
-	})
-	router.POST("/chat/edit", func(c *gin.Context) {
-
-	})
-	return router
 }

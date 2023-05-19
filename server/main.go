@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cmd "github.com/neoguojing/commander"
 	"github.com/neoguojing/gormboot"
+	"github.com/neoguojing/openai"
 )
 
 var (
@@ -24,6 +25,7 @@ type Server struct {
 }
 
 func (s *Server) Start() {
+	Routes = openai.GenerateGinRouter("")
 	s.serv = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: Routes,

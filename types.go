@@ -8,6 +8,14 @@ const (
 	Assistant OpenAIRole = "assistant"
 )
 
+type ImageSizeSupported string
+
+const (
+	Size256  ImageSizeSupported = "256x256"
+	Size512  ImageSizeSupported = "512x512"
+	Size1024 ImageSizeSupported = "1024x1024"
+)
+
 type ModelInfo struct {
 	ID         string            `json:"id"`
 	Object     string            `json:"object"`
@@ -120,11 +128,11 @@ type ModelList struct {
 }
 
 type ImageRequest struct {
-	Model          string `json:"model"`
-	Prompt         string `json:"prompt"`
-	Size           string `json:"size"`
-	N              int    `json:"n"`
-	ResponseFormat string `json:"response_format"`
+	Model          string             `json:"model"`
+	Prompt         string             `json:"prompt"`
+	Size           ImageSizeSupported `json:"size"`
+	N              int                `json:"n"`
+	ResponseFormat string             `json:"response_format"`
 }
 
 type ImageResponse struct {
@@ -251,4 +259,9 @@ type TextModerationResponse struct {
 type TextModerationRequest struct {
 	Model string `json:"model"`
 	Input string `json:"input"`
+}
+
+type DialogRequest struct {
+	Instruction string `json:"instruction"`
+	Input       string `json:"input"`
 }
