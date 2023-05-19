@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/jroimartin/gocui"
+	"github.com/neoguojing/gocui"
 	"github.com/neoguojing/openai"
 	"gopkg.in/yaml.v2"
 )
@@ -85,6 +85,7 @@ func main() {
 		return
 	}
 	defer g.Close()
+	g.ASCII = false
 
 	g.SetManagerFunc(layout)
 

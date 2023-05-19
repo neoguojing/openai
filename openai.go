@@ -7,7 +7,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/gin-contrib/sessions"
+	gormsessions "github.com/gin-contrib/sessions/gorm"
+	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type OpenAIOption func(*OpenAI)
@@ -653,4 +658,77 @@ func (o *OpenAI) Moderation(input string) (*TextModerationResponse, error) {
 		return nil, err
 	}
 	return &textModerationResponse, nil
+}
+
+func (o *OpenAI) GenerateGinRouter() *gin.Engine {
+	router := gin.Default()
+
+	router.Use(gin.Recovery())
+
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	store := gormsessions.NewStore(db, true, []byte("secret"))
+
+	r := gin.Default()
+	r.Use(sessions.Sessions("mysession", store))
+
+	// router.Use(ratelimit.New(ratelimit.Config{
+	// 	MaxRequests: 1000,
+	// 	Duration:    time.Hour,
+	// }))
+
+	router.POST("/files/upload", func(c *gin.Context) {
+		// code for file upload
+	})
+	router.DELETE("/files/:file_id", func(c *gin.Context) {
+		// code for file deletion
+	})
+	router.GET("/files/:file_id", func(c *gin.Context) {
+		// code for getting file info
+	})
+	router.GET("/files/:file_id/content", func(c *gin.Context) {
+		// code for getting file content
+	})
+	router.POST("/fine-tunes", func(c *gin.Context) {
+		// code for fine-tuning
+	})
+	router.GET("/fine-tunes", func(c *gin.Context) {
+		// code for getting fine-tune job list
+	})
+	router.GET("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
+		// code for getting fine-tune job info
+	})
+	router.GET("/fine-tunes/:fine_tune_id/events", func(c *gin.Context) {
+		// code for getting fine-tune job events
+	})
+	router.DELETE("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
+		// code for deleting fine-tune job
+	})
+	router.POST("/audio/transcriptions", func(c *gin.Context) {
+		// code for audio transcriptions
+	})
+	router.POST("/audio/translations", func(c *gin.Context) {
+		// code for audio translations
+	})
+	router.POST("/embeddings", func(c *gin.Context) {
+		// code for generating embeddings
+	})
+	router.POST("/images/upload", func(c *gin.Context) {
+		// code for image upload
+	})
+	router.DELETE("/images/:image_id", func(c *gin.Context) {
+		// code for image deletion
+	})
+	router.GET("/images/:image_id", func(c *gin.Context) {
+		// code for getting image info
+	})
+	router.GET("/images/:image_id/content", func(c *gin.Context) {
+		// code for getting image content
+	})
+	router.POST("/chat", func(c *gin.Context) {
+		// code for chatbot interactions
+	})
+	return router
 }
