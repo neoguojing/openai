@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/neoguojing/gocui"
+	"github.com/awesome-gocui/gocui"
 	"github.com/neoguojing/openai"
 	"gopkg.in/yaml.v2"
 )
@@ -79,7 +79,7 @@ var history = newHistoryStack(100)
 
 func main() {
 
-	g, err := gocui.NewGui(gocui.Output256)
+	g, err := gocui.NewGui(gocui.Output256, true)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -109,8 +109,9 @@ func showMessageInOutput(g *gocui.Gui, message string, align string) error {
 	if align == "left" {
 		fmt.Fprintln(outputView, message)
 	} else if align == "right" {
-		fmt.Fprintf(outputView, "%*s\n", vX, message)
+		fmt.Fprintf(outputView, "\033[1;32m%*s\033[0m\n", vX-len(message), message)
 	}
+
 	return nil
 }
 
@@ -188,7 +189,7 @@ type Config struct {
 
 func layout(g *gocui.Gui) error {
 	maxX, maxY := g.Size()
-	if v, err := g.SetView("output", 0, 0, maxX-1, maxY-3); err != nil {
+	if v, err := g.SetView("output", 0, 0, maxX-1, maxY-3, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
@@ -202,7 +203,7 @@ func layout(g *gocui.Gui) error {
 		v.FgColor = gocui.ColorWhite
 		v.BgColor = gocui.ColorBlack
 	}
-	if v, err := g.SetView("input", 0, maxY-3, maxX-1, maxY-1); err != nil {
+	if v, err := g.SetView("input", 0, maxY-3, maxX-1, maxY-1, 0); err != nil {
 		if err != gocui.ErrUnknownView {
 			return err
 		}
