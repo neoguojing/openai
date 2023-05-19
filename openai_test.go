@@ -44,7 +44,7 @@ func TestCompletions(t *testing.T) {
 
 func TestChatCompletions(t *testing.T) {
 	message := "what is the AIGC"
-	resp, err := openai.Chat().Completions(message)
+	resp, err := openai.Chat().Complete(message)
 	if err != nil {
 		t.Errorf("An error occurred while generating chat completions: %v", err)
 		return

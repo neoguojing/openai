@@ -3,16 +3,13 @@ package openai
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 
-	"github.com/gin-contrib/sessions"
-	gormsessions "github.com/gin-contrib/sessions/gorm"
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 type OpenAIOption func(*OpenAI)
@@ -165,7 +162,7 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 	return c
 }
 
-func (o *Chat) Completions(content string) (*ChatResponse, error) {
+func (o *Chat) Complete(content string) (*ChatResponse, error) {
 	client := resty.New()
 	req := ChatRequest{
 		Model: o.model,
@@ -476,7 +473,7 @@ func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
 }
 
 // New code starts here
-func (o *TuneFile) DeleteFile(fileID string) (*DeleteFileResponse, error) {
+func (o *TuneFile) Delete(fileID string) (*DeleteFileResponse, error) {
 	url := "https://api.openai.com/v1/files/" + fileID
 	client := resty.New()
 	resp, err := client.R().
@@ -660,75 +657,308 @@ func (o *OpenAI) Moderation(input string) (*TextModerationResponse, error) {
 	return &textModerationResponse, nil
 }
 
-func (o *OpenAI) GenerateGinRouter() *gin.Engine {
+func (o *OpenAI) GenerateGinRouter(apiKey string) *gin.Engine {
 	router := gin.Default()
-
-	router.Use(gin.Recovery())
-
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	store := gormsessions.NewStore(db, true, []byte("secret"))
-
-	r := gin.Default()
-	r.Use(sessions.Sessions("mysession", store))
-
-	// router.Use(ratelimit.New(ratelimit.Config{
-	// 	MaxRequests: 1000,
-	// 	Duration:    time.Hour,
-	// }))
+	api := NewOpenAI(apiKey)
+	router.Group("/openai/api/v1")
 
 	router.POST("/files/upload", func(c *gin.Context) {
-		// code for file upload
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		fileInfo, err := api.TuneFile().Upload(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fileInfo)
+
 	})
+
 	router.DELETE("/files/:file_id", func(c *gin.Context) {
-		// code for file deletion
+
+		fileID := c.Param("file_id")
+		fileInfo, err := api.TuneFile().Delete(fileID) // get file info using file ID
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fileInfo)
+	})
+
+	router.POST("/fine-tunes/:file_id", func(c *gin.Context) {
+		fileID := c.Param("file_id")
+		fineTuneJob, err := api.FineTune().Create(fileID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fineTuneJob)
+
 	})
 	router.GET("/files/:file_id", func(c *gin.Context) {
-		// code for getting file info
+
+		fileID := c.Param("file_id")
+		fileInfo, err := api.TuneFile().Get(fileID) // get file info using file ID
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fileInfo)
+
 	})
-	router.GET("/files/:file_id/content", func(c *gin.Context) {
-		// code for getting file content
-	})
+
 	router.POST("/fine-tunes", func(c *gin.Context) {
-		// code for fine-tuning
+		fileID := c.PostForm("file_id")
+		fineTuneJob, err := api.FineTune().Create(fileID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fineTuneJob)
+
 	})
 	router.GET("/fine-tunes", func(c *gin.Context) {
-		// code for getting fine-tune job list
+		fineTuneJobList, err := api.FineTune().List()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fineTuneJobList)
+
 	})
 	router.GET("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
-		// code for getting fine-tune job info
+		fineTuneID := c.Param("fine_tune_id")
+		fineTuneJob, err := api.FineTune().Get(fineTuneID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fineTuneJob)
+
 	})
 	router.GET("/fine-tunes/:fine_tune_id/events", func(c *gin.Context) {
-		// code for getting fine-tune job events
+		fineTuneID := c.Param("fine_tune_id")
+		fineTuneJobEventList, err := api.FineTune().Events(fineTuneID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, fineTuneJobEventList)
+
 	})
 	router.DELETE("/fine-tunes/:fine_tune_id", func(c *gin.Context) {
-		// code for deleting fine-tune job
+		fineTuneID := c.Param("fine_tune_id")
+		modelDelete, err := api.FineTune().Delete(fineTuneID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, modelDelete)
+
 	})
 	router.POST("/audio/transcriptions", func(c *gin.Context) {
+
 		// code for audio transcriptions
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		transcription, err := api.Audio().Transcriptions(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, transcription)
+
 	})
 	router.POST("/audio/translations", func(c *gin.Context) {
-		// code for audio translations
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		translation, err := api.Audio().Translations(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, translation)
+
 	})
 	router.POST("/embeddings", func(c *gin.Context) {
-		// code for generating embeddings
+		var input EmbeddingRequest
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		embedding, err := api.GetEmbeddings(input.Input, input.Model)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, embedding)
+
 	})
-	router.POST("/images/upload", func(c *gin.Context) {
-		// code for image upload
+
+	router.POST("/images/generate", func(c *gin.Context) {
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		imageInfo, err := api.Image().Generate(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, imageInfo)
+
 	})
-	router.DELETE("/images/:image_id", func(c *gin.Context) {
-		// code for image deletion
+	router.POST("/images/edit", func(c *gin.Context) {
+
+		// code for image editing
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		edit, err := api.Image().Edit(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, edit)
+
 	})
-	router.GET("/images/:image_id", func(c *gin.Context) {
-		// code for getting image info
+	router.POST("/images/variate", func(c *gin.Context) {
+
+		file, err := c.FormFile("file")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		filePath := "/tmp/" + file.Filename
+		err = c.SaveUploadedFile(file, filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		variation, err := api.Image().Variate(filePath)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, variation)
+
 	})
-	router.GET("/images/:image_id/content", func(c *gin.Context) {
-		// code for getting image content
+
+	router.POST("/chat/complete", func(c *gin.Context) {
+
+		var input ChatInput
+		if err := c.ShouldBindJSON(&input); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		response, err := api.Chat().Complete("")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, response)
+
 	})
-	router.POST("/chat", func(c *gin.Context) {
-		// code for chatbot interactions
+	router.POST("/chat/edit", func(c *gin.Context) {
+
 	})
 	return router
 }

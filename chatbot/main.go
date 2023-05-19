@@ -153,7 +153,7 @@ func openAiChat(input string) ([]string, error) {
 	}
 
 	chat := openai.NewOpenAI(config.OpenAI.ApiKey)
-	resp, err := chat.Chat().Completions(input)
+	resp, err := chat.Chat().Complete(input)
 	if err != nil {
 		return nil, err
 	}
