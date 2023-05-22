@@ -159,15 +159,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/openai.DialogRequest"
                         }
-                    },
-                    {
-                        "description": "Instruction for chat prompt editing",
-                        "name": "instruction",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
                     }
                 ],
                 "responses": {
@@ -211,62 +202,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/openai.DialogRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "Name of the model to use for completion",
-                        "name": "model",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Sampling temperature to use for completion",
-                        "name": "temperature",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Maximum number of tokens to generate for completion",
-                        "name": "max_tokens",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of completions to generate",
-                        "name": "n",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sequence to stop generation at",
-                        "name": "stop",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sequence to force into the generated text",
-                        "name": "presence",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Frequency penalty to use for completion",
-                        "name": "frequency_penalty",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "description": "Presence penalty to use for completion",
-                        "name": "presence_penalty",
-                        "in": "query",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -705,25 +640,13 @@ const docTemplate = `{
                 "summary": "Generate an image",
                 "parameters": [
                     {
-                        "type": "string",
                         "description": "Model to use for image generation",
-                        "name": "model",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of images to generate",
-                        "name": "n",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Size of the image to generate",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -818,20 +741,6 @@ const docTemplate = `{
                         "name": "image",
                         "in": "formData",
                         "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Number of variations to generate",
-                        "name": "n",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Size of the variations to generate",
-                        "name": "size",
-                        "in": "query",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -839,6 +748,50 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/openai.ImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/model/{name}": {
+            "get": {
+                "description": "Get information about a specific OpenAI model",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "summary": "Get a model",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the model",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ModelInfo"
                         }
                     },
                     "400": {
@@ -874,50 +827,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/openai.ModelList"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/main.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/main.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/models/{name}": {
-            "get": {
-                "description": "Get information about a specific OpenAI model",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Models"
-                ],
-                "summary": "Get a model",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Name of the model",
-                        "name": "name",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/openai.ModelInfo"
                         }
                     },
                     "400": {
@@ -1459,6 +1368,35 @@ const docTemplate = `{
                 }
             }
         },
+        "openai.ImageRequest": {
+            "type": "object",
+            "properties": {
+                "model": {
+                    "description": "Model is the ID of the model to use for generating the image.",
+                    "type": "string"
+                },
+                "n": {
+                    "description": "N is the number of images to generate.",
+                    "type": "integer"
+                },
+                "prompt": {
+                    "description": "Prompt is the prompt to use for generating the image.",
+                    "type": "string"
+                },
+                "response_format": {
+                    "description": "ResponseFormat is the format of the response.",
+                    "type": "string"
+                },
+                "size": {
+                    "description": "Size is the size of the image to generate.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/openai.ImageSizeSupported"
+                        }
+                    ]
+                }
+            }
+        },
         "openai.ImageResponse": {
             "type": "object",
             "properties": {
@@ -1480,6 +1418,19 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "openai.ImageSizeSupported": {
+            "type": "string",
+            "enum": [
+                "256x256",
+                "512x512",
+                "1024x1024"
+            ],
+            "x-enum-varnames": [
+                "Size256",
+                "Size512",
+                "Size1024"
+            ]
         },
         "openai.JobDeleteInfo": {
             "type": "object",

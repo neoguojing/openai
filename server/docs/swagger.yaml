@@ -345,6 +345,25 @@ definitions:
         description: Object is the type of object for the response.
         type: string
     type: object
+  openai.ImageRequest:
+    properties:
+      model:
+        description: Model is the ID of the model to use for generating the image.
+        type: string
+      "n":
+        description: N is the number of images to generate.
+        type: integer
+      prompt:
+        description: Prompt is the prompt to use for generating the image.
+        type: string
+      response_format:
+        description: ResponseFormat is the format of the response.
+        type: string
+      size:
+        allOf:
+        - $ref: '#/definitions/openai.ImageSizeSupported'
+        description: Size is the size of the image to generate.
+    type: object
   openai.ImageResponse:
     properties:
       created:
@@ -360,6 +379,16 @@ definitions:
           type: object
         type: array
     type: object
+  openai.ImageSizeSupported:
+    enum:
+    - 256x256
+    - 512x512
+    - 1024x1024
+    type: string
+    x-enum-varnames:
+    - Size256
+    - Size512
+    - Size1024
   openai.JobDeleteInfo:
     properties:
       deleted:
@@ -608,12 +637,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/openai.DialogRequest'
-      - description: Instruction for chat prompt editing
-        in: body
-        name: instruction
-        required: true
-        schema:
-          type: string
       produces:
       - application/json
       responses:
@@ -642,46 +665,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/openai.DialogRequest'
-      - description: Name of the model to use for completion
-        in: query
-        name: model
-        required: true
-        type: string
-      - description: Sampling temperature to use for completion
-        in: query
-        name: temperature
-        required: true
-        type: number
-      - description: Maximum number of tokens to generate for completion
-        in: query
-        name: max_tokens
-        required: true
-        type: integer
-      - description: Number of completions to generate
-        in: query
-        name: "n"
-        required: true
-        type: integer
-      - description: Sequence to stop generation at
-        in: query
-        name: stop
-        required: true
-        type: string
-      - description: Sequence to force into the generated text
-        in: query
-        name: presence
-        required: true
-        type: string
-      - description: Frequency penalty to use for completion
-        in: query
-        name: frequency_penalty
-        required: true
-        type: number
-      - description: Presence penalty to use for completion
-        in: query
-        name: presence_penalty
-        required: true
-        type: number
       produces:
       - application/json
       responses:
@@ -968,20 +951,11 @@ paths:
       description: Generate an image using OpenAI's DALL-E API
       parameters:
       - description: Model to use for image generation
-        in: query
-        name: model
+        in: body
+        name: input
         required: true
-        type: string
-      - description: Number of images to generate
-        in: query
-        name: "n"
-        required: true
-        type: integer
-      - description: Size of the image to generate
-        in: query
-        name: size
-        required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/openai.ImageRequest'
       produces:
       - application/json
       responses:
@@ -1044,16 +1018,6 @@ paths:
         name: image
         required: true
         type: file
-      - description: Number of variations to generate
-        in: query
-        name: "n"
-        required: true
-        type: integer
-      - description: Size of the variations to generate
-        in: query
-        name: size
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
@@ -1072,30 +1036,7 @@ paths:
       summary: Generate image variations
       tags:
       - Images
-  /models:
-    get:
-      consumes:
-      - application/json
-      description: List all available models
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/openai.ModelList'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
-      summary: List models
-      tags:
-      - Models
-  /models/{name}:
+  /model/{name}:
     get:
       consumes:
       - application/json
@@ -1122,6 +1063,29 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get a model
+      tags:
+      - Models
+  /models:
+    get:
+      consumes:
+      - application/json
+      description: List all available models
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ModelList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: List models
       tags:
       - Models
   /moderations:

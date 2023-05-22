@@ -38,9 +38,9 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/images/generate", generateImage)
 	openaiGroup.POST("/images/edit", editImage)
 	openaiGroup.POST("/images/variate", variateImage)
-	openaiGroup.POST("/chat/complete", completeChat)
+	openaiGroup.POST("/chat", completeChat)
 	openaiGroup.POST("/chat/edit", editChat)
-	openaiGroup.GET("/model", listModels)
+	openaiGroup.GET("/models", listModels)
 	openaiGroup.GET("/model/:name", getModel)
 	openaiGroup.POST("/completions", completeText)
 	openaiGroup.POST("/moderations/:text", moderation)
@@ -373,9 +373,7 @@ func getEmbeddings(c *gin.Context) {
 // @Description Generate an image using OpenAI's DALL-E API
 // @Accept json
 // @Produce json
-// @Param model query string true "Model to use for image generation"
-// @Param n query int true "Number of images to generate"
-// @Param size query int true "Size of the image to generate"
+// @Param input body openai.ImageRequest true "Model to use for image generation"
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -440,8 +438,6 @@ func editImage(c *gin.Context) {
 // @Accept multipart/form-data
 // @Produce json
 // @Param image formData file true "Image to generate variations of"
-// @Param n query int true "Number of variations to generate"
-// @Param size query int true "Size of the variations to generate"
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -449,11 +445,9 @@ func editImage(c *gin.Context) {
 // @Tags Images
 func variateImage(c *gin.Context) {
 
-	file, err := c.FormFile("file")
+	file, err := c.FormFile("image")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
 	filePath := "/tmp/" + file.Filename
@@ -503,7 +497,6 @@ func completeChat(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body openai.DialogRequest true "Input for chat prompt"
-// @Param instruction body string true "Instruction for chat prompt editing"
 // @Success 200 {object} openai.EditChatResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -555,7 +548,7 @@ func listModels(c *gin.Context) {
 // @Success 200 {object} openai.ModelInfo
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /models/{name} [get]
+// @Router /model/{name} [get]
 // @Tags Models
 func getModel(c *gin.Context) {
 
@@ -575,14 +568,6 @@ func getModel(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body openai.DialogRequest true "Input for text prompt"
-// @Param model query string true "Name of the model to use for completion"
-// @Param temperature query float64 true "Sampling temperature to use for completion"
-// @Param max_tokens query int true "Maximum number of tokens to generate for completion"
-// @Param n query int true "Number of completions to generate"
-// @Param stop query string true "Sequence to stop generation at"
-// @Param presence query string true "Sequence to force into the generated text"
-// @Param frequency_penalty query float64 true "Frequency penalty to use for completion"
-// @Param presence_penalty query float64 true "Presence penalty to use for completion"
 // @Success 200 {object} openai.CompletionResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
