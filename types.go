@@ -1,5 +1,6 @@
 package openai
 
+// OpenAIRole 是 OpenAI 的角色类型
 type OpenAIRole string
 
 const (
@@ -16,252 +17,433 @@ const (
 	Size1024 ImageSizeSupported = "1024x1024"
 )
 
+// ModelInfo 是模型信息
 type ModelInfo struct {
-	ID         string            `json:"id"`
-	Object     string            `json:"object"`
-	OwnedBy    string            `json:"owned_by"`
+	// 模型 ID
+	ID string `json:"id"`
+	// 模型对象
+	Object string `json:"object"`
+	// 模型所属者
+	OwnedBy string `json:"owned_by"`
+	// 模型权限
 	Permission []ModelPermission `json:"permission"`
 }
 
+// ModelPermission 是模型权限
 type ModelPermission struct {
-	ID                 string      `json:"id"`
-	Object             string      `json:"object"`
-	Created            int         `json:"created"`
-	AllowCreateEngine  bool        `json:"allow_create_engine"`
-	AllowSampling      bool        `json:"allow_sampling"`
-	AllowLogprobs      bool        `json:"allow_logprobs"`
-	AllowSearchIndices bool        `json:"allow_search_indices"`
-	AllowView          bool        `json:"allow_view"`
-	AllowFineTuning    bool        `json:"allow_fine_tuning"`
-	Organization       string      `json:"organization"`
-	Group              interface{} `json:"group"`
-	IsBlocking         bool        `json:"is_blocking"`
+	// 模型 ID
+	ID string `json:"id"`
+	// 是否允许创建引擎
+	AllowCreateEngine bool `json:"allow_create_engine"`
+	// 是否允许采样
+	AllowSampling bool `json:"allow_sampling"`
+	// 是否允许记录概率
+	AllowLogprobs bool `json:"allow_logprobs"`
+	// 是否允许搜索索引
+	AllowSearchIndices bool `json:"allow_search_indices"`
+	// 是否允许查看
+	AllowView bool `json:"allow_view"`
+	// 是否允许微调
+	AllowFineTuning bool `json:"allow_fine_tuning"`
+	// 组织
+	Organization string `json:"organization"`
+	// 组
+	Group interface{} `json:"group"`
+	// 是否阻塞
+	IsBlocking bool `json:"is_blocking"`
 }
 
+// CompletionRequest represents a request to generate text completion.
 type CompletionRequest struct {
-	Model       string  `json:"model"`
-	Prompt      string  `json:"prompt"`
-	MaxTokens   int     `json:"max_tokens"`
+	// Model is the ID of the model to use for text completion.
+	Model string `json:"model"`
+	// Prompt is the text prompt to use for text completion.
+	Prompt string `json:"prompt"`
+	// MaxTokens is the maximum number of tokens to generate in the completion.
+	MaxTokens int `json:"max_tokens"`
+	// Temperature is the sampling temperature to use for text completion.
 	Temperature float64 `json:"temperature"`
-	TopP        float64 `json:"top_p"`
-	N           int     `json:"n"`
-	Stream      bool    `json:"stream"`
-	Logprobs    int     `json:"logprobs"`
-	Stop        string  `json:"stop"`
+	// TopP is the top-p sampling cutoff to use for text completion.
+	TopP float64 `json:"top_p"`
+	// N is the number of completions to generate.
+	N int `json:"n"`
+	// Stream specifies whether to stream the response or wait for the entire response.
+	Stream bool `json:"stream"`
+	// Logprobs specifies the number of log probabilities to generate.
+	Logprobs int `json:"logprobs"`
+	// Stop is the stop sequence to use for text completion.
+	Stop string `json:"stop"`
 }
 
+// CompletionResponse represents a response to generate text completion.
 type CompletionResponse struct {
+	// Choices is an array of choices for text completion.
 	Choices []struct {
-		Text         string      `json:"text"`
-		Index        int         `json:"index"`
-		Logprobs     interface{} `json:"logprobs"`
-		FinishReason string      `json:"finish_reason"`
-	} `json:"choices"`
-	Created int    `json:"created"`
-	ID      string `json:"id"`
-	Model   string `json:"model"`
-	Object  string `json:"object"`
-	Usage   struct {
-		PromptTokens     int `json:"prompt_tokens"`
-		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
-	} `json:"usage"`
-}
-
-type ChatRequest struct {
-	Model    string `json:"model"`
-	Messages []struct {
-		Role    string `json:"role"`
-		Content string `json:"content"`
-	} `json:"messages"`
-}
-
-type ChatResponse struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	Created int    `json:"created"`
-	Choices []struct {
-		Index   int `json:"index"`
-		Message struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		} `json:"message"`
+		// Text is the generated text for the choice.
+		Text string `json:"text"`
+		// Index is the index of the choice.
+		Index int `json:"index"`
+		// Logprobs is the log probabilities for the choice.
+		Logprobs interface{} `json:"logprobs"`
+		// FinishReason is the reason for finishing the choice.
 		FinishReason string `json:"finish_reason"`
 	} `json:"choices"`
+	// Created is the timestamp for when the response was created.
+	Created int `json:"created"`
+	// ID is the ID of the response.
+	ID string `json:"id"`
+	// Model is the ID of the model used for text completion.
+	Model string `json:"model"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Usage is the usage statistics for the response.
 	Usage struct {
-		PromptTokens     int `json:"prompt_tokens"`
+		// PromptTokens is the number of tokens in the prompt.
+		PromptTokens int `json:"prompt_tokens"`
+		// CompletionTokens is the number of tokens in the completion.
 		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
+		// TotalTokens is the total number of tokens.
+		TotalTokens int `json:"total_tokens"`
 	} `json:"usage"`
 }
 
-type EditChatRequest struct {
-	Model    string `json:"model"`
+// ChatRequest represents a request to generate a chat response.
+type ChatRequest struct {
+	// Model is the ID of the model to use for generating the chat response.
+	Model string `json:"model"`
+	// Messages is an array of messages in the chat.
 	Messages []struct {
-		Role    string `json:"role"` //system, user, or assistant.
+		// Role is the role of the message sender (system, user, or assistant).
+		Role string `json:"role"`
+		// Content is the content of the message.
 		Content string `json:"content"`
 	} `json:"messages"`
+}
+
+// ChatResponse represents a response to generate a chat response.
+type ChatResponse struct {
+	// ID is the ID of the response.
+	ID string `json:"id"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Created is the timestamp for when the response was created.
+	Created int `json:"created"`
+	// Choices is an array of choices for text completion.
+	Choices []struct {
+		// Index is the index of the choice.
+		Index int `json:"index"`
+		// Message is the message object for the choice.
+		Message struct {
+			// Role is the role of the message sender (system, user, or assistant).
+			Role string `json:"role"`
+			// Content is the content of the message.
+			Content string `json:"content"`
+		} `json:"message"`
+		// FinishReason is the reason for finishing the choice.
+		FinishReason string `json:"finish_reason"`
+	} `json:"choices"`
+	// Usage is the usage statistics for the response.
+	Usage struct {
+		// PromptTokens is the number of tokens in the prompt.
+		PromptTokens int `json:"prompt_tokens"`
+		// CompletionTokens is the number of tokens in the completion.
+		CompletionTokens int `json:"completion_tokens"`
+		// TotalTokens is the total number of tokens.
+		TotalTokens int `json:"total_tokens"`
+	} `json:"usage"`
+}
+
+// EditChatRequest represents a request to edit a chat response.
+type EditChatRequest struct {
+	// Model is the ID of the model to use for generating the chat response.
+	Model string `json:"model"`
+	// Messages is an array of messages in the chat.
+	Messages []struct {
+		// Role is the role of the message sender (system, user, or assistant).
+		Role string `json:"role"`
+		// Content is the content of the message.
+		Content string `json:"content"`
+	} `json:"messages"`
+	// Instruction is the instruction for editing the chat response.
 	Instruction string `json:"instruction"`
 }
 
+// EditChatResponse represents a response to edit a chat response.
 type EditChatResponse struct {
+	// Choices is an array of choices for text completion.
 	Choices []struct {
-		Text         string      `json:"text"`
-		Index        int         `json:"index"`
-		Logprobs     interface{} `json:"logprobs"`
-		FinishReason string      `json:"finish_reason"`
+		// Text is the generated text for the choice.
+		Text string `json:"text"`
+		// Index is the index of the choice.
+		Index int `json:"index"`
+		// Logprobs is the log probabilities for the choice.
+		Logprobs interface{} `json:"logprobs"`
+		// FinishReason is the reason for finishing the choice.
+		FinishReason string `json:"finish_reason"`
 	} `json:"choices"`
-	Created int    `json:"created"`
-	ID      string `json:"id"`
-	Model   string `json:"model"`
-	Object  string `json:"object"`
-	Usage   struct {
-		PromptTokens     int `json:"prompt_tokens"`
+	// Created is the timestamp for when the response was created.
+	Created int `json:"created"`
+	// ID is the ID of the response.
+	ID string `json:"id"`
+	// Model is the ID of the model used for text completion.
+	Model string `json:"model"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Usage is the usage statistics for the response.
+	Usage struct {
+		// PromptTokens is the number of tokens in the prompt.
+		PromptTokens int `json:"prompt_tokens"`
+		// CompletionTokens is the number of tokens in the completion.
 		CompletionTokens int `json:"completion_tokens"`
-		TotalTokens      int `json:"total_tokens"`
+		// TotalTokens is the total number of tokens.
+		TotalTokens int `json:"total_tokens"`
 	} `json:"usage"`
 }
 
+// ModelList represents a list of models.
 type ModelList struct {
-	Data   []ModelInfo `json:"data"`
-	Object string      `json:"object"`
+	// Data is an array of model information.
+	Data []ModelInfo `json:"data"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
 }
 
+// ImageRequest represents a request to generate an image.
 type ImageRequest struct {
-	Model          string             `json:"model"`
-	Prompt         string             `json:"prompt"`
-	Size           ImageSizeSupported `json:"size"`
-	N              int                `json:"n"`
-	ResponseFormat string             `json:"response_format"`
+	// Model is the ID of the model to use for generating the image.
+	Model string `json:"model"`
+	// Prompt is the prompt to use for generating the image.
+	Prompt string `json:"prompt"`
+	// Size is the size of the image to generate.
+	Size ImageSizeSupported `json:"size"`
+	// N is the number of images to generate.
+	N int `json:"n"`
+	// ResponseFormat is the format of the response.
+	ResponseFormat string `json:"response_format"`
 }
 
+// ImageResponse represents a response to generate an image.
 type ImageResponse struct {
+	// Created is the timestamp for when the response was created.
 	Created int `json:"created"`
-	Data    []struct {
+	// Data is an array of image URLs.
+	Data []struct {
+		// URL is the URL of the generated image.
 		URL string `json:"url"`
 	} `json:"data"`
 }
 
+// EmbeddingRequest represents a request to generate an embedding.
 type EmbeddingRequest struct {
+	// Model is the ID of the model to use for generating the embedding.
 	Model string `json:"model"`
+	// Input is the input text to generate the embedding for.
 	Input string `json:"input"`
 }
 
+// EmbeddingResponse represents a response to generate an embedding.
 type EmbeddingResponse struct {
-	Model  string `json:"model"`
+	// Model is the ID of the model used for generating the embedding.
+	Model string `json:"model"`
+	// Object is the type of object for the response.
 	Object string `json:"object"`
-	Data   []struct {
-		Object    string    `json:"object"`
+	// Data is an array of embedding information.
+	Data []struct {
+		// Object is the type of object for the response.
+		Object string `json:"object"`
+		// Embedding is the embedding generated for the input text.
 		Embedding []float64 `json:"embedding"`
-		Index     int       `json:"index"`
+		// Index is the index of the input text.
+		Index int `json:"index"`
 	} `json:"data"`
+	// Usage is the usage statistics for the response.
 	Usage struct {
+		// PromptTokens is the number of tokens in the prompt.
 		PromptTokens int `json:"prompt_tokens"`
-		TotalTokens  int `json:"total_tokens"`
+		// TotalTokens is the total number of tokens.
+		TotalTokens int `json:"total_tokens"`
 	} `json:"usage"`
 }
+
+// AudioResponse represents a response to generate audio.
 type AudioResponse struct {
+	// Text is the text used to generate the audio.
 	Text string `json:"text"`
 }
 
+// FileList represents a list of files.
 type FileList struct {
-	Data   []FileInfo `json:"data"`
-	Object string     `json:"object"`
+	// Data is an array of file information.
+	Data []FileInfo `json:"data"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
 }
 
+// DeleteFileResponse represents a response to delete a file.
 type DeleteFileResponse struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	Deleted bool   `json:"deleted"`
+	// ID is the ID of the deleted file.
+	ID string `json:"id"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Deleted is a boolean indicating whether the file was successfully deleted.
+	Deleted bool `json:"deleted"`
 }
 
+// FileInfo 文件信息
 type FileInfo struct {
-	ID        string `json:"id"`
-	Object    string `json:"object"`
-	Bytes     int    `json:"bytes"`
-	CreatedAt int    `json:"created_at"`
-	Filename  string `json:"filename"`
-	Purpose   string `json:"purpose"`
+	// ID 是文件的唯一标识符。
+	ID string `json:"id"`
+	// Object 是响应的对象类型。
+	Object string `json:"object"`
+	// Bytes 是文件的大小（以字节为单位）。
+	Bytes int `json:"bytes"`
+	// CreatedAt 是文件创建的时间戳。
+	CreatedAt int `json:"created_at"`
+	// Filename 是文件的名称。
+	Filename string `json:"filename"`
+	// Purpose 是文件的用途。
+	Purpose string `json:"purpose"`
 }
 
+// FineTuneJob represents a job for fine-tuning a model.
 type FineTuneJob struct {
-	ID              string                 `json:"id"`
-	Object          string                 `json:"object"`
-	Model           string                 `json:"model"`
-	CreatedAt       int                    `json:"created_at"`
-	Events          []FineTuneEvent        `json:"events"`
-	FineTunedModel  string                 `json:"fine_tuned_model"`
-	Hyperparams     FineTuneJobHyperparams `json:"hyperparams"`
-	OrganizationID  string                 `json:"organization_id"`
-	ResultFiles     []FileInfo             `json:"result_files"`
-	Status          string                 `json:"status"`
-	ValidationFiles []FileInfo             `json:"validation_files"`
-	TrainingFiles   []FileInfo             `json:"training_files"`
-	UpdatedAt       int                    `json:"updated_at"`
+	// ID is the ID of the fine-tune job.
+	ID string `json:"id"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Model is the ID of the model being fine-tuned.
+	Model string `json:"model"`
+	// CreatedAt is the timestamp for when the fine-tune job was created.
+	CreatedAt int `json:"created_at"`
+	// Events is an array of events for the fine-tune job.
+	Events []FineTuneEvent `json:"events"`
+	// FineTunedModel is the ID of the fine-tuned model.
+	FineTunedModel string `json:"fine_tuned_model"`
+	// Hyperparams is the hyperparameters for the fine-tune job.
+	Hyperparams FineTuneJobHyperparams `json:"hyperparams"`
+	// OrganizationID is the ID of the organization that owns the fine-tune job.
+	OrganizationID string `json:"organization_id"`
+	// ResultFiles is an array of files generated by the fine-tune job.
+	ResultFiles []FileInfo `json:"result_files"`
+	// Status is the status of the fine-tune job.
+	Status string `json:"status"`
+	// ValidationFiles is an array of validation files for the fine-tune job.
+	ValidationFiles []FileInfo `json:"validation_files"`
+	// TrainingFiles is an array of training files for the fine-tune job.
+	TrainingFiles []FileInfo `json:"training_files"`
+	// UpdatedAt is the timestamp for when the fine-tune job was last updated.
+	UpdatedAt int `json:"updated_at"`
 }
 
+// FineTuneEvent represents an event for a fine-tune job.
 type FineTuneEvent struct {
-	Object    string `json:"object"`
-	CreatedAt int    `json:"created_at"`
-	Level     string `json:"level"`
-	Message   string `json:"message"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// CreatedAt is the timestamp for when the event was created.
+	CreatedAt int `json:"created_at"`
+	// Level is the level of the event.
+	Level string `json:"level"`
+	// Message is the message for the event.
+	Message string `json:"message"`
 }
 
+// FineTuneJobList represents a list of fine-tune jobs.
 type FineTuneJobList struct {
-	Data   []FineTuneJob `json:"data"`
-	Object string        `json:"object"`
+	// Data is an array of fine-tune job information.
+	Data []FineTuneJob `json:"data"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
 }
 
+// FineTuneJobEventList represents a list of events for a fine-tune job.
 type FineTuneJobEventList struct {
-	Data   []FineTuneEvent `json:"data"`
-	Object string          `json:"object"`
+	// Data is an array of fine-tune job event information.
+	Data []FineTuneEvent `json:"data"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
 }
 
+// FineTuneJobHyperparams represents the hyperparameters for a fine-tune job.
 type FineTuneJobHyperparams struct {
-	BatchSize        int     `json:"batch_size"`
+	// BatchSize is the batch size for the fine-tune job.
+	BatchSize int `json:"batch_size"`
+	// LearningRateMult is the learning rate multiplier for the fine-tune job.
 	LearningRateMult float64 `json:"learning_rate_multiplier"`
-	NEpochs          int     `json:"n_epochs"`
+	// NEpochs is the number of epochs for the fine-tune job.
+	NEpochs int `json:"n_epochs"`
+	// PromptLossWeight is the prompt loss weight for the fine-tune job.
 	PromptLossWeight float64 `json:"prompt_loss_weight"`
 }
 
-type ModelDelete struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	Deleted bool   `json:"deleted"`
+// JobDeleteInfo represents a response to delete a model.
+type JobDeleteInfo struct {
+	// ID is the ID of the deleted model.
+	ID string `json:"id"`
+	// Object is the type of object for the response.
+	Object string `json:"object"`
+	// Deleted is a boolean indicating whether the model was successfully deleted.
+	Deleted bool `json:"deleted"`
 }
 
+// TextModerationResponse represents a response to a text moderation request.
 type TextModerationResponse struct {
-	ID      string `json:"id"`
-	Model   string `json:"model"`
+	// ID is the ID of the text moderation request.
+	ID string `json:"id"`
+	// Model is the ID of the model used for text moderation.
+	Model string `json:"model"`
+	// Results is an array of text moderation results.
 	Results []struct {
+		// Categories is a struct containing boolean values for different categories of text moderation.
 		Categories struct {
-			Hate            bool `json:"hate"`
+			// Hate is a boolean indicating whether the text contains hate speech.
+			Hate bool `json:"hate"`
+			// HateThreatening is a boolean indicating whether the text contains threatening hate speech.
 			HateThreatening bool `json:"hate/threatening"`
-			SelfHarm        bool `json:"self-harm"`
-			Sexual          bool `json:"sexual"`
-			SexualMinors    bool `json:"sexual/minors"`
-			Violence        bool `json:"violence"`
+			// SelfHarm is a boolean indicating whether the text contains self-harm content.
+			SelfHarm bool `json:"self-harm"`
+			// Sexual is a boolean indicating whether the text contains sexual content.
+			Sexual bool `json:"sexual"`
+			// SexualMinors is a boolean indicating whether the text contains sexual content involving minors.
+			SexualMinors bool `json:"sexual/minors"`
+			// Violence is a boolean indicating whether the text contains violent content.
+			Violence bool `json:"violence"`
+			// ViolenceGraphic is a boolean indicating whether the text contains graphic violent content.
 			ViolenceGraphic bool `json:"violence/graphic"`
 		} `json:"categories"`
+		// CategoryScores is a struct containing float values for the scores of different categories of text moderation.
 		CategoryScores struct {
-			Hate            float64 `json:"hate"`
+			// Hate is the score for hate speech.
+			Hate float64 `json:"hate"`
+			// HateThreatening is the score for threatening hate speech.
 			HateThreatening float64 `json:"hate/threatening"`
-			SelfHarm        float64 `json:"self-harm"`
-			Sexual          float64 `json:"sexual"`
-			SexualMinors    float64 `json:"sexual/minors"`
-			Violence        float64 `json:"violence"`
+			// SelfHarm is the score for self-harm content.
+			SelfHarm float64 `json:"self-harm"`
+			// Sexual is the score for sexual content.
+			Sexual float64 `json:"sexual"`
+			// SexualMinors is the score for sexual content involving minors.
+			SexualMinors float64 `json:"sexual/minors"`
+			// Violence is the score for violent content.
+			Violence float64 `json:"violence"`
+			// ViolenceGraphic is the score for graphic violent content.
 			ViolenceGraphic float64 `json:"violence/graphic"`
 		} `json:"category_scores"`
+		// Flagged is a boolean indicating whether the text was flagged for moderation.
 		Flagged bool `json:"flagged"`
 	} `json:"results"`
 }
 
+// TextModerationRequest represents a request for text moderation.
 type TextModerationRequest struct {
+	// Model is the ID of the model used for text moderation.
 	Model string `json:"model"`
+	// Input is the text to be moderated.
 	Input string `json:"input"`
 }
 
+// DialogRequest represents a request for a dialog.
 type DialogRequest struct {
+	// Instruction is the instruction for the dialog.
 	Instruction string `json:"instruction"`
-	Input       string `json:"input"`
+	// Input is the input for the dialog.
+	Input string `json:"input"`
 }

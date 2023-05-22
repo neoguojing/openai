@@ -15,7 +15,1668 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/openai/api/v1/audio/transcriptions": {
+            "post": {
+                "description": "Transcribe an audio file to text",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Transcribe audio file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Audio file to transcribe",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.AudioResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/audio/translations": {
+            "post": {
+                "description": "Translate an audio file to text",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Translate audio file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Audio file to translate",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.AudioResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/chat": {
+            "post": {
+                "description": "使用OpenAI的API完成聊天提示",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "description": "聊天提示的输入",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.DialogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/chat/edit": {
+            "post": {
+                "description": "Edit a chat prompt using OpenAI's API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Edit a chat prompt",
+                "parameters": [
+                    {
+                        "description": "Input for chat prompt",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.DialogRequest"
+                        }
+                    },
+                    {
+                        "description": "Instruction for chat prompt editing",
+                        "name": "instruction",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.EditChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/completions": {
+            "post": {
+                "description": "Complete a text prompt using OpenAI's API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Complete a text prompt",
+                "parameters": [
+                    {
+                        "description": "Input for text prompt",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.DialogRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the model to use for completion",
+                        "name": "model",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Sampling temperature to use for completion",
+                        "name": "temperature",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Maximum number of tokens to generate for completion",
+                        "name": "max_tokens",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of completions to generate",
+                        "name": "n",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sequence to stop generation at",
+                        "name": "stop",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sequence to force into the generated text",
+                        "name": "presence",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Frequency penalty to use for completion",
+                        "name": "frequency_penalty",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Presence penalty to use for completion",
+                        "name": "presence_penalty",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.CompletionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/embeddings": {
+            "post": {
+                "description": "Get embeddings for a given input",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get embeddings",
+                "parameters": [
+                    {
+                        "description": "Input for which embeddings are to be generated",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.EmbeddingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.EmbeddingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/files/upload": {
+            "post": {
+                "description": "Upload a file to be fine-tuned",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Upload a file",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "File to be uploaded",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FileInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/files/{file_id}": {
+            "get": {
+                "description": "Get information about a fine-tuned file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get file info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "file_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FileInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a fine-tuned file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete a file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "file_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.DeleteFileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/fine-tunes": {
+            "get": {
+                "description": "Get a list of all fine-tune jobs",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get fine-tune job list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FineTuneJobList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/fine-tunes/{file_id}": {
+            "post": {
+                "description": "Create a fine-tune job using a file ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create a fine-tune job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "file_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FineTuneJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/fine-tunes/{fine_tune_id}": {
+            "get": {
+                "description": "Get information about a fine-tune job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get fine-tune job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fine-tune job ID",
+                        "name": "fine_tune_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FineTuneJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a fine-tune job using a fine-tune job ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Delete a fine-tune job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fine-tune job ID",
+                        "name": "fine_tune_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.JobDeleteInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/fine-tunes/{fine_tune_id}/cancel": {
+            "post": {
+                "description": "Cancel a fine-tune job using a fine-tune job ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Cancel a fine-tune job",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fine-tune job ID",
+                        "name": "fine_tune_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FineTuneJob"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/fine-tunes/{fine_tune_id}/events": {
+            "get": {
+                "description": "Get events for a fine-tune job",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get fine-tune job events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fine-tune job ID",
+                        "name": "fine_tune_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FineTuneJobEventList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/images": {
+            "get": {
+                "description": "Generate an image using OpenAI's DALL-E API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Generate an image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Model to use for image generation",
+                        "name": "model",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of images to generate",
+                        "name": "n",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size of the image to generate",
+                        "name": "size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/images/edit": {
+            "post": {
+                "description": "Edit an image using OpenAI's DALL-E API",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Edit an image using OpenAI's DALL-E API",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image to edit",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Prompt for image editing",
+                        "name": "prompt",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/images/variations": {
+            "post": {
+                "description": "Generate variations of an image using OpenAI's DALL-E API",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Generate image variations",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Image to generate variations of",
+                        "name": "image",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of variations to generate",
+                        "name": "n",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size of the variations to generate",
+                        "name": "size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/models": {
+            "get": {
+                "description": "List all available models",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "summary": "List models",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ModelList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/models/{name}": {
+            "get": {
+                "description": "Get information about a specific OpenAI model",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Models"
+                ],
+                "summary": "Get a model",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the model",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ModelInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/openai/api/v1/moderations": {
+            "post": {
+                "description": "Check if text contains inappropriate content using OpenAI's API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Moderation",
+                "parameters": [
+                    {
+                        "description": "Input for moderation",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.DialogRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.TextModerationResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "main.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "openai.AudioResponse": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "description": "Text is the text used to generate the audio.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.ChatResponse": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "description": "Choices is an array of choices for text completion.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "finish_reason": {
+                                "description": "FinishReason is the reason for finishing the choice.",
+                                "type": "string"
+                            },
+                            "index": {
+                                "description": "Index is the index of the choice.",
+                                "type": "integer"
+                            },
+                            "message": {
+                                "description": "Message is the message object for the choice.",
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "description": "Content is the content of the message.",
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "description": "Role is the role of the message sender (system, user, or assistant).",
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "created": {
+                    "description": "Created is the timestamp for when the response was created.",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "ID is the ID of the response.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                },
+                "usage": {
+                    "description": "Usage is the usage statistics for the response.",
+                    "type": "object",
+                    "properties": {
+                        "completion_tokens": {
+                            "description": "CompletionTokens is the number of tokens in the completion.",
+                            "type": "integer"
+                        },
+                        "prompt_tokens": {
+                            "description": "PromptTokens is the number of tokens in the prompt.",
+                            "type": "integer"
+                        },
+                        "total_tokens": {
+                            "description": "TotalTokens is the total number of tokens.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "openai.CompletionResponse": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "description": "Choices is an array of choices for text completion.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "finish_reason": {
+                                "description": "FinishReason is the reason for finishing the choice.",
+                                "type": "string"
+                            },
+                            "index": {
+                                "description": "Index is the index of the choice.",
+                                "type": "integer"
+                            },
+                            "logprobs": {
+                                "description": "Logprobs is the log probabilities for the choice."
+                            },
+                            "text": {
+                                "description": "Text is the generated text for the choice.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "created": {
+                    "description": "Created is the timestamp for when the response was created.",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "ID is the ID of the response.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the ID of the model used for text completion.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                },
+                "usage": {
+                    "description": "Usage is the usage statistics for the response.",
+                    "type": "object",
+                    "properties": {
+                        "completion_tokens": {
+                            "description": "CompletionTokens is the number of tokens in the completion.",
+                            "type": "integer"
+                        },
+                        "prompt_tokens": {
+                            "description": "PromptTokens is the number of tokens in the prompt.",
+                            "type": "integer"
+                        },
+                        "total_tokens": {
+                            "description": "TotalTokens is the total number of tokens.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "openai.DeleteFileResponse": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "description": "Deleted is a boolean indicating whether the file was successfully deleted.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "description": "ID is the ID of the deleted file.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.DialogRequest": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "description": "Input is the input for the dialog.",
+                    "type": "string"
+                },
+                "instruction": {
+                    "description": "Instruction is the instruction for the dialog.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.EditChatResponse": {
+            "type": "object",
+            "properties": {
+                "choices": {
+                    "description": "Choices is an array of choices for text completion.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "finish_reason": {
+                                "description": "FinishReason is the reason for finishing the choice.",
+                                "type": "string"
+                            },
+                            "index": {
+                                "description": "Index is the index of the choice.",
+                                "type": "integer"
+                            },
+                            "logprobs": {
+                                "description": "Logprobs is the log probabilities for the choice."
+                            },
+                            "text": {
+                                "description": "Text is the generated text for the choice.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "created": {
+                    "description": "Created is the timestamp for when the response was created.",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "ID is the ID of the response.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the ID of the model used for text completion.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                },
+                "usage": {
+                    "description": "Usage is the usage statistics for the response.",
+                    "type": "object",
+                    "properties": {
+                        "completion_tokens": {
+                            "description": "CompletionTokens is the number of tokens in the completion.",
+                            "type": "integer"
+                        },
+                        "prompt_tokens": {
+                            "description": "PromptTokens is the number of tokens in the prompt.",
+                            "type": "integer"
+                        },
+                        "total_tokens": {
+                            "description": "TotalTokens is the total number of tokens.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "openai.EmbeddingRequest": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "description": "Input is the input text to generate the embedding for.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the ID of the model to use for generating the embedding.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.EmbeddingResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data is an array of embedding information.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "embedding": {
+                                "description": "Embedding is the embedding generated for the input text.",
+                                "type": "array",
+                                "items": {
+                                    "type": "number"
+                                }
+                            },
+                            "index": {
+                                "description": "Index is the index of the input text.",
+                                "type": "integer"
+                            },
+                            "object": {
+                                "description": "Object is the type of object for the response.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "model": {
+                    "description": "Model is the ID of the model used for generating the embedding.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                },
+                "usage": {
+                    "description": "Usage is the usage statistics for the response.",
+                    "type": "object",
+                    "properties": {
+                        "prompt_tokens": {
+                            "description": "PromptTokens is the number of tokens in the prompt.",
+                            "type": "integer"
+                        },
+                        "total_tokens": {
+                            "description": "TotalTokens is the total number of tokens.",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "openai.FileInfo": {
+            "type": "object",
+            "properties": {
+                "bytes": {
+                    "description": "Bytes 是文件的大小（以字节为单位）。",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "CreatedAt 是文件创建的时间戳。",
+                    "type": "integer"
+                },
+                "filename": {
+                    "description": "Filename 是文件的名称。",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID 是文件的唯一标识符。",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object 是响应的对象类型。",
+                    "type": "string"
+                },
+                "purpose": {
+                    "description": "Purpose 是文件的用途。",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.FineTuneEvent": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the timestamp for when the event was created.",
+                    "type": "integer"
+                },
+                "level": {
+                    "description": "Level is the level of the event.",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message is the message for the event.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.FineTuneJob": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the timestamp for when the fine-tune job was created.",
+                    "type": "integer"
+                },
+                "events": {
+                    "description": "Events is an array of events for the fine-tune job.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FineTuneEvent"
+                    }
+                },
+                "fine_tuned_model": {
+                    "description": "FineTunedModel is the ID of the fine-tuned model.",
+                    "type": "string"
+                },
+                "hyperparams": {
+                    "description": "Hyperparams is the hyperparameters for the fine-tune job.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/openai.FineTuneJobHyperparams"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID is the ID of the fine-tune job.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the ID of the model being fine-tuned.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                },
+                "organization_id": {
+                    "description": "OrganizationID is the ID of the organization that owns the fine-tune job.",
+                    "type": "string"
+                },
+                "result_files": {
+                    "description": "ResultFiles is an array of files generated by the fine-tune job.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FileInfo"
+                    }
+                },
+                "status": {
+                    "description": "Status is the status of the fine-tune job.",
+                    "type": "string"
+                },
+                "training_files": {
+                    "description": "TrainingFiles is an array of training files for the fine-tune job.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FileInfo"
+                    }
+                },
+                "updated_at": {
+                    "description": "UpdatedAt is the timestamp for when the fine-tune job was last updated.",
+                    "type": "integer"
+                },
+                "validation_files": {
+                    "description": "ValidationFiles is an array of validation files for the fine-tune job.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FileInfo"
+                    }
+                }
+            }
+        },
+        "openai.FineTuneJobEventList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data is an array of fine-tune job event information.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FineTuneEvent"
+                    }
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.FineTuneJobHyperparams": {
+            "type": "object",
+            "properties": {
+                "batch_size": {
+                    "description": "BatchSize is the batch size for the fine-tune job.",
+                    "type": "integer"
+                },
+                "learning_rate_multiplier": {
+                    "description": "LearningRateMult is the learning rate multiplier for the fine-tune job.",
+                    "type": "number"
+                },
+                "n_epochs": {
+                    "description": "NEpochs is the number of epochs for the fine-tune job.",
+                    "type": "integer"
+                },
+                "prompt_loss_weight": {
+                    "description": "PromptLossWeight is the prompt loss weight for the fine-tune job.",
+                    "type": "number"
+                }
+            }
+        },
+        "openai.FineTuneJobList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data is an array of fine-tune job information.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FineTuneJob"
+                    }
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.ImageResponse": {
+            "type": "object",
+            "properties": {
+                "created": {
+                    "description": "Created is the timestamp for when the response was created.",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Data is an array of image URLs.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "url": {
+                                "description": "URL is the URL of the generated image.",
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "openai.JobDeleteInfo": {
+            "type": "object",
+            "properties": {
+                "deleted": {
+                    "description": "Deleted is a boolean indicating whether the model was successfully deleted.",
+                    "type": "boolean"
+                },
+                "id": {
+                    "description": "ID is the ID of the deleted model.",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.ModelInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "模型 ID",
+                    "type": "string"
+                },
+                "object": {
+                    "description": "模型对象",
+                    "type": "string"
+                },
+                "owned_by": {
+                    "description": "模型所属者",
+                    "type": "string"
+                },
+                "permission": {
+                    "description": "模型权限",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.ModelPermission"
+                    }
+                }
+            }
+        },
+        "openai.ModelList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data is an array of model information.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.ModelInfo"
+                    }
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.ModelPermission": {
+            "type": "object",
+            "properties": {
+                "allow_create_engine": {
+                    "description": "是否允许创建引擎",
+                    "type": "boolean"
+                },
+                "allow_fine_tuning": {
+                    "description": "是否允许微调",
+                    "type": "boolean"
+                },
+                "allow_logprobs": {
+                    "description": "是否允许记录概率",
+                    "type": "boolean"
+                },
+                "allow_sampling": {
+                    "description": "是否允许采样",
+                    "type": "boolean"
+                },
+                "allow_search_indices": {
+                    "description": "是否允许搜索索引",
+                    "type": "boolean"
+                },
+                "allow_view": {
+                    "description": "是否允许查看",
+                    "type": "boolean"
+                },
+                "group": {
+                    "description": "组"
+                },
+                "id": {
+                    "description": "模型 ID",
+                    "type": "string"
+                },
+                "is_blocking": {
+                    "description": "是否阻塞",
+                    "type": "boolean"
+                },
+                "organization": {
+                    "description": "组织",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.TextModerationResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "ID is the ID of the text moderation request.",
+                    "type": "string"
+                },
+                "model": {
+                    "description": "Model is the ID of the model used for text moderation.",
+                    "type": "string"
+                },
+                "results": {
+                    "description": "Results is an array of text moderation results.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "categories": {
+                                "description": "Categories is a struct containing boolean values for different categories of text moderation.",
+                                "type": "object",
+                                "properties": {
+                                    "hate": {
+                                        "description": "Hate is a boolean indicating whether the text contains hate speech.",
+                                        "type": "boolean"
+                                    },
+                                    "hate/threatening": {
+                                        "description": "HateThreatening is a boolean indicating whether the text contains threatening hate speech.",
+                                        "type": "boolean"
+                                    },
+                                    "self-harm": {
+                                        "description": "SelfHarm is a boolean indicating whether the text contains self-harm content.",
+                                        "type": "boolean"
+                                    },
+                                    "sexual": {
+                                        "description": "Sexual is a boolean indicating whether the text contains sexual content.",
+                                        "type": "boolean"
+                                    },
+                                    "sexual/minors": {
+                                        "description": "SexualMinors is a boolean indicating whether the text contains sexual content involving minors.",
+                                        "type": "boolean"
+                                    },
+                                    "violence": {
+                                        "description": "Violence is a boolean indicating whether the text contains violent content.",
+                                        "type": "boolean"
+                                    },
+                                    "violence/graphic": {
+                                        "description": "ViolenceGraphic is a boolean indicating whether the text contains graphic violent content.",
+                                        "type": "boolean"
+                                    }
+                                }
+                            },
+                            "category_scores": {
+                                "description": "CategoryScores is a struct containing float values for the scores of different categories of text moderation.",
+                                "type": "object",
+                                "properties": {
+                                    "hate": {
+                                        "description": "Hate is the score for hate speech.",
+                                        "type": "number"
+                                    },
+                                    "hate/threatening": {
+                                        "description": "HateThreatening is the score for threatening hate speech.",
+                                        "type": "number"
+                                    },
+                                    "self-harm": {
+                                        "description": "SelfHarm is the score for self-harm content.",
+                                        "type": "number"
+                                    },
+                                    "sexual": {
+                                        "description": "Sexual is the score for sexual content.",
+                                        "type": "number"
+                                    },
+                                    "sexual/minors": {
+                                        "description": "SexualMinors is the score for sexual content involving minors.",
+                                        "type": "number"
+                                    },
+                                    "violence": {
+                                        "description": "Violence is the score for violent content.",
+                                        "type": "number"
+                                    },
+                                    "violence/graphic": {
+                                        "description": "ViolenceGraphic is the score for graphic violent content.",
+                                        "type": "number"
+                                    }
+                                }
+                            },
+                            "flagged": {
+                                "description": "Flagged is a boolean indicating whether the text was flagged for moderation.",
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

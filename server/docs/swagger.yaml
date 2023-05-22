@@ -1,4 +1,1155 @@
+definitions:
+  main.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  openai.AudioResponse:
+    properties:
+      text:
+        description: Text is the text used to generate the audio.
+        type: string
+    type: object
+  openai.ChatResponse:
+    properties:
+      choices:
+        description: Choices is an array of choices for text completion.
+        items:
+          properties:
+            finish_reason:
+              description: FinishReason is the reason for finishing the choice.
+              type: string
+            index:
+              description: Index is the index of the choice.
+              type: integer
+            message:
+              description: Message is the message object for the choice.
+              properties:
+                content:
+                  description: Content is the content of the message.
+                  type: string
+                role:
+                  description: Role is the role of the message sender (system, user,
+                    or assistant).
+                  type: string
+              type: object
+          type: object
+        type: array
+      created:
+        description: Created is the timestamp for when the response was created.
+        type: integer
+      id:
+        description: ID is the ID of the response.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+      usage:
+        description: Usage is the usage statistics for the response.
+        properties:
+          completion_tokens:
+            description: CompletionTokens is the number of tokens in the completion.
+            type: integer
+          prompt_tokens:
+            description: PromptTokens is the number of tokens in the prompt.
+            type: integer
+          total_tokens:
+            description: TotalTokens is the total number of tokens.
+            type: integer
+        type: object
+    type: object
+  openai.CompletionResponse:
+    properties:
+      choices:
+        description: Choices is an array of choices for text completion.
+        items:
+          properties:
+            finish_reason:
+              description: FinishReason is the reason for finishing the choice.
+              type: string
+            index:
+              description: Index is the index of the choice.
+              type: integer
+            logprobs:
+              description: Logprobs is the log probabilities for the choice.
+            text:
+              description: Text is the generated text for the choice.
+              type: string
+          type: object
+        type: array
+      created:
+        description: Created is the timestamp for when the response was created.
+        type: integer
+      id:
+        description: ID is the ID of the response.
+        type: string
+      model:
+        description: Model is the ID of the model used for text completion.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+      usage:
+        description: Usage is the usage statistics for the response.
+        properties:
+          completion_tokens:
+            description: CompletionTokens is the number of tokens in the completion.
+            type: integer
+          prompt_tokens:
+            description: PromptTokens is the number of tokens in the prompt.
+            type: integer
+          total_tokens:
+            description: TotalTokens is the total number of tokens.
+            type: integer
+        type: object
+    type: object
+  openai.DeleteFileResponse:
+    properties:
+      deleted:
+        description: Deleted is a boolean indicating whether the file was successfully
+          deleted.
+        type: boolean
+      id:
+        description: ID is the ID of the deleted file.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.DialogRequest:
+    properties:
+      input:
+        description: Input is the input for the dialog.
+        type: string
+      instruction:
+        description: Instruction is the instruction for the dialog.
+        type: string
+    type: object
+  openai.EditChatResponse:
+    properties:
+      choices:
+        description: Choices is an array of choices for text completion.
+        items:
+          properties:
+            finish_reason:
+              description: FinishReason is the reason for finishing the choice.
+              type: string
+            index:
+              description: Index is the index of the choice.
+              type: integer
+            logprobs:
+              description: Logprobs is the log probabilities for the choice.
+            text:
+              description: Text is the generated text for the choice.
+              type: string
+          type: object
+        type: array
+      created:
+        description: Created is the timestamp for when the response was created.
+        type: integer
+      id:
+        description: ID is the ID of the response.
+        type: string
+      model:
+        description: Model is the ID of the model used for text completion.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+      usage:
+        description: Usage is the usage statistics for the response.
+        properties:
+          completion_tokens:
+            description: CompletionTokens is the number of tokens in the completion.
+            type: integer
+          prompt_tokens:
+            description: PromptTokens is the number of tokens in the prompt.
+            type: integer
+          total_tokens:
+            description: TotalTokens is the total number of tokens.
+            type: integer
+        type: object
+    type: object
+  openai.EmbeddingRequest:
+    properties:
+      input:
+        description: Input is the input text to generate the embedding for.
+        type: string
+      model:
+        description: Model is the ID of the model to use for generating the embedding.
+        type: string
+    type: object
+  openai.EmbeddingResponse:
+    properties:
+      data:
+        description: Data is an array of embedding information.
+        items:
+          properties:
+            embedding:
+              description: Embedding is the embedding generated for the input text.
+              items:
+                type: number
+              type: array
+            index:
+              description: Index is the index of the input text.
+              type: integer
+            object:
+              description: Object is the type of object for the response.
+              type: string
+          type: object
+        type: array
+      model:
+        description: Model is the ID of the model used for generating the embedding.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+      usage:
+        description: Usage is the usage statistics for the response.
+        properties:
+          prompt_tokens:
+            description: PromptTokens is the number of tokens in the prompt.
+            type: integer
+          total_tokens:
+            description: TotalTokens is the total number of tokens.
+            type: integer
+        type: object
+    type: object
+  openai.FileInfo:
+    properties:
+      bytes:
+        description: Bytes 是文件的大小（以字节为单位）。
+        type: integer
+      created_at:
+        description: CreatedAt 是文件创建的时间戳。
+        type: integer
+      filename:
+        description: Filename 是文件的名称。
+        type: string
+      id:
+        description: ID 是文件的唯一标识符。
+        type: string
+      object:
+        description: Object 是响应的对象类型。
+        type: string
+      purpose:
+        description: Purpose 是文件的用途。
+        type: string
+    type: object
+  openai.FineTuneEvent:
+    properties:
+      created_at:
+        description: CreatedAt is the timestamp for when the event was created.
+        type: integer
+      level:
+        description: Level is the level of the event.
+        type: string
+      message:
+        description: Message is the message for the event.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.FineTuneJob:
+    properties:
+      created_at:
+        description: CreatedAt is the timestamp for when the fine-tune job was created.
+        type: integer
+      events:
+        description: Events is an array of events for the fine-tune job.
+        items:
+          $ref: '#/definitions/openai.FineTuneEvent'
+        type: array
+      fine_tuned_model:
+        description: FineTunedModel is the ID of the fine-tuned model.
+        type: string
+      hyperparams:
+        allOf:
+        - $ref: '#/definitions/openai.FineTuneJobHyperparams'
+        description: Hyperparams is the hyperparameters for the fine-tune job.
+      id:
+        description: ID is the ID of the fine-tune job.
+        type: string
+      model:
+        description: Model is the ID of the model being fine-tuned.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+      organization_id:
+        description: OrganizationID is the ID of the organization that owns the fine-tune
+          job.
+        type: string
+      result_files:
+        description: ResultFiles is an array of files generated by the fine-tune job.
+        items:
+          $ref: '#/definitions/openai.FileInfo'
+        type: array
+      status:
+        description: Status is the status of the fine-tune job.
+        type: string
+      training_files:
+        description: TrainingFiles is an array of training files for the fine-tune
+          job.
+        items:
+          $ref: '#/definitions/openai.FileInfo'
+        type: array
+      updated_at:
+        description: UpdatedAt is the timestamp for when the fine-tune job was last
+          updated.
+        type: integer
+      validation_files:
+        description: ValidationFiles is an array of validation files for the fine-tune
+          job.
+        items:
+          $ref: '#/definitions/openai.FileInfo'
+        type: array
+    type: object
+  openai.FineTuneJobEventList:
+    properties:
+      data:
+        description: Data is an array of fine-tune job event information.
+        items:
+          $ref: '#/definitions/openai.FineTuneEvent'
+        type: array
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.FineTuneJobHyperparams:
+    properties:
+      batch_size:
+        description: BatchSize is the batch size for the fine-tune job.
+        type: integer
+      learning_rate_multiplier:
+        description: LearningRateMult is the learning rate multiplier for the fine-tune
+          job.
+        type: number
+      n_epochs:
+        description: NEpochs is the number of epochs for the fine-tune job.
+        type: integer
+      prompt_loss_weight:
+        description: PromptLossWeight is the prompt loss weight for the fine-tune
+          job.
+        type: number
+    type: object
+  openai.FineTuneJobList:
+    properties:
+      data:
+        description: Data is an array of fine-tune job information.
+        items:
+          $ref: '#/definitions/openai.FineTuneJob'
+        type: array
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.ImageResponse:
+    properties:
+      created:
+        description: Created is the timestamp for when the response was created.
+        type: integer
+      data:
+        description: Data is an array of image URLs.
+        items:
+          properties:
+            url:
+              description: URL is the URL of the generated image.
+              type: string
+          type: object
+        type: array
+    type: object
+  openai.JobDeleteInfo:
+    properties:
+      deleted:
+        description: Deleted is a boolean indicating whether the model was successfully
+          deleted.
+        type: boolean
+      id:
+        description: ID is the ID of the deleted model.
+        type: string
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.ModelInfo:
+    properties:
+      id:
+        description: 模型 ID
+        type: string
+      object:
+        description: 模型对象
+        type: string
+      owned_by:
+        description: 模型所属者
+        type: string
+      permission:
+        description: 模型权限
+        items:
+          $ref: '#/definitions/openai.ModelPermission'
+        type: array
+    type: object
+  openai.ModelList:
+    properties:
+      data:
+        description: Data is an array of model information.
+        items:
+          $ref: '#/definitions/openai.ModelInfo'
+        type: array
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
+  openai.ModelPermission:
+    properties:
+      allow_create_engine:
+        description: 是否允许创建引擎
+        type: boolean
+      allow_fine_tuning:
+        description: 是否允许微调
+        type: boolean
+      allow_logprobs:
+        description: 是否允许记录概率
+        type: boolean
+      allow_sampling:
+        description: 是否允许采样
+        type: boolean
+      allow_search_indices:
+        description: 是否允许搜索索引
+        type: boolean
+      allow_view:
+        description: 是否允许查看
+        type: boolean
+      group:
+        description: 组
+      id:
+        description: 模型 ID
+        type: string
+      is_blocking:
+        description: 是否阻塞
+        type: boolean
+      organization:
+        description: 组织
+        type: string
+    type: object
+  openai.TextModerationResponse:
+    properties:
+      id:
+        description: ID is the ID of the text moderation request.
+        type: string
+      model:
+        description: Model is the ID of the model used for text moderation.
+        type: string
+      results:
+        description: Results is an array of text moderation results.
+        items:
+          properties:
+            categories:
+              description: Categories is a struct containing boolean values for different
+                categories of text moderation.
+              properties:
+                hate:
+                  description: Hate is a boolean indicating whether the text contains
+                    hate speech.
+                  type: boolean
+                hate/threatening:
+                  description: HateThreatening is a boolean indicating whether the
+                    text contains threatening hate speech.
+                  type: boolean
+                self-harm:
+                  description: SelfHarm is a boolean indicating whether the text contains
+                    self-harm content.
+                  type: boolean
+                sexual:
+                  description: Sexual is a boolean indicating whether the text contains
+                    sexual content.
+                  type: boolean
+                sexual/minors:
+                  description: SexualMinors is a boolean indicating whether the text
+                    contains sexual content involving minors.
+                  type: boolean
+                violence:
+                  description: Violence is a boolean indicating whether the text contains
+                    violent content.
+                  type: boolean
+                violence/graphic:
+                  description: ViolenceGraphic is a boolean indicating whether the
+                    text contains graphic violent content.
+                  type: boolean
+              type: object
+            category_scores:
+              description: CategoryScores is a struct containing float values for
+                the scores of different categories of text moderation.
+              properties:
+                hate:
+                  description: Hate is the score for hate speech.
+                  type: number
+                hate/threatening:
+                  description: HateThreatening is the score for threatening hate speech.
+                  type: number
+                self-harm:
+                  description: SelfHarm is the score for self-harm content.
+                  type: number
+                sexual:
+                  description: Sexual is the score for sexual content.
+                  type: number
+                sexual/minors:
+                  description: SexualMinors is the score for sexual content involving
+                    minors.
+                  type: number
+                violence:
+                  description: Violence is the score for violent content.
+                  type: number
+                violence/graphic:
+                  description: ViolenceGraphic is the score for graphic violent content.
+                  type: number
+              type: object
+            flagged:
+              description: Flagged is a boolean indicating whether the text was flagged
+                for moderation.
+              type: boolean
+          type: object
+        type: array
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /openai/api/v1/audio/transcriptions:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Transcribe an audio file to text
+      parameters:
+      - description: Audio file to transcribe
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.AudioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Transcribe audio file
+  /openai/api/v1/audio/translations:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Translate an audio file to text
+      parameters:
+      - description: Audio file to translate
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.AudioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Translate audio file
+  /openai/api/v1/chat:
+    post:
+      consumes:
+      - application/json
+      description: 使用OpenAI的API完成聊天提示
+      parameters:
+      - description: 聊天提示的输入
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.DialogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+  /openai/api/v1/chat/edit:
+    post:
+      consumes:
+      - application/json
+      description: Edit a chat prompt using OpenAI's API
+      parameters:
+      - description: Input for chat prompt
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.DialogRequest'
+      - description: Instruction for chat prompt editing
+        in: body
+        name: instruction
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.EditChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Edit a chat prompt
+  /openai/api/v1/completions:
+    post:
+      consumes:
+      - application/json
+      description: Complete a text prompt using OpenAI's API
+      parameters:
+      - description: Input for text prompt
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.DialogRequest'
+      - description: Name of the model to use for completion
+        in: query
+        name: model
+        required: true
+        type: string
+      - description: Sampling temperature to use for completion
+        in: query
+        name: temperature
+        required: true
+        type: number
+      - description: Maximum number of tokens to generate for completion
+        in: query
+        name: max_tokens
+        required: true
+        type: integer
+      - description: Number of completions to generate
+        in: query
+        name: "n"
+        required: true
+        type: integer
+      - description: Sequence to stop generation at
+        in: query
+        name: stop
+        required: true
+        type: string
+      - description: Sequence to force into the generated text
+        in: query
+        name: presence
+        required: true
+        type: string
+      - description: Frequency penalty to use for completion
+        in: query
+        name: frequency_penalty
+        required: true
+        type: number
+      - description: Presence penalty to use for completion
+        in: query
+        name: presence_penalty
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.CompletionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Complete a text prompt
+  /openai/api/v1/embeddings:
+    post:
+      consumes:
+      - application/json
+      description: Get embeddings for a given input
+      parameters:
+      - description: Input for which embeddings are to be generated
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.EmbeddingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.EmbeddingResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get embeddings
+  /openai/api/v1/files/{file_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a fine-tuned file
+      parameters:
+      - description: File ID
+        in: path
+        name: file_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.DeleteFileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Delete a file
+    get:
+      consumes:
+      - application/json
+      description: Get information about a fine-tuned file
+      parameters:
+      - description: File ID
+        in: path
+        name: file_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FileInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get file info
+  /openai/api/v1/files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file to be fine-tuned
+      parameters:
+      - description: File to be uploaded
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FileInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Upload a file
+  /openai/api/v1/fine-tunes:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all fine-tune jobs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FineTuneJobList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get fine-tune job list
+  /openai/api/v1/fine-tunes/{file_id}:
+    post:
+      consumes:
+      - application/json
+      description: Create a fine-tune job using a file ID
+      parameters:
+      - description: File ID
+        in: path
+        name: file_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FineTuneJob'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Create a fine-tune job
+  /openai/api/v1/fine-tunes/{fine_tune_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a fine-tune job using a fine-tune job ID
+      parameters:
+      - description: Fine-tune job ID
+        in: path
+        name: fine_tune_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.JobDeleteInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Delete a fine-tune job
+    get:
+      consumes:
+      - application/json
+      description: Get information about a fine-tune job
+      parameters:
+      - description: Fine-tune job ID
+        in: path
+        name: fine_tune_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FineTuneJob'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get fine-tune job
+  /openai/api/v1/fine-tunes/{fine_tune_id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancel a fine-tune job using a fine-tune job ID
+      parameters:
+      - description: Fine-tune job ID
+        in: path
+        name: fine_tune_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FineTuneJob'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Cancel a fine-tune job
+  /openai/api/v1/fine-tunes/{fine_tune_id}/events:
+    get:
+      consumes:
+      - application/json
+      description: Get events for a fine-tune job
+      parameters:
+      - description: Fine-tune job ID
+        in: path
+        name: fine_tune_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FineTuneJobEventList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get fine-tune job events
+  /openai/api/v1/images:
+    get:
+      consumes:
+      - application/json
+      description: Generate an image using OpenAI's DALL-E API
+      parameters:
+      - description: Model to use for image generation
+        in: query
+        name: model
+        required: true
+        type: string
+      - description: Number of images to generate
+        in: query
+        name: "n"
+        required: true
+        type: integer
+      - description: Size of the image to generate
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Generate an image
+      tags:
+      - Images
+  /openai/api/v1/images/edit:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Edit an image using OpenAI's DALL-E API
+      parameters:
+      - description: Image to edit
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Prompt for image editing
+        in: formData
+        name: prompt
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Edit an image using OpenAI's DALL-E API
+      tags:
+      - Images
+  /openai/api/v1/images/variations:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Generate variations of an image using OpenAI's DALL-E API
+      parameters:
+      - description: Image to generate variations of
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Number of variations to generate
+        in: query
+        name: "n"
+        required: true
+        type: integer
+      - description: Size of the variations to generate
+        in: query
+        name: size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Generate image variations
+      tags:
+      - Images
+  /openai/api/v1/models:
+    get:
+      consumes:
+      - application/json
+      description: List all available models
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ModelList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: List models
+      tags:
+      - Models
+  /openai/api/v1/models/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Get information about a specific OpenAI model
+      parameters:
+      - description: Name of the model
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ModelInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get a model
+      tags:
+      - Models
+  /openai/api/v1/moderations:
+    post:
+      consumes:
+      - application/json
+      description: Check if text contains inappropriate content using OpenAI's API
+      parameters:
+      - description: Input for moderation
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.DialogRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.TextModerationResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Moderation
 swagger: "2.0"

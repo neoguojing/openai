@@ -51,7 +51,7 @@ func init() {
 	config.GetConfig()
 	starter = cmd.NewCommander()
 	starter.Register(&Server{})
-	gormboot.Init()
+	// gormboot.Init()
 }
 
 func main() {

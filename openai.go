@@ -620,7 +620,7 @@ func (o *FineTune) Events(fine_tune_id string) (*FineTuneJobEventList, error) {
 	return &fineTuneJobEventList, nil
 }
 
-func (o *FineTune) Delete(fine_tune_id string) (*ModelDelete, error) {
+func (o *FineTune) Delete(fine_tune_id string) (*JobDeleteInfo, error) {
 	url := "https://api.openai.com/v1/fine-tunes/" + fine_tune_id
 	client := resty.New()
 	resp, err := client.R().
@@ -629,7 +629,7 @@ func (o *FineTune) Delete(fine_tune_id string) (*ModelDelete, error) {
 	if err != nil {
 		return nil, err
 	}
-	var modelDelete ModelDelete
+	var modelDelete JobDeleteInfo
 	err = json.Unmarshal(resp.Body(), &modelDelete)
 	if err != nil {
 		return nil, err

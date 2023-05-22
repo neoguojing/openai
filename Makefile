@@ -13,10 +13,14 @@ build:
 
 clean:
 	rm -f chatbot
+	
+doc:
+	cd $(CUR_DIR)/server && swag init --parseDependency
 
-# Generate godoc
-godoc:
-	go doc -http=:6060
+	
+
+
+	
 
 
 
