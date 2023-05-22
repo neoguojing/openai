@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/neoguojing/openai"
+	docs "github.com/neoguojing/openai/server/docs"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -18,6 +19,8 @@ var api *openai.OpenAI
 // @BasePath /openai/api/v1
 func GenerateGinRouter(apiKey string) *gin.Engine {
 	router := gin.Default()
+	docs.SwaggerInfo.BasePath = "/openai/api/v1"
+
 	api = openai.NewOpenAI(apiKey)
 	openaiGroup := router.Group("/openai/api/v1")
 	openaiGroup.POST("/files/upload", uploadFile)
@@ -37,7 +40,7 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/images/variate", variateImage)
 	openaiGroup.POST("/chat/complete", completeChat)
 	openaiGroup.POST("/chat/edit", editChat)
-	openaiGroup.GET("/model/list", listModels)
+	openaiGroup.GET("/model", listModels)
 	openaiGroup.GET("/model/:name", getModel)
 	openaiGroup.POST("/completions", completeText)
 	openaiGroup.POST("/moderations/:text", moderation)
@@ -63,7 +66,7 @@ func NewErrorResponse(err error) *ErrorResponse {
 // @Success 200 {object} openai.FileInfo
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/files/upload [post]
+// @Router /files/upload [post]
 func uploadFile(c *gin.Context) {
 
 	file, err := c.FormFile("file")
@@ -95,7 +98,7 @@ func uploadFile(c *gin.Context) {
 // @Success 200 {object} openai.FileInfo
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/files/{file_id} [get]
+// @Router /files/{file_id} [get]
 func getFile(c *gin.Context) {
 
 	fileID := c.Param("file_id")
@@ -118,7 +121,7 @@ func getFile(c *gin.Context) {
 // @Success 200 {object} openai.DeleteFileResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/files/{file_id} [delete]
+// @Router /files/{file_id} [delete]
 func deleteFile(c *gin.Context) {
 	fileID := c.Param("file_id")
 	var err error
@@ -139,7 +142,7 @@ func deleteFile(c *gin.Context) {
 // @Success 200 {object} openai.FineTuneJob
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes/{file_id} [post]
+// @Router /fine-tunes/{file_id} [post]
 func createFineTuneJob(c *gin.Context) {
 
 	fileID := c.Param("file_id")
@@ -161,7 +164,7 @@ func createFineTuneJob(c *gin.Context) {
 // @Success 200 {object} openai.FineTuneJobList
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes [get]
+// @Router /fine-tunes [get]
 func getFineTuneJobList(c *gin.Context) {
 	var err error
 	var fineTuneJobList *openai.FineTuneJobList
@@ -181,7 +184,7 @@ func getFineTuneJobList(c *gin.Context) {
 // @Success 200 {object} openai.FineTuneJob
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes/{fine_tune_id} [get]
+// @Router /fine-tunes/{fine_tune_id} [get]
 func getFineTuneJob(c *gin.Context) {
 
 	fineTuneID := c.Param("fine_tune_id")
@@ -203,7 +206,7 @@ func getFineTuneJob(c *gin.Context) {
 // @Success 200 {object} openai.FineTuneJobEventList
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes/{fine_tune_id}/events [get]
+// @Router /fine-tunes/{fine_tune_id}/events [get]
 func getFineTuneJobEvents(c *gin.Context) {
 
 	fineTuneID := c.Param("fine_tune_id")
@@ -226,7 +229,7 @@ func getFineTuneJobEvents(c *gin.Context) {
 // @Success 200 {object} openai.JobDeleteInfo
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes/{fine_tune_id} [delete]
+// @Router /fine-tunes/{fine_tune_id} [delete]
 func deleteFineTuneJob(c *gin.Context) {
 
 	fineTuneID := c.Param("fine_tune_id")
@@ -249,7 +252,7 @@ func deleteFineTuneJob(c *gin.Context) {
 // @Success 200 {object} openai.FineTuneJob
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/fine-tunes/{fine_tune_id}/cancel [post]
+// @Router /fine-tunes/{fine_tune_id}/cancel [post]
 func cancelFineTuneJob(c *gin.Context) {
 
 	fineTuneID := c.Param("fine_tune_id")
@@ -272,7 +275,7 @@ func cancelFineTuneJob(c *gin.Context) {
 // @Success 200 {object} openai.AudioResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/audio/transcriptions [post]
+// @Router /audio/transcriptions [post]
 func transcribeAudio(c *gin.Context) {
 
 	// code for audio transcriptions
@@ -310,7 +313,7 @@ func transcribeAudio(c *gin.Context) {
 // @Success 200 {object} openai.AudioResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/audio/translations [post]
+// @Router /audio/translations [post]
 func translateAudio(c *gin.Context) {
 
 	file, err := c.FormFile("file")
@@ -346,7 +349,7 @@ func translateAudio(c *gin.Context) {
 // @Success 200 {object} openai.EmbeddingResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/embeddings [post]
+// @Router /embeddings [post]
 func getEmbeddings(c *gin.Context) {
 
 	var input openai.EmbeddingRequest
@@ -376,7 +379,7 @@ func getEmbeddings(c *gin.Context) {
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/images [get]
+// @Router /images [get]
 // @Tags Images
 func generateImage(c *gin.Context) {
 
@@ -406,7 +409,7 @@ func generateImage(c *gin.Context) {
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/images/edit [post]
+// @Router /images/edit [post]
 // @Tags Images
 func editImage(c *gin.Context) {
 
@@ -442,7 +445,7 @@ func editImage(c *gin.Context) {
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/images/variations [post]
+// @Router /images/variations [post]
 // @Tags Images
 func variateImage(c *gin.Context) {
 
@@ -476,7 +479,7 @@ func variateImage(c *gin.Context) {
 // @Success 200 {object} openai.ChatResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/chat [post]
+// @Router /chat [post]
 func completeChat(c *gin.Context) {
 
 	var input openai.DialogRequest
@@ -504,7 +507,7 @@ func completeChat(c *gin.Context) {
 // @Success 200 {object} openai.EditChatResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/chat/edit [post]
+// @Router /chat/edit [post]
 func editChat(c *gin.Context) {
 
 	var input openai.DialogRequest
@@ -530,7 +533,7 @@ func editChat(c *gin.Context) {
 // @Success 200 {object} openai.ModelList
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/models [get]
+// @Router /models [get]
 // @Tags Models
 func listModels(c *gin.Context) {
 
@@ -552,7 +555,7 @@ func listModels(c *gin.Context) {
 // @Success 200 {object} openai.ModelInfo
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/models/{name} [get]
+// @Router /models/{name} [get]
 // @Tags Models
 func getModel(c *gin.Context) {
 
@@ -583,7 +586,7 @@ func getModel(c *gin.Context) {
 // @Success 200 {object} openai.CompletionResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/completions [post]
+// @Router /completions [post]
 func completeText(c *gin.Context) {
 
 	var input openai.DialogRequest
@@ -609,7 +612,7 @@ func completeText(c *gin.Context) {
 // @Success 200 {object} openai.TextModerationResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /openai/api/v1/moderations [post]
+// @Router /moderations [post]
 func moderation(c *gin.Context) {
 	var input openai.DialogRequest
 	if err := c.ShouldBindJSON(&input); err != nil {

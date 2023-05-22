@@ -515,7 +515,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /openai/api/v1/audio/transcriptions:
+  /audio/transcriptions:
     post:
       consumes:
       - multipart/form-data
@@ -542,7 +542,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Transcribe audio file
-  /openai/api/v1/audio/translations:
+  /audio/translations:
     post:
       consumes:
       - multipart/form-data
@@ -569,7 +569,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Translate audio file
-  /openai/api/v1/chat:
+  /chat:
     post:
       consumes:
       - application/json
@@ -596,7 +596,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/main.ErrorResponse'
-  /openai/api/v1/chat/edit:
+  /chat/edit:
     post:
       consumes:
       - application/json
@@ -630,7 +630,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Edit a chat prompt
-  /openai/api/v1/completions:
+  /completions:
     post:
       consumes:
       - application/json
@@ -698,7 +698,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Complete a text prompt
-  /openai/api/v1/embeddings:
+  /embeddings:
     post:
       consumes:
       - application/json
@@ -726,7 +726,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get embeddings
-  /openai/api/v1/files/{file_id}:
+  /files/{file_id}:
     delete:
       consumes:
       - application/json
@@ -779,7 +779,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get file info
-  /openai/api/v1/files/upload:
+  /files/upload:
     post:
       consumes:
       - multipart/form-data
@@ -806,7 +806,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Upload a file
-  /openai/api/v1/fine-tunes:
+  /fine-tunes:
     get:
       consumes:
       - application/json
@@ -827,7 +827,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get fine-tune job list
-  /openai/api/v1/fine-tunes/{file_id}:
+  /fine-tunes/{file_id}:
     post:
       consumes:
       - application/json
@@ -854,7 +854,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Create a fine-tune job
-  /openai/api/v1/fine-tunes/{fine_tune_id}:
+  /fine-tunes/{fine_tune_id}:
     delete:
       consumes:
       - application/json
@@ -907,7 +907,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get fine-tune job
-  /openai/api/v1/fine-tunes/{fine_tune_id}/cancel:
+  /fine-tunes/{fine_tune_id}/cancel:
     post:
       consumes:
       - application/json
@@ -934,7 +934,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Cancel a fine-tune job
-  /openai/api/v1/fine-tunes/{fine_tune_id}/events:
+  /fine-tunes/{fine_tune_id}/events:
     get:
       consumes:
       - application/json
@@ -961,7 +961,7 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get fine-tune job events
-  /openai/api/v1/images:
+  /images:
     get:
       consumes:
       - application/json
@@ -1000,7 +1000,7 @@ paths:
       summary: Generate an image
       tags:
       - Images
-  /openai/api/v1/images/edit:
+  /images/edit:
     post:
       consumes:
       - multipart/form-data
@@ -1033,7 +1033,7 @@ paths:
       summary: Edit an image using OpenAI's DALL-E API
       tags:
       - Images
-  /openai/api/v1/images/variations:
+  /images/variations:
     post:
       consumes:
       - multipart/form-data
@@ -1072,7 +1072,7 @@ paths:
       summary: Generate image variations
       tags:
       - Images
-  /openai/api/v1/models:
+  /models:
     get:
       consumes:
       - application/json
@@ -1095,7 +1095,7 @@ paths:
       summary: List models
       tags:
       - Models
-  /openai/api/v1/models/{name}:
+  /models/{name}:
     get:
       consumes:
       - application/json
@@ -1124,7 +1124,7 @@ paths:
       summary: Get a model
       tags:
       - Models
-  /openai/api/v1/moderations:
+  /moderations:
     post:
       consumes:
       - application/json

@@ -16,7 +16,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/openai/api/v1/audio/transcriptions": {
+        "/audio/transcriptions": {
             "post": {
                 "description": "Transcribe an audio file to text",
                 "consumes": [
@@ -57,7 +57,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/audio/translations": {
+        "/audio/translations": {
             "post": {
                 "description": "Translate an audio file to text",
                 "consumes": [
@@ -98,7 +98,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/chat": {
+        "/chat": {
             "post": {
                 "description": "使用OpenAI的API完成聊天提示",
                 "consumes": [
@@ -140,7 +140,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/chat/edit": {
+        "/chat/edit": {
             "post": {
                 "description": "Edit a chat prompt using OpenAI's API",
                 "consumes": [
@@ -192,7 +192,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/completions": {
+        "/completions": {
             "post": {
                 "description": "Complete a text prompt using OpenAI's API",
                 "consumes": [
@@ -291,7 +291,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/embeddings": {
+        "/embeddings": {
             "post": {
                 "description": "Get embeddings for a given input",
                 "consumes": [
@@ -334,7 +334,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/files/upload": {
+        "/files/upload": {
             "post": {
                 "description": "Upload a file to be fine-tuned",
                 "consumes": [
@@ -375,7 +375,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/files/{file_id}": {
+        "/files/{file_id}": {
             "get": {
                 "description": "Get information about a fine-tuned file",
                 "consumes": [
@@ -455,7 +455,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/fine-tunes": {
+        "/fine-tunes": {
             "get": {
                 "description": "Get a list of all fine-tune jobs",
                 "consumes": [
@@ -487,7 +487,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/fine-tunes/{file_id}": {
+        "/fine-tunes/{file_id}": {
             "post": {
                 "description": "Create a fine-tune job using a file ID",
                 "consumes": [
@@ -528,7 +528,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/fine-tunes/{fine_tune_id}": {
+        "/fine-tunes/{fine_tune_id}": {
             "get": {
                 "description": "Get information about a fine-tune job",
                 "consumes": [
@@ -608,7 +608,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/fine-tunes/{fine_tune_id}/cancel": {
+        "/fine-tunes/{fine_tune_id}/cancel": {
             "post": {
                 "description": "Cancel a fine-tune job using a fine-tune job ID",
                 "consumes": [
@@ -649,7 +649,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/fine-tunes/{fine_tune_id}/events": {
+        "/fine-tunes/{fine_tune_id}/events": {
             "get": {
                 "description": "Get events for a fine-tune job",
                 "consumes": [
@@ -690,7 +690,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/images": {
+        "/images": {
             "get": {
                 "description": "Generate an image using OpenAI's DALL-E API",
                 "consumes": [
@@ -748,7 +748,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/images/edit": {
+        "/images/edit": {
             "post": {
                 "description": "Edit an image using OpenAI's DALL-E API",
                 "consumes": [
@@ -798,7 +798,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/images/variations": {
+        "/images/variations": {
             "post": {
                 "description": "Generate variations of an image using OpenAI's DALL-E API",
                 "consumes": [
@@ -856,7 +856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/models": {
+        "/models": {
             "get": {
                 "description": "List all available models",
                 "consumes": [
@@ -891,7 +891,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/models/{name}": {
+        "/models/{name}": {
             "get": {
                 "description": "Get information about a specific OpenAI model",
                 "consumes": [
@@ -935,7 +935,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/openai/api/v1/moderations": {
+        "/moderations": {
             "post": {
                 "description": "Check if text contains inappropriate content using OpenAI's API",
                 "consumes": [
