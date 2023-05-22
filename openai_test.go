@@ -28,9 +28,8 @@ func TestModelGet(t *testing.T) {
 }
 
 func TestCompletions(t *testing.T) {
-	message := "what is the AIGC"
-	maxTokens := 100
-	completionResponse, err := openai.Completions(message, maxTokens)
+	message := "Say this is a test"
+	completionResponse, err := openai.Completions(message)
 	if err != nil {
 		t.Errorf("An error occurred while generating completions: %v", err)
 		return
@@ -99,7 +98,7 @@ func TestImageVariate(t *testing.T) {
 }
 
 func TestGetEmbeddings(t *testing.T) {
-	resp, err := openai.GetEmbeddings("The food was delicious and the waiter...", "text-embedding-ada-002")
+	resp, err := openai.GetEmbeddings("The food was delicious and the waiter...")
 	if err != nil {
 		t.Errorf("An error occurred while retrieving embeddings: %v", err)
 		return

@@ -16,7 +16,7 @@ clean:
 
 # Generate godoc
 godoc:
-	godoc -http=:6060
+	go doc -http=:6060
 
 
 

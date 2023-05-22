@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cmd "github.com/neoguojing/commander"
 	"github.com/neoguojing/gormboot"
-	"github.com/neoguojing/openai"
+	"github.com/neoguojing/openai/server/config"
 )
 
 var (
@@ -25,7 +25,8 @@ type Server struct {
 }
 
 func (s *Server) Start() {
-	Routes = openai.GenerateGinRouter("")
+	apiKey := config.GetConfig().OpenAI.ApiKey
+	Routes = GenerateGinRouter(apiKey)
 	s.serv = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: Routes,
@@ -47,7 +48,7 @@ func (s *Server) Stop() {
 }
 
 func init() {
-
+	config.GetConfig()
 	starter = cmd.NewCommander()
 	starter.Register(&Server{})
 	gormboot.Init()

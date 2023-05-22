@@ -59,6 +59,7 @@ type Image struct {
 type Audio struct {
 	apiKey string
 	url    string
+	model  string
 }
 
 type TuneFile struct {
@@ -121,13 +122,13 @@ func (o *Model) Get(model string) (*ModelInfo, error) {
 	return &modelInfo, nil
 }
 
-func (o *OpenAI) Completions(message string, maxTokens int) (*CompletionResponse, error) {
+func (o *OpenAI) Completions(message string) (*CompletionResponse, error) {
 	o.url = "https://api.openai.com/v1/completions"
 	client := resty.New()
 	req := CompletionRequest{
-		Model:       o.model,
+		Model:       "text-davinci-003",
 		Prompt:      message,
-		MaxTokens:   maxTokens,
+		MaxTokens:   4097,
 		Temperature: 0.7,
 	}
 	resp, err := client.R().
@@ -194,7 +195,7 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 	url := "https://api.openai.com/v1/edits"
 
 	req := EditChatRequest{
-		Model: o.model,
+		Model: "text-davinci-edit-001",
 		Messages: []struct {
 			Role    string `json:"role"`
 			Content string `json:"content"`
@@ -326,7 +327,7 @@ func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*Imag
 	return &imageResponse, nil
 }
 
-func (o *OpenAI) GetEmbeddings(input string, model string) (*EmbeddingResponse, error) {
+func (o *OpenAI) GetEmbeddings(input string) (*EmbeddingResponse, error) {
 	url := "https://api.openai.com/v1/embeddings"
 	client := resty.New()
 	resp, err := client.R().
@@ -335,7 +336,7 @@ func (o *OpenAI) GetEmbeddings(input string, model string) (*EmbeddingResponse, 
 		SetResult(&EmbeddingResponse{}).
 		SetBody(EmbeddingRequest{
 			Input: input,
-			Model: model,
+			Model: "text-embedding-ada-002",
 		}).
 		Post(url)
 	if err != nil {
@@ -355,6 +356,7 @@ func (o *OpenAI) Audio() *Audio {
 	return &Audio{
 		url:    "https://api.openai.com/v1/audio/",
 		apiKey: o.apiKey,
+		model:  "whisper-1",
 	}
 }
 
@@ -374,7 +376,7 @@ func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFileReader("file", fileName, file).
 		SetFormData(map[string]string{
-			"model": "whisper-1",
+			"model": o.model,
 		}).
 		Post(url)
 	if err != nil {
@@ -403,7 +405,7 @@ func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFileReader("file", fileName, file).
 		SetFormData(map[string]string{
-			"model": "whisper-1",
+			"model": o.model,
 		}).
 		Post(url)
 	if err != nil {
