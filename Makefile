@@ -2,7 +2,12 @@
  
 # Get the current directory
 CUR_DIR := $(shell pwd)
-
+# amd64 | arm64
+BUILD_ARCH ?= amd64
+# amd64 | arm64 | cuda10
+BUILD_DEVICE ?= amd64
+PROJECT_VERSION := v1.1.0
+BUILD := `git rev-parse --short HEAD`
 
 
 .PHONY: build clean doc image
@@ -21,10 +26,10 @@ doc:
  
 image:
 	# Build Docker image
-	docker build -t guojingneo/chat-server:latest .
+	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) .
 # Run Docker container
 run:
-	docker run -d -p 8080:8080 guojingneo/chat-server:latest
+	docker run -d -p 8080:8080 guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE)
 
 
 

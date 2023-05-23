@@ -269,6 +269,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/files": {
+            "get": {
+                "description": "List information about the fine-tuned files",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "List file info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.FileList"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/files/upload": {
             "post": {
                 "description": "Upload a file to be fine-tuned",
@@ -625,52 +657,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/images": {
-            "get": {
-                "description": "Generate an image using OpenAI's DALL-E API",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Images"
-                ],
-                "summary": "Generate an image",
-                "parameters": [
-                    {
-                        "description": "Model to use for image generation",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/openai.ImageRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/openai.ImageResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/main.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/main.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/images/edit": {
             "post": {
                 "description": "Edit an image using OpenAI's DALL-E API",
@@ -721,7 +707,53 @@ const docTemplate = `{
                 }
             }
         },
-        "/images/variations": {
+        "/images/generate": {
+            "post": {
+                "description": "Generate an image using OpenAI's DALL-E API",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Images"
+                ],
+                "summary": "Generate an image",
+                "parameters": [
+                    {
+                        "description": "Model to use for image generation",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/openai.ImageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/main.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/images/variate": {
             "post": {
                 "description": "Generate variations of an image using OpenAI's DALL-E API",
                 "consumes": [
@@ -1217,6 +1249,22 @@ const docTemplate = `{
                 },
                 "purpose": {
                     "description": "Purpose 是文件的用途。",
+                    "type": "string"
+                }
+            }
+        },
+        "openai.FileList": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data is an array of file information.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/openai.FileInfo"
+                    }
+                },
+                "object": {
+                    "description": "Object is the type of object for the response.",
                     "type": "string"
                 }
             }

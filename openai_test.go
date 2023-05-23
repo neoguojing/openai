@@ -72,7 +72,7 @@ func TestChatEdits(t *testing.T) {
 
 func TestImageGenerate(t *testing.T) {
 	message := "A cute baby with swing"
-	resp, err := openai.Image().Generate(message, 2, "1024x1024")
+	resp, err := openai.Image().Generate(message, 2)
 	if err != nil {
 		t.Errorf("An error occurred while generating image: %v", err)
 		return

@@ -236,6 +236,17 @@ definitions:
         description: Purpose 是文件的用途。
         type: string
     type: object
+  openai.FileList:
+    properties:
+      data:
+        description: Data is an array of file information.
+        items:
+          $ref: '#/definitions/openai.FileInfo'
+        type: array
+      object:
+        description: Object is the type of object for the response.
+        type: string
+    type: object
   openai.FineTuneEvent:
     properties:
       created_at:
@@ -709,6 +720,27 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get embeddings
+  /files:
+    get:
+      consumes:
+      - application/json
+      description: List information about the fine-tuned files
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.FileList'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: List file info
   /files/{file_id}:
     delete:
       consumes:
@@ -944,36 +976,6 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Get fine-tune job events
-  /images:
-    get:
-      consumes:
-      - application/json
-      description: Generate an image using OpenAI's DALL-E API
-      parameters:
-      - description: Model to use for image generation
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/openai.ImageRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/openai.ImageResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
-      summary: Generate an image
-      tags:
-      - Images
   /images/edit:
     post:
       consumes:
@@ -1007,7 +1009,37 @@ paths:
       summary: Edit an image using OpenAI's DALL-E API
       tags:
       - Images
-  /images/variations:
+  /images/generate:
+    post:
+      consumes:
+      - application/json
+      description: Generate an image using OpenAI's DALL-E API
+      parameters:
+      - description: Model to use for image generation
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/openai.ImageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.ImageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Generate an image
+      tags:
+      - Images
+  /images/variate:
     post:
       consumes:
       - multipart/form-data

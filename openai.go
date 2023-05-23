@@ -2,6 +2,7 @@ package openai
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -233,13 +234,19 @@ func (o *OpenAI) Image() *Image {
 	}
 }
 
-func (o *Image) Generate(prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
+func (o *Image) Generate(prompt string, n int) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/generations"
+
+	if n <= 0 {
+		n = 1
+	} else if n > 10 {
+		n = 10
+	}
 
 	req := ImageRequest{
 		Prompt: prompt,
 		N:      n,
-		Size:   size,
+		Size:   Size1024,
 	}
 	client := resty.New()
 	resp, err := client.R().
@@ -261,7 +268,9 @@ func (o *Image) Generate(prompt string, n int, size ImageSizeSupported) (*ImageR
 func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/edits"
 	client := resty.New()
-
+	if imagePath == "" {
+		return nil, errors.New("u need to upload a file")
+	}
 	file, err := os.Open(imagePath)
 	if err != nil {
 		return nil, err
@@ -269,23 +278,33 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 	defer file.Close()
 	fileName := filepath.Base(imagePath)
 
-	mask, err := os.Open(maskPath)
-	if err != nil {
-		return nil, err
-	}
-	defer mask.Close()
-	maskName := filepath.Base(maskPath)
-
-	resp, err := client.R().
+	req := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetFileReader("image", fileName, file).
-		SetFileReader("mask", maskName, mask).
-		SetFormData(map[string]string{
-			"prompt": prompt,
-			"n":      strconv.Itoa(n),
-			"size":   string(size),
-		}).
-		Post(url)
+		SetFileReader("image", fileName, file)
+
+	var maskName string
+	var mask *os.File
+	if maskPath != "" {
+		mask, err = os.Open(maskPath)
+		if err != nil {
+			return nil, err
+		}
+		defer mask.Close()
+		maskName = filepath.Base(maskPath)
+		req.SetFileReader("mask", maskName, mask)
+	}
+
+	if n <= 0 {
+		n = 1
+	} else if n > 10 {
+		n = 10
+	}
+
+	resp, err := req.SetFormData(map[string]string{
+		"prompt": prompt,
+		"n":      strconv.Itoa(n),
+		"size":   string(size),
+	}).Post(url)
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +318,16 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 
 func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/variations"
+
+	if imagePath == "" {
+		return nil, errors.New("u need to upload a file")
+	}
+
+	if n <= 0 {
+		n = 1
+	} else if n > 10 {
+		n = 10
+	}
 
 	file, err := os.Open(imagePath)
 	if err != nil {

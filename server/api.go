@@ -26,12 +26,13 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/files/upload", uploadFile)
 	openaiGroup.DELETE("/files/:file_id", deleteFile)
 	openaiGroup.GET("/files/:file_id", getFile)
+	openaiGroup.GET("/files", listFiles)
 	openaiGroup.POST("/fine-tunes/:file_id", createFineTuneJob)
 	openaiGroup.GET("/fine-tunes", getFineTuneJobList)
 	openaiGroup.GET("/fine-tunes/:fine_tune_id", getFineTuneJob)
 	openaiGroup.GET("/fine-tunes/:fine_tune_id/events", getFineTuneJobEvents)
 	openaiGroup.DELETE("/fine-tunes/:fine_tune_id", deleteFineTuneJob)
-	openaiGroup.PUT("/fine-tunes/:fine_tune_id", cancelFineTuneJob)
+	openaiGroup.PUT("/fine-tunes/:fine_tune_id/cancel", cancelFineTuneJob)
 	openaiGroup.POST("/audio/transcriptions", transcribeAudio)
 	openaiGroup.POST("/audio/translations", translateAudio)
 	openaiGroup.POST("/embeddings", getEmbeddings)
@@ -43,7 +44,7 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.GET("/models", listModels)
 	openaiGroup.GET("/model/:name", getModel)
 	openaiGroup.POST("/completions", completeText)
-	openaiGroup.POST("/moderations/:text", moderation)
+	openaiGroup.POST("/moderations", moderation)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return router
 }
@@ -105,6 +106,27 @@ func getFile(c *gin.Context) {
 	var err error
 	var fileInfo *openai.FileInfo
 	fileInfo, err = api.TuneFile().Get(fileID) // get file info using file ID
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+	c.JSON(http.StatusOK, fileInfo)
+
+}
+
+// @Summary List file info
+// @Description List information about the fine-tuned files
+// @Accept json
+// @Produce json
+// @Success 200 {object} openai.FileList
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /files [get]
+func listFiles(c *gin.Context) {
+
+	var err error
+	var fileInfo *openai.FileList
+	fileInfo, err = api.TuneFile().List() // get file info using file ID
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -377,7 +399,7 @@ func getEmbeddings(c *gin.Context) {
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images [get]
+// @Router /images/generate [post]
 // @Tags Images
 func generateImage(c *gin.Context) {
 
@@ -389,7 +411,8 @@ func generateImage(c *gin.Context) {
 
 	var err error
 	var response *openai.ImageResponse
-	response, err = api.Image().Generate(input.Model, input.N, input.Size)
+
+	response, err = api.Image().Generate(input.Prompt, input.N)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -441,7 +464,7 @@ func editImage(c *gin.Context) {
 // @Success 200 {object} openai.ImageResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Router /images/variations [post]
+// @Router /images/variate [post]
 // @Tags Images
 func variateImage(c *gin.Context) {
 
