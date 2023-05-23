@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/eatmoreapple/openwechat"
 	"github.com/neoguojing/openai"
+	"github.com/neoguojing/openwechat"
 )
 
 func main() {
@@ -52,33 +52,75 @@ func MessageHandler(msg *openwechat.Message) {
 	if !msg.IsText() {
 		return
 	}
-	log.Println(msg.Content)
-	gptResp, err := openai.NewOpenAI("").Chat().Complete(msg.Content)
+
+	sender, _ := msg.Sender()
+	log.Println(sender.NickName, msg.Content)
+
+	if msg.IsSendByGroup() {
+		if !msg.IsAt() {
+			return
+		}
+		// group := openwechat.Group(sender)
+		// log.Println(group.NickName, msg.Content)
+		recv, _ := msg.Receiver()
+		if recv.IsSelf() {
+			dumpText := "@" + sender.Self().NickName
+			msg.Content = strings.ReplaceAll(msg.Content, dumpText, "")
+			if msg.Content == "" {
+				return
+			}
+			replayText, err := chatGPTReplay(msg)
+			if err != nil {
+				log.Println("ReplyText: ", err.Error())
+				msg.ReplyText("ops...")
+				return
+			}
+			gSendor, err := msg.SenderInGroup()
+			if err != nil {
+				log.Println("SendorInGroup: ", err.Error())
+				msg.ReplyText("ops...")
+				return
+			}
+
+			replayText = "@" + gSendor.NickName + replayText
+			_, err = msg.ReplyText(replayText)
+			if err != nil {
+				log.Println("ReplyText: ", err.Error())
+			}
+		}
+
+	} else if msg.IsSendByFriend() {
+		replayText, err := chatGPTReplay(msg)
+		if err != nil {
+			log.Println("ReplyText: ", err.Error())
+			msg.ReplyText("ops...")
+			return
+		}
+		_, err = msg.ReplyText(replayText)
+		if err != nil {
+			log.Println("ReplyText: ", err.Error())
+		}
+	} else if msg.IsSendBySelf() {
+
+	} else {
+
+	}
+}
+
+func chatGPTReplay(msg *openwechat.Message) (string, error) {
+	gptResp, err := openai.NewOpenAI("").
+		Chat().Complete(msg.Content)
 	if err != nil {
 		log.Println("Complete: ", err.Error())
-		return
+		return "", err
 	}
 	if len(gptResp.Choices) == 0 {
 		log.Println("Empty from gpt")
-		return
+		return "", err
 	}
 	replayText := gptResp.Choices[0].Message.Content
 	replayText = strings.TrimSpace(replayText)
 	replayText = strings.Trim(replayText, "\n")
 	log.Println(replayText)
-	if msg.IsSendByGroup() {
-		if !msg.IsAt() {
-			return
-		}
-
-	} else if msg.IsSendByFriend() {
-
-	} else if msg.IsSendBySelf() {
-		_, err = msg.ReplyText(replayText)
-		if err != nil {
-			log.Println("ReplyText: ", err.Error())
-		}
-	} else {
-
-	}
+	return replayText, nil
 }

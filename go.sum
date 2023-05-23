@@ -51,8 +51,6 @@ github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd h1:83Wprp6RO
 github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
-github.com/eatmoreapple/openwechat v1.4.3 h1:hpqR3M0c180GN5e6sfkqdTmna1+vnvohqv8LkS7MecI=
-github.com/eatmoreapple/openwechat v1.4.3/go.mod h1:ZxMcq7IpVWVU9JG7ERjExnm5M8/AQ6yZTtX30K3rwRQ=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 h1:Yzb9+7DPaBjB8zlTR87/ElzFsnQfuHnVUVqpZZIcV5Y=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
@@ -226,6 +224,8 @@ github.com/neoguojing/commander v0.0.5 h1:yZpcJzdE8mRylqiNOP+GY+C7U+Wwk+uhJFv/xM
 github.com/neoguojing/commander v0.0.5/go.mod h1:iijtdCS7Y/pSgj+ghb+KCy1/c4YDc/4QJ8u8TKnoXeM=
 github.com/neoguojing/gormboot v1.0.4 h1:Q4cHbWXevQUwMYB3Jaf3s/JrUhvfafD22FU1i/ln2dw=
 github.com/neoguojing/gormboot v1.0.4/go.mod h1:qDRcm4CLSTvh/gC0eWO5TIo2DorkxcnZWkgGHEGv+sU=
+github.com/neoguojing/openwechat v0.0.0-20230523105841-f0a502d520eb h1:s8bR/2xyelvpeAayF219Czfh3BM7i8Wj0RDKhVrRsFw=
+github.com/neoguojing/openwechat v0.0.0-20230523105841-f0a502d520eb/go.mod h1:dUxfjcrXVXbNGhNUC+1grdaJs6wc902AhSsHolt9YCE=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/pascaldekloe/goe v0.0.0-20180627143212-57f6aae5913c/go.mod h1:lzWF7FIEvWOWxwDKqyGYQf6ZUaNfKdP144TG7ZOy1lc=
