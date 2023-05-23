@@ -15,10 +15,12 @@ BUILD := `git rev-parse --short HEAD`
 build:
 	go build -o $(CUR_DIR)/chatbot/ $(CUR_DIR)/chatbot/
 	go build -o $(CUR_DIR)/server/ $(CUR_DIR)/server/
+	go build -o $(CUR_DIR)/wechat/ $(CUR_DIR)/wechat/
 
 clean:
 	rm -f  $(CUR_DIR)/chatbot/chatbot
 	rm -f  $(CUR_DIR)/server/server
+	rm -f  $(CUR_DIR)/wechat/wechat
 	
 doc:
 	cd $(CUR_DIR)/server && swag init --parseDependency
