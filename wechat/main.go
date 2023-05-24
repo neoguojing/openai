@@ -2,14 +2,30 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openwechat"
+	"gopkg.in/yaml.v2"
+)
+
+var (
+	self *openwechat.Self
+	gpt  *openai.OpenAI
 )
 
 func main() {
+	config, err := getConfig()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	if config.OpenAI.ApiKey == "" {
+		log.Fatal("pls provide a api key")
+	}
+	gpt = openai.NewOpenAI(config.OpenAI.ApiKey)
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
 
 	// 注册消息处理函数
@@ -22,13 +38,25 @@ func main() {
 	bot.UUIDCallback = openwechat.PrintlnQrcodeUrl
 
 	// 登陆
-	if err := bot.Login(); err != nil {
-		fmt.Println(err)
-		return
+	// Check if the config file exists
+	_, err = os.Stat("config.json")
+	var storage = openwechat.NewFileHotReloadStorage("config.json")
+	if os.IsNotExist(err) {
+		if err = bot.Login(); err != nil {
+			fmt.Println(err)
+			return
+		}
+		bot.SetHotStorage(storage)
+		bot.DumpHotReloadStorage()
+	} else {
+		if err = bot.HotLogin(storage); err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 
 	// 获取登陆的用户
-	self, err := bot.GetCurrentUser()
+	self, err = bot.GetCurrentUser()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -60,10 +88,9 @@ func MessageHandler(msg *openwechat.Message) {
 		if !msg.IsAt() {
 			return
 		}
-		// group := openwechat.Group(sender)
-		// log.Println(group.NickName, msg.Content)
-		recv, _ := msg.Receiver()
-		if recv.IsSelf() {
+		group := openwechat.Group{sender}
+		log.Println("group inf:", group.NickName, msg.Content)
+		if msg.ToUserName == self.UserName {
 			dumpText := "@" + sender.Self().NickName
 			msg.Content = strings.ReplaceAll(msg.Content, dumpText, "")
 			if msg.Content == "" {
@@ -82,7 +109,7 @@ func MessageHandler(msg *openwechat.Message) {
 				return
 			}
 
-			replayText = "@" + gSendor.NickName + replayText
+			replayText = "@" + gSendor.NickName + " " + replayText
 			_, err = msg.ReplyText(replayText)
 			if err != nil {
 				log.Println("ReplyText: ", err.Error())
@@ -100,16 +127,11 @@ func MessageHandler(msg *openwechat.Message) {
 		if err != nil {
 			log.Println("ReplyText: ", err.Error())
 		}
-	} else if msg.IsSendBySelf() {
-
-	} else {
-
 	}
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
-	gptResp, err := openai.NewOpenAI("").
-		Chat().Complete(msg.Content)
+	gptResp, err := gpt.Chat().Complete(msg.Content)
 	if err != nil {
 		log.Println("Complete: ", err.Error())
 		return "", err
@@ -123,4 +145,25 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 	replayText = strings.Trim(replayText, "\n")
 	log.Println(replayText)
 	return replayText, nil
+}
+
+func getConfig() (*Config, error) {
+	config := &Config{}
+	file, err := ioutil.ReadFile("config.yml")
+	if err != nil {
+		return nil, err
+	}
+	err = yaml.Unmarshal(file, config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+}
+
+type OpenAIConfig struct {
+	ApiKey string `yaml:"api_key"`
+}
+
+type Config struct {
+	OpenAI OpenAIConfig `yaml:"openai"`
 }

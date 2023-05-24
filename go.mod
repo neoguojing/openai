@@ -8,7 +8,7 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/neoguojing/commander v0.0.5
 	github.com/neoguojing/gormboot v1.0.4
-	github.com/neoguojing/openwechat v0.0.0-20230523105841-f0a502d520eb
+	github.com/neoguojing/openwechat v0.0.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1
