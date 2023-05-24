@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - 1.19.x
+
+script:
+  - make build
+  - tar -czvf chatbot.tar.gz chatbot
+  - tar -czvf server.tar.gz server
+  - tar -czvf wechat.tar.gz wechat

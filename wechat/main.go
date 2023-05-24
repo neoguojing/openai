@@ -77,7 +77,7 @@ func main() {
 }
 
 func MessageHandler(msg *openwechat.Message) {
-	if !msg.IsText() {
+	if !msg.IsText() && !msg.IsVoice() {
 		return
 	}
 
