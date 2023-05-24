@@ -51,6 +51,7 @@ func main() {
 	} else {
 		if err = bot.HotLogin(storage); err != nil {
 			fmt.Println(err)
+			os.Remove("config.json")
 			return
 		}
 	}
