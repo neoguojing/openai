@@ -131,6 +131,15 @@ func MessageHandler(msg *openwechat.Message) {
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
+	var err error
+	if msg.IsVoice() {
+		msg.Content, err = chatGPTVoice(msg)
+		if err != nil {
+			log.Println("chatGPTVoice: ", err.Error())
+			return "", err
+		}
+	}
+
 	gptResp, err := gpt.Chat().Complete(msg.Content)
 	if err != nil {
 		log.Println("Complete: ", err.Error())
@@ -145,6 +154,21 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 	replayText = strings.Trim(replayText, "\n")
 	log.Println(replayText)
 	return replayText, nil
+}
+
+func chatGPTVoice(msg *openwechat.Message) (string, error) {
+
+	resp, err := msg.GetVoice()
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	audioResp, err := gpt.Audio().TranscriptionsDirect(msg.MsgId, resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return audioResp.Text, nil
 }
 
 func getConfig() (*Config, error) {

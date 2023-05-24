@@ -3,6 +3,7 @@ package openai
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -387,6 +388,29 @@ func (o *OpenAI) Audio() *Audio {
 		apiKey: o.apiKey,
 		model:  "whisper-1",
 	}
+}
+
+func (o *Audio) TranscriptionsDirect(fileName string, input io.Reader) (*AudioResponse, error) {
+	url := "https://api.openai.com/v1/audio/transcriptions"
+	client := resty.New()
+
+	resp, err := client.R().
+		SetHeader("Authorization", "Bearer "+o.apiKey).
+		SetHeader("Content-Type", "multipart/form-data").
+		SetFileReader("file", fileName, input).
+		SetFormData(map[string]string{
+			"model": o.model,
+		}).
+		Post(url)
+	if err != nil {
+		return nil, err
+	}
+	var audioResponse AudioResponse
+	err = json.Unmarshal(resp.Body(), &audioResponse)
+	if err != nil {
+		return nil, err
+	}
+	return &audioResponse, nil
 }
 
 func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
