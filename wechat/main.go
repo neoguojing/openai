@@ -139,6 +139,11 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 			log.Println("chatGPTVoice: ", err.Error())
 			return "", err
 		}
+		log.Println("chatGPTVoice content:", msg.Content)
+	}
+
+	if msg.Content == "" {
+		return "", fmt.Errorf("chatGPTReplay:empty msg content")
 	}
 
 	gptResp, err := gpt.Chat().Complete(msg.Content)

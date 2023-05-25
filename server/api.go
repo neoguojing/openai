@@ -75,15 +75,15 @@ func uploadFile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	filePath := "/tmp/" + file.Filename
-	err = c.SaveUploadedFile(file, filePath)
+
+	reader, err := file.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	defer reader.Close()
 	var fileInfo *openai.FileInfo
-	fileInfo, err = api.TuneFile().Upload(filePath)
+	fileInfo, err = api.TuneFile().UploadDirect(file.Filename, reader)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -308,15 +308,14 @@ func transcribeAudio(c *gin.Context) {
 		})
 		return
 	}
-	filePath := "/tmp/" + file.Filename
-	err = c.SaveUploadedFile(file, filePath)
+	reader, err := file.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	defer reader.Close()
 	var response *openai.AudioResponse
-	response, err = api.Audio().Transcriptions(filePath)
+	response, err = api.Audio().TranscriptionsDirect(file.Filename, reader)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -345,15 +344,14 @@ func translateAudio(c *gin.Context) {
 		})
 		return
 	}
-	filePath := "/tmp/" + file.Filename
-	err = c.SaveUploadedFile(file, filePath)
+	reader, err := file.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
+	defer reader.Close()
 	var response *openai.AudioResponse
-	response, err = api.Audio().Translations(filePath)
+	response, err = api.Audio().TranslationsDirect(file.Filename, reader)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -439,15 +437,17 @@ func editImage(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
-	filePath := "/tmp/" + image.Filename
-	err = c.SaveUploadedFile(image, filePath)
+
+	reader, err := image.Open()
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	defer reader.Close()
+
 	prompt := c.PostForm("prompt")
 	var response *openai.ImageResponse
-	response, err = api.Image().Edit(filePath, "", prompt, 1, openai.Size1024)
+	response, err = api.Image().EditDirect(image.Filename, reader, "", nil, prompt, 1, openai.Size1024)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
@@ -473,15 +473,15 @@ func variateImage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, NewErrorResponse(err))
 		return
 	}
-	filePath := "/tmp/" + file.Filename
-	err = c.SaveUploadedFile(file, filePath)
+	reader, err := file.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	defer reader.Close()
 
 	var response *openai.ImageResponse
-	response, err = api.Image().Variate(filePath, 1, openai.Size1024)
+	response, err = api.Image().VariateDirect(file.Filename, reader, 1, openai.Size1024)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

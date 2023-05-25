@@ -266,32 +266,16 @@ func (o *Image) Generate(prompt string, n int) (*ImageResponse, error) {
 	return &imageResponse, nil
 }
 
-func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
+func (o *Image) EditDirect(fileName string, input io.Reader, maskName string, mask io.Reader,
+	prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	url := "https://api.openai.com/v1/images/edits"
 	client := resty.New()
-	if imagePath == "" {
-		return nil, errors.New("u need to upload a file")
-	}
-	file, err := os.Open(imagePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	fileName := filepath.Base(imagePath)
 
 	req := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetFileReader("image", fileName, file)
+		SetFileReader("image", fileName, input)
 
-	var maskName string
-	var mask *os.File
-	if maskPath != "" {
-		mask, err = os.Open(maskPath)
-		if err != nil {
-			return nil, err
-		}
-		defer mask.Close()
-		maskName = filepath.Base(maskPath)
+	if mask != nil {
 		req.SetFileReader("mask", maskName, mask)
 	}
 
@@ -317,19 +301,10 @@ func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, si
 	return &imageResponse, nil
 }
 
-func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*ImageResponse, error) {
-	url := "https://api.openai.com/v1/images/variations"
-
+func (o *Image) Edit(imagePath string, maskPath string, prompt string, n int, size ImageSizeSupported) (*ImageResponse, error) {
 	if imagePath == "" {
 		return nil, errors.New("u need to upload a file")
 	}
-
-	if n <= 0 {
-		n = 1
-	} else if n > 10 {
-		n = 10
-	}
-
 	file, err := os.Open(imagePath)
 	if err != nil {
 		return nil, err
@@ -337,10 +312,33 @@ func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*Imag
 	defer file.Close()
 	fileName := filepath.Base(imagePath)
 
+	var maskName string
+	var mask *os.File
+	if maskPath != "" {
+		mask, err = os.Open(maskPath)
+		if err != nil {
+			return nil, err
+		}
+		defer mask.Close()
+		maskName = filepath.Base(maskPath)
+	}
+
+	return o.EditDirect(fileName, file, maskName, mask, prompt, n, size)
+}
+
+func (o *Image) VariateDirect(fileName string, input io.Reader, n int, size ImageSizeSupported) (*ImageResponse, error) {
+	url := "https://api.openai.com/v1/images/variations"
+
+	if n <= 0 {
+		n = 1
+	} else if n > 10 {
+		n = 10
+	}
+
 	client := resty.New()
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetFileReader("image", fileName, file).
+		SetFileReader("image", fileName, input).
 		SetFormData(map[string]string{
 			"n":    strconv.Itoa(n),
 			"size": string(size),
@@ -355,6 +353,21 @@ func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*Imag
 		return nil, err
 	}
 	return &imageResponse, nil
+}
+
+func (o *Image) Variate(imagePath string, n int, size ImageSizeSupported) (*ImageResponse, error) {
+	if imagePath == "" {
+		return nil, errors.New("u need to upload a file")
+	}
+
+	file, err := os.Open(imagePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(imagePath)
+
+	return o.VariateDirect(fileName, file, n, size)
 }
 
 func (o *OpenAI) GetEmbeddings(input string) (*EmbeddingResponse, error) {
@@ -414,8 +427,6 @@ func (o *Audio) TranscriptionsDirect(fileName string, input io.Reader) (*AudioRe
 }
 
 func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
-	url := "https://api.openai.com/v1/audio/transcriptions"
-	client := resty.New()
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -424,10 +435,17 @@ func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 	defer file.Close()
 	fileName := filepath.Base(filePath)
 
+	return o.TranscriptionsDirect(fileName, file)
+}
+
+func (o *Audio) TranslationsDirect(fileName string, input io.Reader) (*AudioResponse, error) {
+	url := "https://api.openai.com/v1/audio/translations"
+	client := resty.New()
+
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", fileName, file).
+		SetFileReader("file", fileName, input).
 		SetFormData(map[string]string{
 			"model": o.model,
 		}).
@@ -444,8 +462,6 @@ func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
 }
 
 func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
-	url := "https://api.openai.com/v1/audio/translations"
-	client := resty.New()
 	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
@@ -453,23 +469,7 @@ func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
 	defer file.Close()
 	fileName := filepath.Base(filePath)
 
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", fileName, file).
-		SetFormData(map[string]string{
-			"model": o.model,
-		}).
-		Post(url)
-	if err != nil {
-		return nil, err
-	}
-	var audioResponse AudioResponse
-	err = json.Unmarshal(resp.Body(), &audioResponse)
-	if err != nil {
-		return nil, err
-	}
-	return &audioResponse, nil
+	return o.TranslationsDirect(fileName, file)
 }
 
 func (o *OpenAI) TuneFile() *TuneFile {
@@ -496,23 +496,16 @@ func (o *TuneFile) List() (*FileList, error) {
 	return &fileList, nil
 }
 
-// New code starts here
-func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
+func (o *TuneFile) UploadDirect(fileName string, input io.Reader) (*FileInfo, error) {
 	url := "https://api.openai.com/v1/files"
 	client := resty.New()
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	fileName := filepath.Base(filePath)
 	resp, err := client.R().
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetHeader("Content-Type", "multipart/form-data").
 		SetFormData(map[string]string{
 			"purpose": "fine-tune",
 		}).
-		SetFileReader("file", fileName, file).
+		SetFileReader("file", fileName, input).
 		Post(url)
 	if err != nil {
 		return nil, err
@@ -523,6 +516,17 @@ func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
 		return nil, err
 	}
 	return &fileInfo, nil
+}
+
+// New code starts here
+func (o *TuneFile) Upload(filePath string) (*FileInfo, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	fileName := filepath.Base(filePath)
+	return o.UploadDirect(fileName, file)
 }
 
 // New code starts here
