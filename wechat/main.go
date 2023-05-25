@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -169,10 +170,27 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+
+	// Create a new file
+	file, err := os.Create("response.mp3")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Copy the response body to the file
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println(msg.MsgId)
 	audioResp, err := gpt.Audio().TranscriptionsDirect(msg.MsgId, resp.Body)
 	if err != nil {
 		return "", err
 	}
+
+	log.Println("TranscriptionsDirect:", audioResp.Text)
 
 	return audioResp.Text, nil
 }

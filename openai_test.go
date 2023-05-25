@@ -1,10 +1,11 @@
 package openai
 
 import (
+	"fmt"
 	"testing"
 )
 
-var openai = NewOpenAI("xxxx")
+var openai = NewOpenAI("")
 
 func TestModelList(t *testing.T) {
 	modelList, err := openai.Model().List()
@@ -146,5 +147,19 @@ func TestModeration(t *testing.T) {
 		t.Errorf("Moderation response is nil")
 		return
 	}
+	t.Log(resp)
+}
+
+func TestTranscriptions(t *testing.T) {
+	resp, err := openai.Audio().Transcriptions("./test/response.mp3")
+	if err != nil {
+		t.Errorf("An error occurred while moderating: %v", err)
+		return
+	}
+	if resp == nil {
+		t.Errorf("Moderation response is nil")
+		return
+	}
+	fmt.Println(resp.Text)
 	t.Log(resp)
 }
