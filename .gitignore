@@ -1,6 +1,9 @@
 chatbot/chatbot*
+chatbot/*.log
 openai.code-workspace
 server/server*
+server/*.log
 wechat/wechat*
 wechat/config.json
 wechat/*.mp3
+wechat/*.log

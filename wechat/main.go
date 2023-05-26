@@ -3,29 +3,31 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
+	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openwechat"
-	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	self      *openwechat.Self
-	gpt       *openai.OpenAI
-	logger, _ = zap.NewDevelopment()
+	self *openwechat.Self
+	gpt  *openai.OpenAI
+
+	logger = log.NewLogger()
 )
 
 func main() {
 	config, err := getConfig()
 	if err != nil {
-		logger.Fatal(err.Error())
+		logger.Error(err.Error())
+		return
 	}
 	if config.OpenAI.ApiKey == "" {
-		logger.Fatal("pls provide a api key")
+		logger.Error("pls provide a api key")
+		return
 	}
 	gpt = openai.NewOpenAI(config.OpenAI.ApiKey)
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
@@ -45,14 +47,14 @@ func main() {
 	var storage = openwechat.NewFileHotReloadStorage("config.json")
 	if os.IsNotExist(err) {
 		if err = bot.Login(); err != nil {
-			fmt.Println(err)
+			logger.Error(err.Error())
 			return
 		}
 		bot.SetHotStorage(storage)
 		bot.DumpHotReloadStorage()
 	} else {
 		if err = bot.HotLogin(storage); err != nil {
-			fmt.Println(err)
+			logger.Error(err.Error())
 			os.Remove("config.json")
 			fmt.Println("pls relogin~")
 			return
@@ -62,7 +64,7 @@ func main() {
 	// 获取登陆的用户
 	self, err = bot.GetCurrentUser()
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -174,13 +176,13 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 	defer resp.Body.Close()
 
 	fileName := msg.MsgId + ".mp3"
-	log.Println(fileName)
+	logger.Info(fileName)
 	audioResp, err := gpt.Audio().TranscriptionsDirect(fileName, resp.Body)
 	if err != nil {
 		return "", err
 	}
 
-	log.Println("TranscriptionsDirect:", audioResp.Text)
+	logger.Info("TranscriptionsDirect:", audioResp.Text)
 
 	return audioResp.Text, nil
 }
