@@ -53,6 +53,7 @@ func main() {
 		if err = bot.HotLogin(storage); err != nil {
 			fmt.Println(err)
 			os.Remove("config.json")
+			fmt.Println("pls relogin~")
 			return
 		}
 	}
@@ -171,21 +172,19 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	// Create a new file
-	file, err := os.Create("response.mp3")
+	file, err := ioutil.TempFile("", msg.MsgId+"*.mp3")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 	defer file.Close()
-
 	// Copy the response body to the file
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	log.Println(msg.MsgId)
-	audioResp, err := gpt.Audio().TranscriptionsDirect(msg.MsgId, resp.Body)
+	log.Println(file.Name())
+	audioResp, err := gpt.Audio().Transcriptions(file.Name())
 	if err != nil {
 		return "", err
 	}

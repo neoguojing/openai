@@ -3,3 +3,4 @@ openai.code-workspace
 server/server*
 wechat/wechat*
 wechat/config.json
+wechat/*.mp3
