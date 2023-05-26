@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,21 +9,23 @@ import (
 
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openwechat"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	self *openwechat.Self
-	gpt  *openai.OpenAI
+	self      *openwechat.Self
+	gpt       *openai.OpenAI
+	logger, _ = zap.NewDevelopment()
 )
 
 func main() {
 	config, err := getConfig()
 	if err != nil {
-		log.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
 	if config.OpenAI.ApiKey == "" {
-		log.Fatal("pls provide a api key")
+		logger.Fatal("pls provide a api key")
 	}
 	gpt = openai.NewOpenAI(config.OpenAI.ApiKey)
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
@@ -67,11 +68,11 @@ func main() {
 
 	// 获取所有的好友
 	friends, err := self.Friends()
-	fmt.Println(friends, err)
+	logger.Info(fmt.Sprintf("friends: %v, err: %v", friends, err))
 
 	// 获取所有的群组
 	groups, err := self.Groups()
-	fmt.Println(groups, err)
+	logger.Info(fmt.Sprintf("groups: %v, err: %v", groups, err))
 
 	bot.MessageHandler = MessageHandler
 
@@ -85,14 +86,14 @@ func MessageHandler(msg *openwechat.Message) {
 	}
 
 	sender, _ := msg.Sender()
-	log.Println(sender.NickName, msg.Content)
+	logger.Info(fmt.Sprintf("sender: %v, content: %v", sender.NickName, msg.Content))
 
 	if msg.IsSendByGroup() {
 		if !msg.IsAt() {
 			return
 		}
 		group := openwechat.Group{sender}
-		log.Println("group inf:", group.NickName, msg.Content)
+		logger.Info(fmt.Sprintf("group inf: %v, content: %v", group.NickName, msg.Content))
 		if msg.ToUserName == self.UserName {
 			dumpText := "@" + sender.Self().NickName
 			msg.Content = strings.ReplaceAll(msg.Content, dumpText, "")
@@ -101,13 +102,13 @@ func MessageHandler(msg *openwechat.Message) {
 			}
 			replayText, err := chatGPTReplay(msg)
 			if err != nil {
-				log.Println("ReplyText: ", err.Error())
+				logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 				msg.ReplyText("ops...")
 				return
 			}
 			gSendor, err := msg.SenderInGroup()
 			if err != nil {
-				log.Println("SendorInGroup: ", err.Error())
+				logger.Error(fmt.Sprintf("SendorInGroup: %v", err.Error()))
 				msg.ReplyText("ops...")
 				return
 			}
@@ -115,20 +116,20 @@ func MessageHandler(msg *openwechat.Message) {
 			replayText = "@" + gSendor.NickName + " " + replayText
 			_, err = msg.ReplyText(replayText)
 			if err != nil {
-				log.Println("ReplyText: ", err.Error())
+				logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 			}
 		}
 
 	} else if msg.IsSendByFriend() {
 		replayText, err := chatGPTReplay(msg)
 		if err != nil {
-			log.Println("ReplyText: ", err.Error())
+			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 			msg.ReplyText("ops...")
 			return
 		}
 		_, err = msg.ReplyText(replayText)
 		if err != nil {
-			log.Println("ReplyText: ", err.Error())
+			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 		}
 	}
 }
@@ -138,10 +139,10 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 	if msg.IsVoice() {
 		msg.Content, err = chatGPTVoice(msg)
 		if err != nil {
-			log.Println("chatGPTVoice: ", err.Error())
+			logger.Error(fmt.Sprintf("chatGPTVoice: %v", err.Error()))
 			return "", err
 		}
-		log.Println("chatGPTVoice content:", msg.Content)
+		logger.Info(fmt.Sprintf("chatGPTVoice content: %v", msg.Content))
 	}
 
 	if msg.Content == "" {
@@ -150,17 +151,17 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 
 	gptResp, err := gpt.Chat().Complete(msg.Content)
 	if err != nil {
-		log.Println("Complete: ", err.Error())
+		logger.Error(fmt.Sprintf("Complete: %v", err.Error()))
 		return "", err
 	}
 	if len(gptResp.Choices) == 0 {
-		log.Println("Empty from gpt")
+		logger.Error("Empty from gpt")
 		return "", err
 	}
 	replayText := gptResp.Choices[0].Message.Content
 	replayText = strings.TrimSpace(replayText)
 	replayText = strings.Trim(replayText, "\n")
-	log.Println(replayText)
+	logger.Info(fmt.Sprintf("replayText: %v", replayText))
 	return replayText, nil
 }
 
@@ -172,19 +173,9 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	file, err := ioutil.TempFile("", msg.MsgId+"*.mp3")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-	// Copy the response body to the file
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	log.Println(file.Name())
-	audioResp, err := gpt.Audio().Transcriptions(file.Name())
+	fileName := msg.MsgId + ".mp3"
+	log.Println(fileName)
+	audioResp, err := gpt.Audio().TranscriptionsDirect(fileName, resp.Body)
 	if err != nil {
 		return "", err
 	}
