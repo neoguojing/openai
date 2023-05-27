@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	cmd "github.com/neoguojing/commander"
-	"github.com/neoguojing/gormboot"
 	"github.com/neoguojing/openai/server/config"
 )
 
@@ -46,7 +45,7 @@ func (s *Server) Stop() {
 		logger.Fatal(err.Error())
 	}
 
-	gormboot.Destroy()
+	// gormboot.Close()
 }
 
 func init() {

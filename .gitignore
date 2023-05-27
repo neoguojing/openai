@@ -7,3 +7,4 @@ wechat/wechat*
 wechat/config.json
 wechat/*.mp3
 wechat/*.log
+sqlite3.db
