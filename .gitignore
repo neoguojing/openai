@@ -1,10 +1,14 @@
 chatbot/chatbot*
 chatbot/*.log
+chatbot/config.yaml
 openai.code-workspace
 server/server*
 server/*.log
+server/config.yaml
 wechat/wechat*
 wechat/config.json
 wechat/*.mp3
 wechat/*.log
+wechat/config.yaml
 sqlite3.db
+role/*.db

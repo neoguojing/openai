@@ -745,8 +745,8 @@ github.com/natefinch/lumberjack v2.0.0+incompatible/go.mod h1:Wi9p2TTF5DG5oU+6Yf
 github.com/ncw/swift v1.0.47/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/ZM=
 github.com/neoguojing/commander v0.0.5 h1:yZpcJzdE8mRylqiNOP+GY+C7U+Wwk+uhJFv/xM2BWJo=
 github.com/neoguojing/commander v0.0.5/go.mod h1:iijtdCS7Y/pSgj+ghb+KCy1/c4YDc/4QJ8u8TKnoXeM=
-github.com/neoguojing/gormboot/v2 v2.0.0-alpha.5 h1:UjG9gjzFyWv8FCOVpEqDl2rIXl/6D2VlLZZDr5/QYPE=
-github.com/neoguojing/gormboot/v2 v2.0.0-alpha.5/go.mod h1:YGkh2mvbmc2O2D6sQb7BMO0RzsOV26NYC3z4puJKQQ0=
+github.com/neoguojing/gormboot/v2 v2.0.0-alpha.7 h1:JDdbA/gmKSV+3jqOTE07B6NR2+HnVzdpfVTpQiEvjys=
+github.com/neoguojing/gormboot/v2 v2.0.0-alpha.7/go.mod h1:YGkh2mvbmc2O2D6sQb7BMO0RzsOV26NYC3z4puJKQQ0=
 github.com/neoguojing/log v0.0.6 h1:Bj5LlMH1wTVnhrNjdVLt4vUXkk7uBbp/IcZTA1TtQCE=
 github.com/neoguojing/log v0.0.6/go.mod h1:9ZZK3mFJkCR8F1m9vQxOEwgQFoYOlLLt4Vgl1rHoyTM=
 github.com/neoguojing/openwechat v0.0.1 h1:/9jZvj8uRWTLHv99dlm+1i7k6cLDQLMInIBA/qSZbeY=

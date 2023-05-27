@@ -15,6 +15,7 @@ var (
 
 type OpenAIConfig struct {
 	ApiKey string `yaml:"api_key"`
+	Role   string `yaml:"role"`
 }
 
 type Server struct {

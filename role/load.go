@@ -55,9 +55,8 @@ func DeleteRole(id uint) error {
 }
 
 func init() {
-	factory := gormboot.New(gormboot.DefaultSqliteConfig("../sqlite3.db"))
-	factory.RegisterModel(&Role{})
-	db = factory.AutoMigrate().DB()
+	gormboot.DefaultDB.RegisterModel(&Role{})
+	db = gormboot.DefaultDB.AutoMigrate().DB()
 }
 
 func LoadRoles2DB() error {

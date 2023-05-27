@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/neoguojing/gormboot/v2"
 	"github.com/neoguojing/log"
 
 	"github.com/gin-gonic/gin"
 	cmd "github.com/neoguojing/commander"
-	"github.com/neoguojing/openai/server/config"
+	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/role"
 )
 
 var (
@@ -26,6 +28,7 @@ type Server struct {
 }
 
 func (s *Server) Start() {
+	role.LoadRoles2DB()
 	apiKey := config.GetConfig().OpenAI.ApiKey
 	Routes = GenerateGinRouter(apiKey)
 	s.serv = &http.Server{
@@ -45,14 +48,13 @@ func (s *Server) Stop() {
 		logger.Fatal(err.Error())
 	}
 
-	// gormboot.Close()
+	gormboot.DefaultDB.Close()
 }
 
 func init() {
 	config.GetConfig()
 	starter = cmd.NewCommander()
 	starter.Register(&Server{})
-	// gormboot.Init()
 }
 
 func main() {

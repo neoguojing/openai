@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/awesome-gocui/gocui"
 	"github.com/neoguojing/openai"
-	"gopkg.in/yaml.v2"
+	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/role"
 )
 
 type historyStack struct {
@@ -78,7 +78,7 @@ func (h *historyStack) Down() string {
 var history = newHistoryStack(100)
 
 func main() {
-
+	role.LoadRoles2DB()
 	g, err := gocui.NewGui(gocui.Output256, true)
 	if err != nil {
 		fmt.Println(err)
@@ -143,10 +143,7 @@ func send(g *gocui.Gui, v *gocui.View) error {
 }
 
 func openAiChat(input string) ([]string, error) {
-	config, err := getConfig()
-	if err != nil {
-		panic("config.yml not exist")
-	}
+	config := config.GetConfig()
 
 	if config.OpenAI.ApiKey == "" {
 		panic("pls put a api key in config.yml")
@@ -164,27 +161,6 @@ func openAiChat(input string) ([]string, error) {
 	}
 	return outPut, nil
 
-}
-
-func getConfig() (*Config, error) {
-	config := &Config{}
-	file, err := ioutil.ReadFile("config.yml")
-	if err != nil {
-		return nil, err
-	}
-	err = yaml.Unmarshal(file, config)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-type OpenAIConfig struct {
-	ApiKey string `yaml:"api_key"`
-}
-
-type Config struct {
-	OpenAI OpenAIConfig `yaml:"openai"`
 }
 
 func layout(g *gocui.Gui) error {

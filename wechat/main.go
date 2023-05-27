@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai"
+	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/role"
 	"github.com/neoguojing/openwechat"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -20,16 +20,19 @@ var (
 )
 
 func main() {
-	config, err := getConfig()
-	if err != nil {
-		logger.Error(err.Error())
-		return
-	}
+	var err error
+	role.LoadRoles2DB()
+
+	config := config.GetConfig()
 	if config.OpenAI.ApiKey == "" {
 		logger.Error("pls provide a api key")
 		return
 	}
 	gpt = openai.NewOpenAI(config.OpenAI.ApiKey)
+	if config.OpenAI.Role != "" {
+		gpt.Chat().Prepare("config.OpenAI.Role")
+	}
+
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
 
 	// 注册消息处理函数
@@ -185,25 +188,4 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 	logger.Info("TranscriptionsDirect:", audioResp.Text)
 
 	return audioResp.Text, nil
-}
-
-func getConfig() (*Config, error) {
-	config := &Config{}
-	file, err := ioutil.ReadFile("config.yml")
-	if err != nil {
-		return nil, err
-	}
-	err = yaml.Unmarshal(file, config)
-	if err != nil {
-		return nil, err
-	}
-	return config, nil
-}
-
-type OpenAIConfig struct {
-	ApiKey string `yaml:"api_key"`
-}
-
-type Config struct {
-	OpenAI OpenAIConfig `yaml:"openai"`
 }

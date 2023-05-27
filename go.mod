@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/neoguojing/commander v0.0.5
-	github.com/neoguojing/gormboot/v2 v2.0.0-alpha.5
+	github.com/neoguojing/gormboot/v2 v2.0.0-alpha.7
 	github.com/neoguojing/log v0.0.6
 	github.com/neoguojing/openwechat v0.0.1
 	github.com/swaggo/files v1.0.1

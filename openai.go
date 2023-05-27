@@ -164,6 +164,10 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 }
 
 func (o *Chat) Complete(content string) (*ChatResponse, error) {
+	if content == "" {
+		return nil, errors.New("empty input")
+	}
+
 	client := resty.New()
 	req := ChatRequest{
 		Model: o.model,
