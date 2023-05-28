@@ -1,5 +1,7 @@
 package openai
 
+import "errors"
+
 // OpenAIRole 是 OpenAI 的角色类型
 type OpenAIRole string
 
@@ -153,6 +155,23 @@ type ChatResponse struct {
 	} `json:"usage"`
 }
 
+// CheckChatResponse checks if the chat response is valid.
+func (r *ChatResponse) GetContent() (string, error) {
+	if r == nil {
+		return "", errors.New("response is nil")
+	}
+
+	if len(r.Choices) == 0 {
+		return "", errors.New("response choices is empty")
+	}
+	content := r.Choices[0].Message.Content
+	if content == "" {
+		return "", errors.New("response choice message content is empty")
+	}
+
+	return content, nil
+}
+
 // EditChatRequest represents a request to edit a chat response.
 type EditChatRequest struct {
 	// Model is the ID of the model to use for generating the chat response.
@@ -198,6 +217,23 @@ type EditChatResponse struct {
 		// TotalTokens is the total number of tokens.
 		TotalTokens int `json:"total_tokens"`
 	} `json:"usage"`
+}
+
+// CheckChatResponse checks if the chat response is valid.
+func (r *EditChatResponse) GetContent() (string, error) {
+	if r == nil {
+		return "", errors.New("response is nil")
+	}
+
+	if len(r.Choices) == 0 {
+		return "", errors.New("response choices is empty")
+	}
+	content := r.Choices[0].Text
+	if content == "" {
+		return "", errors.New("response choice message content is empty")
+	}
+
+	return content, nil
 }
 
 // ModelList represents a list of models.

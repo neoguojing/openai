@@ -8,6 +8,7 @@ import (
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/openai/role"
 	"github.com/neoguojing/openwechat"
 )
@@ -140,30 +141,27 @@ func MessageHandler(msg *openwechat.Message) {
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
-	var err error
 	if msg.IsVoice() {
-		msg.Content, err = chatGPTVoice(msg)
+		content, err := chatGPTVoice(msg)
 		if err != nil {
 			logger.Error(fmt.Sprintf("chatGPTVoice: %v", err.Error()))
 			return "", err
 		}
-		logger.Info(fmt.Sprintf("chatGPTVoice content: %v", msg.Content))
+		logger.Info(fmt.Sprintf("chatGPTVoice content: %v", content))
+		return content, nil
 	}
 
-	if msg.Content == "" {
-		return "", fmt.Errorf("chatGPTReplay:empty msg content")
-	}
-
-	gptResp, err := gpt.Chat().Complete(msg.Content)
+	replay, err := gpt.Chat().Complete(msg.Content)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Complete: %v", err.Error()))
+		logger.Error(fmt.Sprintf("chatGPTReplay: %v", err.Error()))
 		return "", err
 	}
-	if len(gptResp.Choices) == 0 {
-		logger.Error("Empty from gpt")
+	replayText, err := replay.GetContent()
+	if err != nil {
+		logger.Error(fmt.Sprintf("chatGPTReplay: %v", err.Error()))
 		return "", err
 	}
-	replayText := gptResp.Choices[0].Message.Content
+
 	replayText = strings.TrimSpace(replayText)
 	replayText = strings.Trim(replayText, "\n")
 	logger.Info(fmt.Sprintf("replayText: %v", replayText))
@@ -180,12 +178,16 @@ func chatGPTVoice(msg *openwechat.Message) (string, error) {
 
 	fileName := msg.MsgId + ".mp3"
 	logger.Info(fileName)
-	audioResp, err := gpt.Audio().TranscriptionsDirect(fileName, resp.Body)
+	reply, err := gpt.PreProcessForChat(models.Voice, "", fileName, resp.Body).
+		CompleteWithPrepareInput()
 	if err != nil {
 		return "", err
 	}
+	content, err := reply.GetContent()
+	if err != nil {
+		return "", err
+	}
+	logger.Info("chatGPTVoice:", content)
 
-	logger.Info("TranscriptionsDirect:", audioResp.Text)
-
-	return audioResp.Text, nil
+	return content, nil
 }

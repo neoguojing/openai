@@ -12,3 +12,4 @@ wechat/*.log
 wechat/config.yaml
 sqlite3.db
 role/*.db
+models/*.db

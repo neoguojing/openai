@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/neoguojing/openai/models"
 	"gopkg.in/yaml.v2"
 )
 
@@ -23,7 +24,7 @@ func Convert(src, dst string) {
 
 	// Create a slice to hold the roles
 	var roles = make(Roles)
-	var role = &Role{}
+	var role = &models.Role{}
 	for scanner.Scan() {
 		if strings.TrimSpace(scanner.Text()) == "" {
 			if role.Name != "" && role.Desc != "" {

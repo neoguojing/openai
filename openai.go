@@ -32,21 +32,6 @@ type Model struct {
 	url    string
 }
 
-type Chat struct {
-	apiKey string
-	url    string
-	model  string
-	role   OpenAIRole
-}
-
-type ChatOption func(*Chat)
-
-func WithChatModel(model string) ChatOption {
-	return func(c *Chat) {
-		c.model = model
-	}
-}
-
 func WithRole(role OpenAIRole) ChatOption {
 	return func(c *Chat) {
 		c.role = role
@@ -54,24 +39,21 @@ func WithRole(role OpenAIRole) ChatOption {
 }
 
 type Image struct {
-	apiKey string
-	url    string
-}
-
-type Audio struct {
-	apiKey string
-	url    string
-	model  string
+	apiKey   string
+	url      string
+	filePath string
 }
 
 type TuneFile struct {
-	apiKey string
-	url    string
+	apiKey   string
+	url      string
+	filePath string
 }
 
 type FineTune struct {
-	apiKey string
-	url    string
+	apiKey   string
+	url      string
+	filePath string
 }
 
 func NewOpenAI(apiKey string, opts ...OpenAIOption) *OpenAI {
@@ -147,88 +129,6 @@ func (o *OpenAI) Completions(message string) (*CompletionResponse, error) {
 		return nil, err
 	}
 	return &completionResponse, nil
-}
-
-func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
-	c := &Chat{
-		url:    "https://api.openai.com/v1/chat/completions",
-		apiKey: o.apiKey,
-		model:  "gpt-3.5-turbo",
-		role:   User,
-	}
-
-	for _, opt := range opts {
-		opt(c)
-	}
-	return c
-}
-
-func (o *Chat) Complete(content string) (*ChatResponse, error) {
-	if content == "" {
-		return nil, errors.New("empty input")
-	}
-
-	client := resty.New()
-	req := ChatRequest{
-		Model: o.model,
-		Messages: []struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		}{
-			{
-				Role:    string(o.role),
-				Content: content,
-			},
-		},
-	}
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(req).
-		Post(o.url)
-	if err != nil {
-		return nil, err
-	}
-	var chatResponse ChatResponse
-	err = json.Unmarshal(resp.Body(), &chatResponse)
-	if err != nil {
-		return nil, err
-	}
-	return &chatResponse, nil
-}
-
-func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, error) {
-	url := "https://api.openai.com/v1/edits"
-
-	req := EditChatRequest{
-		Model: "text-davinci-edit-001",
-		Messages: []struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		}{
-			{
-				Role:    string(o.role),
-				Content: content,
-			},
-		},
-		Instruction: instruction,
-	}
-
-	client := resty.New()
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetBody(req).
-		Post(url)
-	if err != nil {
-		return nil, err
-	}
-	var output EditChatResponse
-	err = json.Unmarshal(resp.Body(), &output)
-	if err != nil {
-		return nil, err
-	}
-	return &output, nil
 }
 
 func (o *OpenAI) Image() *Image {
@@ -396,84 +296,6 @@ func (o *OpenAI) GetEmbeddings(input string) (*EmbeddingResponse, error) {
 		return nil, err
 	}
 	return &response, nil
-}
-
-func (o *OpenAI) Audio() *Audio {
-
-	return &Audio{
-		url:    "https://api.openai.com/v1/audio/",
-		apiKey: o.apiKey,
-		model:  "whisper-1",
-	}
-}
-
-func (o *Audio) TranscriptionsDirect(fileName string, input io.Reader) (*AudioResponse, error) {
-	url := "https://api.openai.com/v1/audio/transcriptions"
-	client := resty.New()
-
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", fileName, input).
-		SetFormData(map[string]string{
-			"model": o.model,
-		}).
-		Post(url)
-	if err != nil {
-		return nil, err
-	}
-	var audioResponse AudioResponse
-	err = json.Unmarshal(resp.Body(), &audioResponse)
-	if err != nil {
-		return nil, err
-	}
-	return &audioResponse, nil
-}
-
-func (o *Audio) Transcriptions(filePath string) (*AudioResponse, error) {
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	fileName := filepath.Base(filePath)
-
-	return o.TranscriptionsDirect(fileName, file)
-}
-
-func (o *Audio) TranslationsDirect(fileName string, input io.Reader) (*AudioResponse, error) {
-	url := "https://api.openai.com/v1/audio/translations"
-	client := resty.New()
-
-	resp, err := client.R().
-		SetHeader("Authorization", "Bearer "+o.apiKey).
-		SetHeader("Content-Type", "multipart/form-data").
-		SetFileReader("file", fileName, input).
-		SetFormData(map[string]string{
-			"model": o.model,
-		}).
-		Post(url)
-	if err != nil {
-		return nil, err
-	}
-	var audioResponse AudioResponse
-	err = json.Unmarshal(resp.Body(), &audioResponse)
-	if err != nil {
-		return nil, err
-	}
-	return &audioResponse, nil
-}
-
-func (o *Audio) Translations(filePath string) (*AudioResponse, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	fileName := filepath.Base(filePath)
-
-	return o.TranslationsDirect(fileName, file)
 }
 
 func (o *OpenAI) TuneFile() *TuneFile {

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/neoguojing/gormboot/v2"
+	"github.com/neoguojing/openai/models"
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
 )
@@ -15,47 +16,7 @@ var (
 
 type Roles map[string]string
 
-type Role struct {
-	gorm.Model
-	Name string `gorm:"uniqueIndex"`
-	Desc string
-}
-
-func CreateRole(role *Role) error {
-	if err := db.Create(role).Error; err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
-}
-
-func SearchRoleByName(name string) ([]*Role, error) {
-	var roles []*Role
-	if err := db.Where("name LIKE ?", "%"+name+"%").Find(&roles).Error; err != nil {
-		log.Println(err)
-		return nil, err
-	}
-	return roles, nil
-}
-
-func UpdateRole(role *Role) error {
-	if err := db.Save(role).Error; err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
-}
-
-func DeleteRole(id uint) error {
-	if err := db.Delete(&Role{}, id).Error; err != nil {
-		log.Println(err)
-		return err
-	}
-	return nil
-}
-
 func init() {
-	gormboot.DefaultDB.RegisterModel(&Role{})
 	db = gormboot.DefaultDB.AutoMigrate().DB()
 }
 
@@ -73,7 +34,7 @@ func LoadRoles2DB() error {
 	}
 
 	for role, desc := range roles {
-		user := Role{Name: role, Desc: desc}
+		user := models.Role{Name: role, Desc: desc}
 		if err := db.Create(&user).Error; err != nil {
 			log.Println(err)
 			return err
