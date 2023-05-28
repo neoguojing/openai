@@ -5,20 +5,21 @@ import (
 	"errors"
 	"io"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/openai/models"
 )
 
 type Chat struct {
-	apiKey      string
-	url         string
-	model       string
-	role        OpenAIRole
-	request     string
-	response    string
-	instruction string
-	audio       Audio
+	apiKey   string
+	url      string
+	model    string
+	role     OpenAIRole
+	audio    *Audio
+	client   *resty.Client
+	recorder *models.Recorder
 }
 
 type ChatOption func(*Chat)
@@ -29,18 +30,15 @@ func WithChatModel(model string) ChatOption {
 	}
 }
 
-func WithChatInput(text string) ChatOption {
-	return func(c *Chat) {
-		c.request = text
-	}
-}
-
 func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 	c := &Chat{
-		url:    "https://api.openai.com/v1/chat/completions",
-		apiKey: o.apiKey,
-		model:  "gpt-3.5-turbo",
-		role:   User,
+		url:      "https://api.openai.com/v1/chat/completions",
+		apiKey:   o.apiKey,
+		model:    "gpt-3.5-turbo",
+		role:     User,
+		client:   resty.New(),
+		audio:    o.Audio(),
+		recorder: models.GetRecorder(),
 	}
 
 	for _, opt := range opts {
@@ -65,20 +63,48 @@ func (o *Chat) Prepare(roleName string) *Chat {
 		log.Println(err)
 		return nil
 	}
-	log.Println(chatResponse.Choices[0].Message.Content)
+	log.Println(chatResponse.GetContent())
 	return o
 }
 
-func (o *OpenAI) PreProcessForChat(media models.MediaType, text string, filePath string,
-	reader io.Reader) *Chat {
-	var input string
-	if media == models.Voice {
-		audioResp, err := o.Audio().TranscriptionsDirect(filePath, reader)
+func (o *Chat) save(filePath string, reader io.Reader) (string, error) {
+	fileName := filepath.Base(filePath)
+	dst := filepath.Join("./data", fileName)
+	go func() error {
+		file, err := os.Create(dst)
 		if err != nil {
 			log.Println(err)
-			return nil
+			return err
+		}
+		defer file.Close()
+
+		_, err = io.Copy(file, reader)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		return nil
+	}()
+
+	return dst, nil
+}
+
+func (o *Chat) Dialogue(media models.MediaType, text string, filePath string,
+	reader io.Reader) (string, error) {
+	if text == "" && reader == nil {
+		return "", errors.New("empty input")
+	}
+
+	var input string
+	var dstFilePath string
+	if media == models.Voice {
+		audioResp, err := o.audio.TranscriptionsDirect(filePath, reader)
+		if err != nil {
+			log.Println(err)
+			return "", err
 		}
 		input = audioResp.Text
+		dstFilePath, _ = o.save(filePath, reader)
 	} else if media == models.Picture {
 	} else if media == models.Text {
 		input = text
@@ -86,11 +112,26 @@ func (o *OpenAI) PreProcessForChat(media models.MediaType, text string, filePath
 	} else if media == models.File {
 	}
 
-	return o.Chat(WithChatInput(input))
-}
+	resp, err := o.Complete(input)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+	reply, err := resp.GetContent()
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
 
-func (o *Chat) CompleteWithPrepareInput() (*ChatResponse, error) {
-	return o.Complete(o.request)
+	record := models.ChatRecord{
+		Request:   input,
+		Reply:     reply,
+		MediaType: media,
+		FilePath:  dstFilePath,
+	}
+	o.recorder.Send(record)
+
+	return reply, nil
 }
 
 func (o *Chat) Complete(content string) (*ChatResponse, error) {
@@ -98,7 +139,6 @@ func (o *Chat) Complete(content string) (*ChatResponse, error) {
 		return nil, errors.New("empty input")
 	}
 
-	client := resty.New()
 	req := ChatRequest{
 		Model: o.model,
 		Messages: []struct {
@@ -111,7 +151,7 @@ func (o *Chat) Complete(content string) (*ChatResponse, error) {
 			},
 		},
 	}
-	resp, err := client.R().
+	resp, err := o.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetBody(req).
@@ -124,8 +164,6 @@ func (o *Chat) Complete(content string) (*ChatResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	o.request = content
-	o.response, _ = chatResponse.GetContent()
 	return &chatResponse, nil
 }
 
@@ -146,8 +184,7 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 		Instruction: instruction,
 	}
 
-	client := resty.New()
-	resp, err := client.R().
+	resp, err := o.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+o.apiKey).
 		SetBody(req).
@@ -160,9 +197,5 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 	if err != nil {
 		return nil, err
 	}
-
-	o.request = content
-	o.response, _ = output.GetContent()
-	o.instruction = instruction
 	return &output, nil
 }

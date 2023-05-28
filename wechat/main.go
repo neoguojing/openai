@@ -15,7 +15,7 @@ import (
 
 var (
 	self *openwechat.Self
-	gpt  *openai.OpenAI
+	chat *openai.Chat
 
 	logger = log.NewLogger()
 )
@@ -29,9 +29,10 @@ func main() {
 		logger.Error("pls provide a api key")
 		return
 	}
-	gpt = openai.NewOpenAI(config.OpenAI.ApiKey)
+	gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
+	chat = gpt.Chat()
 	if config.OpenAI.Role != "" {
-		gpt.Chat().Prepare("config.OpenAI.Role")
+		chat = gpt.Chat().Prepare("config.OpenAI.Role")
 	}
 
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
@@ -141,53 +142,33 @@ func MessageHandler(msg *openwechat.Message) {
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
+	var replayText string
+	var err error
 	if msg.IsVoice() {
-		content, err := chatGPTVoice(msg)
+		resp, err := msg.GetVoice()
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		fileName := msg.MsgId + ".mp3"
+		logger.Info(fileName)
+
+		replayText, err = chat.Dialogue(models.Voice, "", fileName, resp.Body)
 		if err != nil {
 			logger.Error(fmt.Sprintf("chatGPTVoice: %v", err.Error()))
 			return "", err
 		}
-		logger.Info(fmt.Sprintf("chatGPTVoice content: %v", content))
-		return content, nil
-	}
-
-	replay, err := gpt.Chat().Complete(msg.Content)
-	if err != nil {
-		logger.Error(fmt.Sprintf("chatGPTReplay: %v", err.Error()))
-		return "", err
-	}
-	replayText, err := replay.GetContent()
-	if err != nil {
-		logger.Error(fmt.Sprintf("chatGPTReplay: %v", err.Error()))
-		return "", err
+		logger.Info(fmt.Sprintf("chatGPTVoice replayText: %v", replayText))
+	} else {
+		replayText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+		if err != nil {
+			logger.Error(fmt.Sprintf("chatGPTReplay: %v", err.Error()))
+			return "", err
+		}
 	}
 
 	replayText = strings.TrimSpace(replayText)
 	replayText = strings.Trim(replayText, "\n")
 	logger.Info(fmt.Sprintf("replayText: %v", replayText))
 	return replayText, nil
-}
-
-func chatGPTVoice(msg *openwechat.Message) (string, error) {
-
-	resp, err := msg.GetVoice()
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	fileName := msg.MsgId + ".mp3"
-	logger.Info(fileName)
-	reply, err := gpt.PreProcessForChat(models.Voice, "", fileName, resp.Body).
-		CompleteWithPrepareInput()
-	if err != nil {
-		return "", err
-	}
-	content, err := reply.GetContent()
-	if err != nil {
-		return "", err
-	}
-	logger.Info("chatGPTVoice:", content)
-
-	return content, nil
 }

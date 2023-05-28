@@ -33,13 +33,9 @@ type ChatRecord struct {
 	FilePath  string
 }
 
-func (o *ChatRecord) CreateChatRecord(request string, reply string, mediaType MediaType) error {
-	chatRecord := &ChatRecord{
-		Request:   request,
-		Reply:     reply,
-		MediaType: mediaType,
-	}
-	if err := db.Create(chatRecord).Error; err != nil {
+func (o *ChatRecord) CreateChatRecord() error {
+
+	if err := db.Create(o).Error; err != nil {
 		log.Println(err)
 		return err
 	}
