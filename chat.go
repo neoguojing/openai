@@ -47,7 +47,7 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 	return c
 }
 
-func (o *Chat) Prepare(roleName string) *Chat {
+func (c *Chat) Prepare(roleName string) *Chat {
 	roles, err := models.SearchRoleByName(roleName)
 	if err != nil {
 		log.Println(err)
@@ -58,19 +58,27 @@ func (o *Chat) Prepare(roleName string) *Chat {
 		log.Println("roles was empty")
 		return nil
 	}
-	chatResponse, err := o.Complete(roles[0].Desc)
+	chatResponse, err := c.Complete(roles[0].Desc)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
 	log.Println(chatResponse.GetContent())
-	return o
+	return c
 }
 
-func (o *Chat) save(filePath string, reader io.Reader) (string, error) {
+func (c *Chat) save(filePath string, reader io.Reader) (string, error) {
 	fileName := filepath.Base(filePath)
 	dst := filepath.Join("./data", fileName)
 	go func() error {
+
+		if _, err := os.Stat(filepath.Dir(dst)); os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+				log.Println(err)
+				return err
+			}
+		}
+
 		file, err := os.Create(dst)
 		if err != nil {
 			log.Println(err)
@@ -89,7 +97,7 @@ func (o *Chat) save(filePath string, reader io.Reader) (string, error) {
 	return dst, nil
 }
 
-func (o *Chat) Dialogue(media models.MediaType, text string, filePath string,
+func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	reader io.Reader) (string, error) {
 	if text == "" && reader == nil {
 		return "", errors.New("empty input")
@@ -98,13 +106,13 @@ func (o *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	var input string
 	var dstFilePath string
 	if media == models.Voice {
-		audioResp, err := o.audio.TranscriptionsDirect(filePath, reader)
+		audioResp, err := c.audio.TranscriptionsDirect(filePath, reader)
 		if err != nil {
 			log.Println(err)
 			return "", err
 		}
 		input = audioResp.Text
-		dstFilePath, _ = o.save(filePath, reader)
+		dstFilePath, _ = c.save(filePath, reader)
 	} else if media == models.Picture {
 	} else if media == models.Text {
 		input = text
@@ -112,7 +120,7 @@ func (o *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	} else if media == models.File {
 	}
 
-	resp, err := o.Complete(input)
+	resp, err := c.Complete(input)
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -129,33 +137,33 @@ func (o *Chat) Dialogue(media models.MediaType, text string, filePath string,
 		MediaType: media,
 		FilePath:  dstFilePath,
 	}
-	o.recorder.Send(record)
+	c.recorder.Send(record)
 
 	return reply, nil
 }
 
-func (o *Chat) Complete(content string) (*ChatResponse, error) {
+func (c *Chat) Complete(content string) (*ChatResponse, error) {
 	if content == "" {
 		return nil, errors.New("empty input")
 	}
 
 	req := ChatRequest{
-		Model: o.model,
+		Model: c.model,
 		Messages: []struct {
 			Role    string `json:"role"`
 			Content string `json:"content"`
 		}{
 			{
-				Role:    string(o.role),
+				Role:    string(c.role),
 				Content: content,
 			},
 		},
 	}
-	resp, err := o.client.R().
+	resp, err := c.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+o.apiKey).
+		SetHeader("Authorization", "Bearer "+c.apiKey).
 		SetBody(req).
-		Post(o.url)
+		Post(c.url)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +175,7 @@ func (o *Chat) Complete(content string) (*ChatResponse, error) {
 	return &chatResponse, nil
 }
 
-func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, error) {
+func (c *Chat) Edits(content string, instruction string) (*EditChatResponse, error) {
 	url := "https://api.openai.com/v1/edits"
 
 	req := EditChatRequest{
@@ -177,16 +185,16 @@ func (o *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 			Content string `json:"content"`
 		}{
 			{
-				Role:    string(o.role),
+				Role:    string(c.role),
 				Content: content,
 			},
 		},
 		Instruction: instruction,
 	}
 
-	resp, err := o.client.R().
+	resp, err := c.client.R().
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Authorization", "Bearer "+o.apiKey).
+		SetHeader("Authorization", "Bearer "+c.apiKey).
 		SetBody(req).
 		Post(url)
 	if err != nil {

@@ -32,7 +32,7 @@ func main() {
 	gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
 	chat = gpt.Chat()
 	if config.OpenAI.Role != "" {
-		chat = gpt.Chat().Prepare("config.OpenAI.Role")
+		chat.Prepare("config.OpenAI.Role")
 	}
 
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式

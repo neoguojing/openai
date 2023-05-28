@@ -15,10 +15,13 @@ BUILD := `git rev-parse --short HEAD`
 build:
 	go build -o $(CUR_DIR)/chatbot/ $(CUR_DIR)/chatbot/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/chatbot/config.yaml
+	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/chatbot/role.yaml
 	go build -o $(CUR_DIR)/server/ $(CUR_DIR)/server/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/server/config.yaml
+	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/server/role.yaml
 	go build -o $(CUR_DIR)/wechat/ $(CUR_DIR)/wechat/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/wechat/config.yaml
+	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/wechat/role.yaml
 
 clean:
 	rm -f  $(CUR_DIR)/chatbot/chatbot
