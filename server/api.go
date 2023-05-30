@@ -2,8 +2,10 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	midware "github.com/neoguojing/gin-midware"
 	"github.com/neoguojing/openai"
 	docs "github.com/neoguojing/openai/server/docs"
 	swaggerfiles "github.com/swaggo/files"
@@ -19,6 +21,15 @@ var api *openai.OpenAI
 // @BasePath /openai/api/v1
 func GenerateGinRouter(apiKey string) *gin.Engine {
 	router := gin.Default()
+	keyFunc := func(c *gin.Context) string {
+		userAgent := c.Request.Header.Get("User-Agent")
+		acceptLanguage := c.Request.Header.Get("Accept-Language")
+		forwardedFor := c.Request.Header.Get("X-Forwarded-For")
+
+		// 使用这些值生成用户唯一标识符
+		return GenerateUserIdentifier(userAgent, acceptLanguage, forwardedFor)
+	}
+	router.Use(midware.GinRateLimiter(keyFunc, 10, 1*time.Second))
 	docs.SwaggerInfo.BasePath = "/openai/api/v1"
 
 	api = openai.NewOpenAI(apiKey)
