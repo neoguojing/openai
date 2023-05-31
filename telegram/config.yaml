@@ -1,0 +1,11 @@
+server:
+  port: 8080
+openai:
+  api_key: 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 
+  role: 管理员
+telegram:
+  token: 6018091308:AAHw4Be1Vj2QOflM7tzPBsC7fdR8PpuK5Bg
+
+
+
+
