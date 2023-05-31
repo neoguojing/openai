@@ -3,12 +3,14 @@ chatbot/*.log
 chatbot/config.yaml
 chatbot/role.yaml
 chatbot/data
+chatbot/*.db
 openai.code-workspace
 server/server*
 server/*.log
 server/config.yaml
 server/role.yaml
 server/data
+server/*.db
 wechat/wechat*
 wechat/config.json
 wechat/*.mp3
@@ -16,6 +18,7 @@ wechat/*.log
 wechat/data
 wechat/role.yaml
 wechat/config.yaml
+wechat/*.db
 telegram/telegram*
 telegram/config.json
 telegram/*.mp3
@@ -23,6 +26,8 @@ telegram/*.log
 telegram/data
 telegram/role.yaml
 telegram/config.yaml
+telegram/*.db
 sqlite3.db
 role/*.db
 models/*.db
+telegram/telegram

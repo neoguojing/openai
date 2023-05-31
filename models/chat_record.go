@@ -25,12 +25,22 @@ func (m MediaType) IsValid() bool {
 	}
 }
 
+type Platform int
+
+const (
+	Wechat     Platform = 1
+	Telegram   Platform = 2
+	HttpServer Platform = 3
+	Chatbot    Platform = 4
+)
+
 type ChatRecord struct {
 	gorm.Model
 	Request   string `gorm:"uniqueIndex"`
 	Reply     string
 	MediaType MediaType
 	FilePath  string
+	Platform  Platform
 }
 
 func (o *ChatRecord) CreateChatRecord() error {

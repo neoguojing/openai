@@ -6,6 +6,7 @@ import (
 	"github.com/awesome-gocui/gocui"
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/openai/role"
 )
 
@@ -150,7 +151,7 @@ func openAiChat(input string) ([]string, error) {
 	}
 
 	chat := openai.NewOpenAI(config.OpenAI.ApiKey)
-	resp, err := chat.Chat().Complete(input)
+	resp, err := chat.Chat(openai.WithPlatform(models.Chatbot)).Complete(input)
 	if err != nil {
 		return nil, err
 	}

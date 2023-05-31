@@ -20,6 +20,7 @@ type Chat struct {
 	audio    *Audio
 	client   *resty.Client
 	recorder *models.Recorder
+	platform models.Platform
 }
 
 type ChatOption func(*Chat)
@@ -27,6 +28,12 @@ type ChatOption func(*Chat)
 func WithChatModel(model string) ChatOption {
 	return func(c *Chat) {
 		c.model = model
+	}
+}
+
+func WithPlatform(p models.Platform) ChatOption {
+	return func(c *Chat) {
+		c.platform = p
 	}
 }
 
