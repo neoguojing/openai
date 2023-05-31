@@ -11,6 +11,7 @@ require (
 	github.com/neoguojing/gormboot/v2 v2.0.0-alpha.9
 	github.com/neoguojing/log v0.0.6
 	github.com/neoguojing/openwechat v0.0.1
+	github.com/neoguojing/telegram-bot-api/v5 v5.0.0-20230531031237-325d1a80b0c0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1

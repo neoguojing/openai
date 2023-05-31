@@ -3,5 +3,7 @@ server:
 openai:
   api_key: 
   role: 职业
+telegram:
+  token: 
 
 

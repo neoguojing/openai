@@ -16,6 +16,13 @@ wechat/*.log
 wechat/data
 wechat/role.yaml
 wechat/config.yaml
+telegram/telegram*
+telegram/config.json
+telegram/*.mp3
+telegram/*.log
+telegram/data
+telegram/role.yaml
+telegram/config.yaml
 sqlite3.db
 role/*.db
 models/*.db

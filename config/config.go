@@ -18,13 +18,18 @@ type OpenAIConfig struct {
 	Role   string `yaml:"role"`
 }
 
+type TelegramConfig struct {
+	Token string `yaml:"token"`
+}
+
 type Server struct {
 	Port int `yaml:"port"`
 }
 
 type Config struct {
-	OpenAI OpenAIConfig `yaml:"openai"`
-	Server Server       `yaml:"server"`
+	OpenAI   OpenAIConfig   `yaml:"openai"`
+	Server   Server         `yaml:"server"`
+	Telegram TelegramConfig `yaml:"telegram"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {

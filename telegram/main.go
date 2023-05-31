@@ -170,7 +170,7 @@ func main() {
 	role.LoadRoles2DB()
 
 	gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
-	chat = gpt.Chat(openai.WithPlatform(models.Telegram))
+	chat = gpt.Chat()
 	if config.OpenAI.Role != "" {
 		chat.Prepare(config.OpenAI.Role)
 	}
