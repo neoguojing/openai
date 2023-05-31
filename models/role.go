@@ -12,6 +12,17 @@ type Role struct {
 	Desc string
 }
 
+ 
+func CountRoles() (int64, error) {
+	var count int64
+	if err := db.Model(&Role{}).Count(&count).Error; err != nil {
+		log.Println(err)
+		return 0, err
+	}
+	return count, nil
+}
+
+
 func CreateRole(role *Role) error {
 	if err := db.Create(role).Error; err != nil {
 		log.Println(err)

@@ -33,6 +33,14 @@ func LoadRoles2DB() error {
 		log.Fatal(err)
 	}
 
+	cnt, err := models.CountRoles()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if int64(len(roles)) <= cnt {
+		return nil
+	}
+
 	for role, desc := range roles {
 		user := models.Role{Name: role, Desc: desc}
 		if err := db.Create(&user).Error; err != nil {

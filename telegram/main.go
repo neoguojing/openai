@@ -54,12 +54,24 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	chatType := update.FromChat()
 	if chatType.IsChannel() {
 		logger.Infof("receive channel msg:%v", update.ChannelPost)
+		if !b.IsAtMe(update.Message.Text) {
+			return
+		}
 		msg = b.publicMessge(update)
 		if msg == nil {
 			return
 		}
-	} else {
-		logger.Infof("receive msg:%v", update.Message)
+	} else if chatType.IsPrivate() {
+		logger.Infof("receive private msg:%v", update.Message)
+		msg = b.privateMessage(update)
+		if msg == nil {
+			return
+		}
+	} else if chatType.IsGroup() || chatType.IsSuperGroup() {
+		logger.Infof("receive group or supper group msg:%v", update.Message)
+		if !b.IsAtMe(update.Message.Text) {
+			return
+		}
 		msg = b.privateMessage(update)
 		if msg == nil {
 			return
@@ -73,6 +85,15 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	}
 }
 
+func (b *Bot) IsAtMe(userName string) bool {
+	me := b.bot.Self.UserName
+	logger.Infof("%s-%s", me, userName)
+	if strings.Contains(userName, "@") && strings.Contains(userName, me) {
+		return true
+	}
+	return false
+}
+
 func (b *Bot) publicMessge(update tgbotapi.Update) *tgbotapi.MessageConfig {
 	logger.Infof("group msg:%v", update.ChannelPost.Text)
 
@@ -80,7 +101,8 @@ func (b *Bot) publicMessge(update tgbotapi.Update) *tgbotapi.MessageConfig {
 	if replayText == "" {
 		return nil
 	}
-	msg := tgbotapi.NewMessage(update.ChannelPost.Chat.ID, userName+" "+replayText)
+
+	msg := tgbotapi.NewMessage(update.ChannelPost.Chat.ID, replayText)
 	msg.ReplyToMessageID = update.ChannelPost.MessageID
 	logger.Infof("group msg:%v,%v", userName, replayText)
 
@@ -88,9 +110,14 @@ func (b *Bot) publicMessge(update tgbotapi.Update) *tgbotapi.MessageConfig {
 }
 
 func (b *Bot) privateMessage(update tgbotapi.Update) *tgbotapi.MessageConfig {
-	_, replayText := b.makeReplyText(update.Message)
+	sendUserName, replayText := b.makeReplyText(update.Message)
 	if replayText == "" {
 		return nil
+	}
+
+	if sendUserName != "" {
+		fromUserName := update.Message.From.UserName
+		replayText = "@" + fromUserName + " " + replayText
 	}
 	// Create a new message to send back to the user
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, replayText)
