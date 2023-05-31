@@ -52,8 +52,8 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 
 	var msg *tgbotapi.MessageConfig
 	chatType := update.FromChat()
-	if chatType.IsChannel() || chatType.IsGroup() || chatType.IsSuperGroup() {
-		logger.Infof("receive group msg:%v", update.ChannelPost)
+	if chatType.IsChannel() {
+		logger.Infof("receive channel msg:%v", update.ChannelPost)
 		msg = b.publicMessge(update)
 		if msg == nil {
 			return
