@@ -22,6 +22,7 @@ build:
 	go build -o $(CUR_DIR)/wechat/ $(CUR_DIR)/wechat/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/wechat/config.yaml
 	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/wechat/role.yaml
+	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/docker-compose/config.yaml
 
 clean:
 	rm -f  $(CUR_DIR)/chatbot/chatbot
@@ -34,7 +35,8 @@ doc:
  
 image:
 	# Build Docker image
-	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) .
+	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.server .
+	docker build -t guojingneo/bot:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.bot .
 # Run Docker container
 run:
 	docker run -d -p 8080:8080 guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE)
