@@ -8,8 +8,8 @@ require (
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/neoguojing/commander v0.0.5
 	github.com/neoguojing/gin-midware v0.0.3
-	github.com/neoguojing/gormboot/v2 v2.0.0-alpha.9
-	github.com/neoguojing/log v0.0.6
+	github.com/neoguojing/gormboot/v2 v2.0.0
+	github.com/neoguojing/log v0.0.7
 	github.com/neoguojing/openwechat v0.0.1
 	github.com/neoguojing/telegram-bot-api/v5 v5.0.0-20230531031237-325d1a80b0c0
 	github.com/swaggo/files v1.0.1

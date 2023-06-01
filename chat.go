@@ -4,12 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 
+	"github.com/neoguojing/log"
+
 	"github.com/go-resty/resty/v2"
+	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
+)
+
+var (
+	baseFilePath = os.Getenv(config.EnvFilePath)
 )
 
 type Chat struct {
@@ -57,20 +63,21 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 func (c *Chat) Prepare(roleName string) *Chat {
 	roles, err := models.SearchRoleByName(roleName)
 	if err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return nil
 	}
 
 	if len(roles) == 0 {
-		log.Println("roles was empty")
+		log.Error("roles was empty")
 		return nil
 	}
 	chatResponse, err := c.Complete(roles[0].Desc)
 	if err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return nil
 	}
-	log.Println(chatResponse.GetContent())
+	content, _ := chatResponse.GetContent()
+	log.Info(content)
 	return c
 }
 
@@ -81,21 +88,21 @@ func (c *Chat) save(filePath string, reader io.Reader) (string, error) {
 
 		if _, err := os.Stat(filepath.Dir(dst)); os.IsNotExist(err) {
 			if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
-				log.Println(err)
+				log.Error(err.Error())
 				return err
 			}
 		}
 
 		file, err := os.Create(dst)
 		if err != nil {
-			log.Println(err)
+			log.Error(err.Error())
 			return err
 		}
 		defer file.Close()
 
 		_, err = io.Copy(file, reader)
 		if err != nil {
-			log.Println(err)
+			log.Error(err.Error())
 			return err
 		}
 		return nil
@@ -115,11 +122,12 @@ func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	if media == models.Voice {
 		audioResp, err := c.audio.TranscriptionsDirect(filePath, reader)
 		if err != nil {
-			log.Println(err)
+			log.Error(err.Error())
 			return "", err
 		}
 		input = audioResp.Text
-		dstFilePath, _ = c.save(filePath, reader)
+		dst := filepath.Join(baseFilePath, string(models.Voice), filePath)
+		dstFilePath, _ = c.save(dst, reader)
 	} else if media == models.Picture {
 	} else if media == models.Text {
 		input = text
@@ -129,12 +137,12 @@ func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 
 	resp, err := c.Complete(input)
 	if err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return "", err
 	}
 	reply, err := resp.GetContent()
 	if err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return "", err
 	}
 

@@ -1,8 +1,9 @@
 package role
 
 import (
-	"log"
 	"os"
+
+	"github.com/neoguojing/log"
 
 	"github.com/neoguojing/gormboot/v2"
 	"github.com/neoguojing/openai/models"
@@ -24,18 +25,18 @@ func LoadRoles2DB() error {
 	var roles Roles
 	yamlFile, err := os.Open("./role.yaml")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer yamlFile.Close()
 	yamlDecoder := yaml.NewDecoder(yamlFile)
 	err = yamlDecoder.Decode(&roles)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	cnt, err := models.CountRoles()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	if int64(len(roles)) <= cnt {
 		return nil
@@ -44,7 +45,7 @@ func LoadRoles2DB() error {
 	for role, desc := range roles {
 		user := models.Role{Name: role, Desc: desc}
 		if err := db.Create(&user).Error; err != nil {
-			log.Println(err)
+			log.Error(err.Error())
 			return err
 		}
 	}

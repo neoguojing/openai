@@ -2,10 +2,17 @@ package config
 
 import (
 	"io/ioutil"
-	"log"
 	"sync"
 
+	"github.com/neoguojing/log"
+
 	"gopkg.in/yaml.v2"
+)
+
+const (
+	EnvFilePath string = "FILE_PATH"
+	EnvDBPath   string = "DB_PATH"
+	EnvLogPath  string = "LOG_PATH"
 )
 
 var (
@@ -37,13 +44,13 @@ func LoadConfig(configPath string) (*Config, error) {
 
 	yamlFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		log.Printf("yamlFile.Get err   #%v ", err)
+		log.Errorf("yamlFile.Get err   #%v ", err)
 		return nil, err
 	}
 
 	err = yaml.Unmarshal(yamlFile, config)
 	if err != nil {
-		log.Fatalf("Unmarshal: %v", err)
+		log.Errorf("Unmarshal: %v", err)
 		return nil, err
 	}
 
@@ -56,7 +63,7 @@ func GetConfig() *Config {
 		var err error
 		config, err = LoadConfig(configPath)
 		if err != nil {
-			log.Fatal(err.Error())
+			panic(err.Error())
 		}
 	})
 

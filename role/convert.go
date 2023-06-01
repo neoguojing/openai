@@ -3,7 +3,6 @@ package role
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -15,7 +14,7 @@ func Convert(src, dst string) {
 	// Open the file for reading
 	file, err := os.Open(src)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 	defer file.Close()
 
@@ -47,13 +46,13 @@ func Convert(src, dst string) {
 	// Marshal the slice into YAML format
 	yamlContent, err := yaml.Marshal(&roles)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	// Write the YAML content to a file
 	err = os.WriteFile(dst, yamlContent, 0644)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fmt.Println("File converted to YAML format successfully!")

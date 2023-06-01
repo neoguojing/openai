@@ -1,7 +1,7 @@
 package models
 
 import (
-	"log"
+	"github.com/neoguojing/log"
 
 	"gorm.io/gorm"
 )
@@ -12,20 +12,18 @@ type Role struct {
 	Desc string
 }
 
- 
 func CountRoles() (int64, error) {
 	var count int64
 	if err := db.Model(&Role{}).Count(&count).Error; err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return 0, err
 	}
 	return count, nil
 }
 
-
 func CreateRole(role *Role) error {
 	if err := db.Create(role).Error; err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return err
 	}
 	return nil
@@ -34,7 +32,7 @@ func CreateRole(role *Role) error {
 func SearchRoleByName(name string) ([]*Role, error) {
 	var roles []*Role
 	if err := db.Where("name LIKE ?", "%"+name+"%").Find(&roles).Error; err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return nil, err
 	}
 	return roles, nil
@@ -42,7 +40,7 @@ func SearchRoleByName(name string) ([]*Role, error) {
 
 func UpdateRole(role *Role) error {
 	if err := db.Save(role).Error; err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return err
 	}
 	return nil
@@ -50,7 +48,7 @@ func UpdateRole(role *Role) error {
 
 func DeleteRole(id uint) error {
 	if err := db.Delete(&Role{}, id).Error; err != nil {
-		log.Println(err)
+		log.Error(err.Error())
 		return err
 	}
 	return nil

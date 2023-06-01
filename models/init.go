@@ -1,7 +1,7 @@
 package models
 
 import (
-	"log"
+	"github.com/neoguojing/log"
 
 	"github.com/neoguojing/gormboot/v2"
 	"gorm.io/gorm"
@@ -36,7 +36,7 @@ func (r *Recorder) loop() {
 		case record := <-r.syncer:
 			err := record.CreateChatRecord()
 			if err != nil {
-				log.Println(err)
+				log.Error(err.Error())
 			}
 		}
 	}

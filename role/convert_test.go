@@ -1,7 +1,6 @@
 package role
 
 import (
-	"log"
 	"os"
 	"testing"
 
@@ -14,7 +13,7 @@ func TestConvert(t *testing.T) {
 
 	yamlFile, err := os.Open("./role.yaml")
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	defer yamlFile.Close()
 
@@ -22,7 +21,7 @@ func TestConvert(t *testing.T) {
 	yamlDecoder := yaml.NewDecoder(yamlFile)
 	err = yamlDecoder.Decode(&roles)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 
 	if roles["充当 Linux 终端"] == "" {
