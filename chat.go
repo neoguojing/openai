@@ -82,18 +82,16 @@ func (c *Chat) Prepare(roleName string) *Chat {
 }
 
 func (c *Chat) save(filePath string, reader io.Reader) (string, error) {
-	fileName := filepath.Base(filePath)
-	dst := filepath.Join("./data", fileName)
 	go func() error {
 
-		if _, err := os.Stat(filepath.Dir(dst)); os.IsNotExist(err) {
-			if err := os.MkdirAll(filepath.Dir(dst), os.ModePerm); err != nil {
+		if _, err := os.Stat(filepath.Dir(filePath)); os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
 				log.Error(err.Error())
 				return err
 			}
 		}
 
-		file, err := os.Create(dst)
+		file, err := os.Create(filePath)
 		if err != nil {
 			log.Error(err.Error())
 			return err
@@ -108,7 +106,7 @@ func (c *Chat) save(filePath string, reader io.Reader) (string, error) {
 		return nil
 	}()
 
-	return dst, nil
+	return filePath, nil
 }
 
 func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
@@ -221,4 +219,33 @@ func (c *Chat) Edits(content string, instruction string) (*EditChatResponse, err
 		return nil, err
 	}
 	return &output, nil
+}
+
+func (c *Chat) Recorder(media models.MediaType, text string, filePath string,
+	reader io.Reader) error {
+
+	record := models.ChatRecord{
+		Request:   text,
+		MediaType: media,
+	}
+	var dstFilePath string
+	switch media {
+	case models.File:
+		dst := filepath.Join(baseFilePath, string(models.Voice), filePath)
+		dstFilePath, _ = c.save(dst, reader)
+	case models.Picture:
+		dst := filepath.Join(baseFilePath, string(models.Picture), filePath)
+		dstFilePath, _ = c.save(dst, reader)
+	case models.Video:
+		dst := filepath.Join(baseFilePath, string(models.Video), filePath)
+		dstFilePath, _ = c.save(dst, reader)
+	case models.Voice:
+		dst := filepath.Join(baseFilePath, string(models.Voice), filePath)
+		dstFilePath, _ = c.save(dst, reader)
+	default:
+		return errors.New("not support type")
+	}
+	record.FilePath = dstFilePath
+	c.recorder.Send(record)
+	return nil
 }

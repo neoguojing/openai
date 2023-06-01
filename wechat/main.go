@@ -125,6 +125,8 @@ func MessageHandler(msg *openwechat.Message) {
 			if err != nil {
 				logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 			}
+		} else {
+
 		}
 
 	} else if msg.IsSendByFriend() {
