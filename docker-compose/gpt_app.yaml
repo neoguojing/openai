@@ -12,7 +12,7 @@ services:
   api:
     image: guojingneo/chat-server:v1.1.0-95b4017-amd64-amd64
     ports:
-      - "80:80"
+      - "8080:8080"
     env_file:
       - app.env
     volumes:
@@ -54,13 +54,16 @@ volumes:
   file:
     driver_opts:
       type: none
+      o: bind
       device: /data/file
   logs:
     driver_opts:
       type: none
+      o: bind
       device: /data/logs
   db:
     driver_opts:
       type: none
+      o: bind
       device: /data/db
 
