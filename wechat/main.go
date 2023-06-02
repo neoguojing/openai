@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -91,12 +92,18 @@ func main() {
 
 func MessageHandler(msg *openwechat.Message) {
 	if !msg.IsText() && !msg.IsVoice() {
+		err := mutiMediaRecord(msg)
+		if err != nil {
+			logger.Error(err.Error())
+			return
+		}
 		return
 	}
 
 	sender, _ := msg.Sender()
 	logger.Info(fmt.Sprintf("sender: %v, content: %v", sender.NickName, msg.Content))
-
+	msgByte, _ := json.Marshal(msg)
+	logger.Infof("message struct:%s", string(msgByte))
 	if msg.IsSendByGroup() {
 		if !msg.IsAt() {
 			return
@@ -143,6 +150,9 @@ func MessageHandler(msg *openwechat.Message) {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 		}
 	}
+
+	logger.Warning("unhandled msg!!!!")
+
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
