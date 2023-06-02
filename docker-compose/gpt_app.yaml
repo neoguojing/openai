@@ -27,7 +27,7 @@ services:
     volumes:
       - ./wechat.yaml:/app/config.yaml
       - ./config.json:/app/config.json
-      - ./supervisord_wechat.conf /etc/supervisor/conf.d/supervisord.conf
+      - ./supervisord_wechat.conf:/etc/supervisor/conf.d/supervisord.conf
       - logs:${LOG_PATH}
       - db:${DB_PATH}
       - file:${FILE_PATH}
@@ -39,7 +39,7 @@ services:
       - ./app.env
     volumes:
       - ./telegram.yaml:/app/config.yaml
-      - ./supervisord_tg.conf  /etc/supervisor/conf.d/supervisord.conf
+      - ./supervisord_tg.conf:/etc/supervisor/conf.d/supervisord.conf
       - logs:${LOG_PATH}
       - db:${DB_PATH}
       - file:${FILE_PATH}
