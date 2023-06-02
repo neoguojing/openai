@@ -12,12 +12,12 @@ services:
   api:
     image: your-app1-image
     env_file:
-      - ./app.env
+      - app.env
     volumes:
       - ./config.yaml:/app/config.yaml
-      - logs:${LOG_PATH}
-      - db:${DB_PATH}
-      - file:${FILE_PATH}
+      - logs:/app/logs
+      - db:/app/db
+      - file:/app/file
     networks:
       - appnet
   wechat:
@@ -28,9 +28,9 @@ services:
       - ./wechat.yaml:/app/config.yaml
       - ./config.json:/app/config.json
       - ./supervisord_wechat.conf:/etc/supervisor/conf.d/supervisord.conf
-      - logs:${LOG_PATH}
-      - db:${DB_PATH}
-      - file:${FILE_PATH}
+      - logs:/app/logs
+      - db:/app/db
+      - file:/app/file
     networks:
       - appnet
   telegram:
@@ -40,9 +40,9 @@ services:
     volumes:
       - ./telegram.yaml:/app/config.yaml
       - ./supervisord_tg.conf:/etc/supervisor/conf.d/supervisord.conf
-      - logs:${LOG_PATH}
-      - db:${DB_PATH}
-      - file:${FILE_PATH}
+      - logs:/app/logs
+      - db:/app/db
+      - file:/app/file
     networks:
       - appnet
 networks:
