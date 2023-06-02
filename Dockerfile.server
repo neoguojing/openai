@@ -1,9 +1,7 @@
- 
-
 # Use an official Ubuntu image as a parent image
 FROM ubuntu:latest AS server
 
- 
+ RUN chmod a+rwxt /tmp
 # Install sqlite
 RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
 

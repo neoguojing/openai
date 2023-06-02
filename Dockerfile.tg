@@ -1,4 +1,5 @@
 FROM ubuntu:latest AS bot
+RUN chmod a+rwxt /tmp
 RUN apt-get update && apt-get install -y supervisor sqlite3 libsqlite3-dev
 # Set the working directory to /app
 WORKDIR /app
