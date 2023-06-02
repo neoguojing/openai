@@ -57,6 +57,7 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	if chatType.IsChannel() {
 		logger.Infof("receive channel msg:%v", update.ChannelPost)
 		if !b.IsAtMe(update.Message.Text) {
+			b.MessageTypeHandler(update.Message)
 			return
 		}
 		msg = b.publicMessge(update)
@@ -70,8 +71,9 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 			return
 		}
 	} else if chatType.IsGroup() || chatType.IsSuperGroup() {
-		logger.Infof("receive group or supper group msg:%v", update.Message)
+		logger.Infof("receive group or supper group msg:%v", update.Message.Text)
 		if !b.IsAtMe(update.Message.Text) {
+			b.MessageTypeHandler(update.Message)
 			return
 		}
 		msg = b.privateMessage(update)
