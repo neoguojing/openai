@@ -36,7 +36,8 @@ doc:
 image:
 	# Build Docker image
 	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.server .
-	docker build -t guojingneo/bot:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.bot .
+	docker build -t guojingneo/wechat:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.wechat .
+	docker build -t guojingneo/tg:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.tg .
 # Run Docker container
 run:
 	docker run -d -p 8080:8080 guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE)

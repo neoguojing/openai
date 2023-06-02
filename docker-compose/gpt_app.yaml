@@ -22,17 +22,30 @@ services:
       - file:${FILE_PATH}
     networks:
       - appnet
-  bot:
+  wechat:
     image: your-app1-image
     environment:
       LOG_PATH: ${LOG_PATH}
       DB_PATH: ${DB_PATH}
       FILE_PATH: ${FILE_PATH}
     volumes:
-      - ./telegram.yaml:/app/telegram/config.yaml
-      - ./wechat.yaml:/app/wechat/config.yaml
+      - ./wechat.yaml:/app/config.yaml
       - ./config.json:/app/config.json
-      - ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+      - ./supervisord_wechat.conf /etc/supervisor/conf.d/supervisord.conf
+      - logs:${LOG_PATH}
+      - db:${DB_PATH}
+      - file:${FILE_PATH}
+    networks:
+      - appnet
+  telegram:
+    image: your-app1-image
+    environment:
+      LOG_PATH: ${LOG_PATH}
+      DB_PATH: ${DB_PATH}
+      FILE_PATH: ${FILE_PATH}
+    volumes:
+      - ./telegram.yaml:/app/config.yaml
+      - ./supervisord_tg.conf  /etc/supervisor/conf.d/supervisord.conf
       - logs:${LOG_PATH}
       - db:${DB_PATH}
       - file:${FILE_PATH}
