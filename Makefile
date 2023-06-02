@@ -23,11 +23,16 @@ build:
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/wechat/config.yaml
 	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/wechat/role.yaml
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/docker-compose/config.yaml
+	go build -o $(CUR_DIR)/telegram/ $(CUR_DIR)/telegram/
+	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/telegram/config.yaml
+	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/telegram/role.yaml
+	
 
 clean:
 	rm -f  $(CUR_DIR)/chatbot/chatbot
 	rm -f  $(CUR_DIR)/server/server
 	rm -f  $(CUR_DIR)/wechat/wechat
+	rm -f  $(CUR_DIR)/telegram/telegram
 	
 doc:
 	cd $(CUR_DIR)/server && swag init --parseDependency
