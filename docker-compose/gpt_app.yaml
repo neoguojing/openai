@@ -11,6 +11,8 @@ services:
       - appnet
   api:
     image: guojingneo/chat-server:v1.1.0-95b4017-amd64-amd64
+    ports:
+      - "80:80"
     env_file:
       - app.env
     volumes:

@@ -3,6 +3,9 @@ RUN apt-get update && apt-get install -y supervisor
 
 # Set the working directory to /app
 WORKDIR /app
+RUN mkdir /app/logs
+RUN mkdir /app/file
+RUN mkdir /app/db
 
 COPY ./telegram/telegram  /app/
 COPY ./role/role.yaml  /app/
