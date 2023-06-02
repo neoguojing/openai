@@ -32,3 +32,4 @@ role/*.db
 models/*.db
 telegram/telegram
 docker-compose/config.yaml
+telegram/__debug_bin*

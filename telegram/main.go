@@ -56,8 +56,8 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	chatType := update.FromChat()
 	if chatType.IsChannel() {
 		logger.Infof("receive channel msg:%v", update.ChannelPost)
-		if !b.IsAtMe(update.Message.Text) {
-			b.MessageTypeHandler(update.Message)
+		if !b.IsAtMe(update.ChannelPost.Text) {
+			b.MessageTypeHandler(update.ChannelPost)
 			return
 		}
 		msg = b.publicMessge(update)
