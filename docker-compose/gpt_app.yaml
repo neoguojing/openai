@@ -2,6 +2,7 @@ version: '3'
 services:
   gateway:
     image: nginx
+    restart: always
     ports:
       - "80:80"
     volumes:
@@ -11,6 +12,7 @@ services:
       - appnet
   api:
     image: guojingneo/chat-server:v1.1.0-c9154cc-amd64-amd64
+    restart: always
     ports:
       - "8080:8080"
     env_file:
@@ -24,6 +26,7 @@ services:
       - appnet
   wechat:
     image: guojingneo/wechat:v1.1.0-c9154cc-amd64-amd64
+    restart: always
     env_file:
       - ./app.env
     volumes:
@@ -37,6 +40,7 @@ services:
       - appnet
   telegram:
     image: guojingneo/tg:v1.1.0-c9154cc-amd64-amd64
+    restart: always
     env_file:
       - ./app.env
     volumes:
