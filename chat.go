@@ -231,7 +231,7 @@ func (c *Chat) Recorder(media models.MediaType, text string, filePath string,
 	var dstFilePath string
 	switch media {
 	case models.File:
-		dst := filepath.Join(baseFilePath, string(models.Voice), filePath)
+		dst := filepath.Join(baseFilePath, string(models.File), filePath)
 		dstFilePath, _ = c.save(dst, reader)
 	case models.Picture:
 		dst := filepath.Join(baseFilePath, string(models.Picture), filePath)
@@ -242,6 +242,8 @@ func (c *Chat) Recorder(media models.MediaType, text string, filePath string,
 	case models.Voice:
 		dst := filepath.Join(baseFilePath, string(models.Voice), filePath)
 		dstFilePath, _ = c.save(dst, reader)
+	case models.Text:
+		record.Request = text
 	default:
 		return errors.New("not support type")
 	}

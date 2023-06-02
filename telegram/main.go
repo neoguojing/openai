@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openai/config"
@@ -118,6 +120,11 @@ func (b *Bot) privateMessage(update tgbotapi.Update) *tgbotapi.MessageConfig {
 	if sendUserName != "" {
 		fromUserName := update.Message.From.UserName
 		replayText = "@" + fromUserName + " " + replayText
+	} else {
+		err := b.MessageTypeHandler(update.Message)
+		if err != nil {
+			return nil
+		}
 	}
 	// Create a new message to send back to the user
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, replayText)
@@ -139,20 +146,74 @@ func (b *Bot) getSendUserName(text string) (userName string, content string) {
 	return
 }
 
+func (b *Bot) MessageTypeHandler(msg *tgbotapi.Message) error {
+	var err error
+	var fileID string
+	var mediaType models.MediaType
+	if msg.Text != "" {
+		fileID = ""
+		mediaType = models.Text
+	} else if msg.Voice != nil {
+		fileID = ""
+		mediaType = models.Voice
+	} else if msg.Video != nil {
+		fileID = ""
+		mediaType = models.Video
+	} else if msg.Audio != nil {
+		fileID = ""
+		mediaType = models.Voice
+	} else if msg.Document != nil {
+		fileID = ""
+		mediaType = models.File
+	} else if msg.Photo != nil {
+		fileID = ""
+		mediaType = models.Picture
+	}
+
+	var reader io.ReadCloser
+	if fileID != "" {
+		url, err := b.bot.GetFileDirectURL(fileID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Voice GetFileDirectURL: %v", err.Error()))
+			return err
+		}
+		reader, err = b.DownloadFile(url)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Voice DownloadFile: %v", err.Error()))
+			return err
+		}
+		defer reader.Close()
+	}
+
+	err = chat.Recorder(mediaType, msg.Text, fileID, reader)
+
+	return err
+}
+
 func (b *Bot) makeReplyText(message *tgbotapi.Message) (userName, replayText string) {
 
 	// 判断消息类型分别处理
 	var err error
 	var request string
 	if message.Voice != nil {
-
-		replayText, err = chat.Dialogue(models.Voice, "", message.Voice.FileUniqueID, nil)
+		url, err := b.bot.GetFileDirectURL(message.Voice.FileID)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Voice GetFileDirectURL: %v", err.Error()))
+			return
+		}
+		reader, err := b.DownloadFile(url)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Voice DownloadFile: %v", err.Error()))
+			return
+		}
+		defer reader.Close()
+		replayText, err = chat.Dialogue(models.Voice, "", message.Voice.FileID, reader)
 		if err != nil {
 			logger.Error(fmt.Sprintf("Voice: %v", err.Error()))
 			return
 		}
 		logger.Info(fmt.Sprintf("Voice replayText: %v", replayText))
-	} else {
+	} else if message.Text != "" {
 		userName, request = b.getSendUserName(message.Text)
 		replayText, err = chat.Dialogue(models.Text, request, "", nil)
 		if err != nil {
@@ -160,6 +221,11 @@ func (b *Bot) makeReplyText(message *tgbotapi.Message) (userName, replayText str
 			return
 		}
 		logger.Info(fmt.Sprintf("Text: %v", replayText))
+	} else {
+		err := b.MessageTypeHandler(message)
+		if err != nil {
+			return
+		}
 	}
 
 	return
@@ -181,6 +247,20 @@ func (b *Bot) Start() error {
 
 	// Return nil if the loop exits cleanly
 	return nil
+}
+
+// Download file from url use resty
+func (b *Bot) DownloadFile(url string) (io.ReadCloser, error) {
+	// Create a new Resty client
+	client := resty.New()
+
+	// Send the GET request and get the response
+	resp, err := client.R().Get(url)
+	if err != nil {
+		return nil, err
+	}
+	// Return the response body as an io Reader
+	return resp.RawResponse.Body, nil
 }
 
 // Define the main function

@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"errors"
+
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai"
 	"github.com/neoguojing/openai/config"
@@ -173,4 +175,42 @@ func chatGPTReplay(msg *openwechat.Message) (string, error) {
 	replayText = strings.Trim(replayText, "\n")
 	logger.Info(fmt.Sprintf("replayText: %v", replayText))
 	return replayText, nil
+}
+
+func mutiMediaRecord(msg *openwechat.Message) error {
+	var err error
+	switch msg.MsgType {
+	case openwechat.MsgTypeVoice:
+		resp, err := msg.GetVoice()
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		fileName := msg.MsgId + ".mp3"
+		logger.Info(fileName)
+		err = chat.Recorder(models.Voice, "", fileName, resp.Body)
+	case openwechat.MsgTypeImage:
+		resp, err := msg.GetPicture()
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		fileName := msg.MsgId + ".jpeg"
+		logger.Info(fileName)
+		err = chat.Recorder(models.Picture, "", fileName, resp.Body)
+	case openwechat.MsgTypeText:
+		err = chat.Recorder(models.Text, msg.Content, "", nil)
+	case openwechat.MsgTypeVideo:
+		resp, err := msg.GetVideo()
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		fileName := msg.MsgId + ".mp4"
+		logger.Info(fileName)
+		err = chat.Recorder(models.Video, "", fileName, resp.Body)
+	default:
+		return errors.New("no support msg type")
+	}
+	return err
 }
