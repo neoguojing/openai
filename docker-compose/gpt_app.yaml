@@ -29,7 +29,8 @@ services:
       DB_PATH: ${DB_PATH}
       FILE_PATH: ${FILE_PATH}
     volumes:
-      - ./config.yaml:/app/config.yaml
+      - ./telegram.yaml:/app/telegram/config.yaml
+      - ./wechat.yaml:/app/wechat/config.yaml
       - ./config.json:/app/config.json
       - ./supervisord.conf /etc/supervisor/conf.d/supervisord.conf
       - logs:${LOG_PATH}

@@ -3,14 +3,16 @@
 nodaemon=true
 
 [program:telegram]
-command=/app/telegram
+command=telegram
+directory=/app/telegram
 autostart=true
 autorestart=true
 user=root
 stdout_logfile=/app/logs/telegram.log
 
 [program:wechat]
-command=/app/wechat
+command=wechat
+directory=/app/wechat
 autostart=true
 autorestart=true
 user=root
