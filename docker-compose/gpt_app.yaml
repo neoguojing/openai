@@ -10,7 +10,7 @@ services:
     networks:
       - appnet
   api:
-    image: guojingneo/chat-server:v1.1.0-95b4017-amd64-amd64
+    image: guojingneo/chat-server:v1.1.0-c9154cc-amd64-amd64
     ports:
       - "8080:8080"
     env_file:
@@ -23,7 +23,7 @@ services:
     networks:
       - appnet
   wechat:
-    image: guojingneo/wechat:v1.1.0-95b4017-amd64-amd64
+    image: guojingneo/wechat:v1.1.0-c9154cc-amd64-amd64
     env_file:
       - ./app.env
     volumes:
@@ -36,7 +36,7 @@ services:
     networks:
       - appnet
   telegram:
-    image: guojingneo/tg:v1.1.0-95b4017-amd64-amd64
+    image: guojingneo/tg:v1.1.0-c9154cc-amd64-amd64
     env_file:
       - ./app.env
     volumes:
