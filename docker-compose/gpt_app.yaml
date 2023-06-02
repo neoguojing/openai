@@ -10,7 +10,7 @@ services:
     networks:
       - appnet
   api:
-    image: your-app1-image
+    image: guojingneo/chat-server:v1.1.0-95b4017-amd64-amd64
     env_file:
       - app.env
     volumes:
@@ -21,7 +21,7 @@ services:
     networks:
       - appnet
   wechat:
-    image: your-app1-image
+    image: guojingneo/wechat:v1.1.0-95b4017-amd64-amd64
     env_file:
       - ./app.env
     volumes:
@@ -34,7 +34,7 @@ services:
     networks:
       - appnet
   telegram:
-    image: your-app1-image
+    image: guojingneo/tg:v1.1.0-95b4017-amd64-amd64
     env_file:
       - ./app.env
     volumes:
