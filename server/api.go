@@ -7,12 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 	midware "github.com/neoguojing/gin-midware"
 	"github.com/neoguojing/openai"
+	"github.com/neoguojing/openai/models"
 	docs "github.com/neoguojing/openai/server/docs"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-var api *openai.OpenAI
+var (
+	api  *openai.OpenAI
+	chat *openai.Chat
+)
 
 // @title OpenAI API
 // @version 1.0
@@ -33,6 +37,7 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/openai/api/v1"
 
 	api = openai.NewOpenAI(apiKey)
+	chat = api.Chat(openai.WithPlatform(models.HttpServer))
 	openaiGroup := router.Group("/openai/api/v1")
 	openaiGroup.POST("/files/upload", uploadFile)
 	openaiGroup.DELETE("/files/:file_id", deleteFile)
@@ -52,6 +57,8 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/images/variate", variateImage)
 	openaiGroup.POST("/chat", completeChat)
 	openaiGroup.POST("/chat/edit", editChat)
+	openaiGroup.POST("/chat/voice", voiceChat)
+	openaiGroup.PUT("/chat/:role", setRoleForChat)
 	openaiGroup.GET("/models", listModels)
 	openaiGroup.GET("/model/:name", getModel)
 	openaiGroup.POST("/completions", completeText)
@@ -504,7 +511,7 @@ func variateImage(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param input body openai.DialogRequest true "聊天提示的输入"
-// @Success 200 {object} openai.ChatResponse
+// @Success 200 {object} openai.AudioResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /chat [post]
@@ -517,11 +524,76 @@ func completeChat(c *gin.Context) {
 	}
 
 	var err error
-	var response *openai.ChatResponse
-	response, err = api.Chat().Complete(input.Input)
+	var response = openai.AudioResponse{}
+	text, err := chat.Dialogue(models.Text, input.Input, "", nil)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return
+	}
+	response.Text = text
+	c.JSON(http.StatusOK, response)
+}
+
+// @Description 使用语音进行对话
+// @Accept multipart/form-data
+// @Produce json
+// @Param file formData file true "Audio file to transcribe"
+// @Success 200 {object} openai.AudioResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /chat/voice [post]
+func voiceChat(c *gin.Context) {
+	// code for audio transcriptions
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	reader, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	defer reader.Close()
+	var response = openai.AudioResponse{}
+	text, err := chat.Dialogue(models.Voice, "", file.Filename, reader)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+	response.Text = text
+	c.JSON(http.StatusOK, response)
+}
+
+// @Description 设置AI角色
+// @Accept json
+// @Produce json
+// @Param role path string true "role name"
+// @Success 200 {object} openai.ChatResponse
+// @Failure 400 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router /chat/{role} [post]
+func setRoleForChat(c *gin.Context) {
+
+	role := c.Param("role")
+	roles, err := models.SearchRoleByName(role)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+		return
+	}
+
+	var roleDesc string
+	var response *openai.ChatResponse
+	if len(roles) > 0 {
+		roleDesc = roles[0].Desc
+		response, err = chat.Complete(roleDesc)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, NewErrorResponse(err))
+			return
+		}
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -545,7 +617,7 @@ func editChat(c *gin.Context) {
 
 	var err error
 	var response *openai.EditChatResponse
-	response, err = api.Chat().Edits(input.Input, input.Instruction)
+	response, err = chat.Edits(input.Input, input.Instruction)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, NewErrorResponse(err))
 		return

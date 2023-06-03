@@ -627,6 +627,32 @@ paths:
         "200":
           description: OK
           schema:
+            $ref: '#/definitions/openai.AudioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+  /chat/{role}:
+    post:
+      consumes:
+      - application/json
+      description: 设置AI角色
+      parameters:
+      - description: role name
+        in: path
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
             $ref: '#/definitions/openai.ChatResponse'
         "400":
           description: Bad Request
@@ -664,6 +690,32 @@ paths:
           schema:
             $ref: '#/definitions/main.ErrorResponse'
       summary: Edit a chat prompt
+  /chat/voice:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 使用语音进行对话
+      parameters:
+      - description: Audio file to transcribe
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/openai.AudioResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
   /completions:
     post:
       consumes:
