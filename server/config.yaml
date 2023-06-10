@@ -5,5 +5,9 @@ openai:
   role: 职业
 telegram:
   token: 
+aispeech:
+  token: 
+  appid: 
+  aeskey: 
 
 

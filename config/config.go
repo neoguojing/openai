@@ -29,6 +29,12 @@ type TelegramConfig struct {
 	Token string `yaml:"token"`
 }
 
+type AISpeechConfig struct {
+	Token          string `yaml:"token"`
+	AppID          string `yaml:"appid"`
+	EncodingAESKey string `yaml:"aeskey"`
+}
+
 type Server struct {
 	Port int `yaml:"port"`
 }
@@ -37,6 +43,7 @@ type Config struct {
 	OpenAI   OpenAIConfig   `yaml:"openai"`
 	Server   Server         `yaml:"server"`
 	Telegram TelegramConfig `yaml:"telegram"`
+	AISpeech AISpeechConfig `yaml:"aispeech"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {
