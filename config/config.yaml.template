@@ -9,5 +9,9 @@ aispeech:
   token: 
   appid: 
   aeskey: 
+officeaccount:
+  token: 
+  appid: 
+  appsecret: 
 
 

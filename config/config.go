@@ -35,15 +35,22 @@ type AISpeechConfig struct {
 	EncodingAESKey string `yaml:"aeskey"`
 }
 
+type OfficeAccountConfig struct {
+	Token     string `yaml:"token"`
+	AppID     string `yaml:"appid"`
+	AppSecret string `yaml:"appsecret"`
+}
+
 type Server struct {
 	Port int `yaml:"port"`
 }
 
 type Config struct {
-	OpenAI   OpenAIConfig   `yaml:"openai"`
-	Server   Server         `yaml:"server"`
-	Telegram TelegramConfig `yaml:"telegram"`
-	AISpeech AISpeechConfig `yaml:"aispeech"`
+	OpenAI        OpenAIConfig        `yaml:"openai"`
+	Server        Server              `yaml:"server"`
+	Telegram      TelegramConfig      `yaml:"telegram"`
+	AISpeech      AISpeechConfig      `yaml:"aispeech"`
+	OfficeAccount OfficeAccountConfig `yaml:"officeaccount"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {
