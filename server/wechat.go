@@ -1,6 +1,8 @@
 package main
 
 import (
+	"sync"
+
 	"github.com/neoguojing/log"
 
 	"github.com/gin-gonic/gin"
@@ -13,12 +15,15 @@ import (
 	"github.com/neoguojing/wechat/v2/officialaccount"
 	offConfig "github.com/neoguojing/wechat/v2/officialaccount/config"
 	"github.com/neoguojing/wechat/v2/officialaccount/message"
+	"github.com/neoguojing/wechat/v2/officialaccount/server"
 )
 
 var (
-	aiSpeechServer  *aispeech.CustomerService
-	wc              *wechat.Wechat
-	officialAccount *officialaccount.OfficialAccount
+	aiSpeechServer        *aispeech.CustomerService
+	wc                    *wechat.Wechat
+	officialAccount       *officialaccount.OfficialAccount
+	once                  sync.Once
+	officialAccountServer *server.Server
 )
 
 func aiBot(in string) string {
@@ -56,33 +61,36 @@ func aispeechHandler(c *gin.Context) {
 }
 
 func officeAccountHandler(c *gin.Context) {
-	// 传入request和responseWriter
-	server := officialAccount.GetServer(c.Request, c.Writer)
-	// 设置接收消息的处理方法
-	server.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
-		var aiText string
-		var err error
-		if msg.MsgType == message.MsgTypeText {
-			aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
-			if err != nil {
-				log.Error(err.Error())
-				return &message.Reply{}
+	log.Info(c.Request.Host)
+	once.Do(func() {
+		// 传入request和responseWriter
+		officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
+		// 设置接收消息的处理方法
+		officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
+			var aiText string
+			var err error
+			if msg.MsgType == message.MsgTypeText {
+				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+				if err != nil {
+					log.Error(err.Error())
+					return &message.Reply{}
+				}
+			} else if msg.MsgType == message.MsgTypeVoice {
+
+			} else {
+
 			}
-		} else if msg.MsgType == message.MsgTypeVoice {
-
-		} else {
-
-		}
-		text := message.NewText(aiText)
-		return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+			text := message.NewText(aiText)
+			return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+		})
 	})
 
 	// 处理消息接收以及回复
-	err := server.Serve()
+	err := officialAccountServer.Serve()
 	if err != nil {
 		log.Error(err.Error())
 		return
 	}
 	// 发送回复的消息
-	server.Send()
+	officialAccountServer.Send()
 }
