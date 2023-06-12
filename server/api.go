@@ -65,6 +65,7 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/moderations", moderation)
 	openaiGroup.POST("/aispeech", aispeechHandler)
 	openaiGroup.POST("/officeaccount", officeAccountHandler)
+	openaiGroup.GET("/officeaccount", officeAccountHandler)
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	return router
 }
