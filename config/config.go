@@ -36,9 +36,10 @@ type AISpeechConfig struct {
 }
 
 type OfficeAccountConfig struct {
-	Token     string `yaml:"token"`
-	AppID     string `yaml:"appid"`
-	AppSecret string `yaml:"appsecret"`
+	Token          string `yaml:"token"`
+	AppID          string `yaml:"appid"`
+	AppSecret      string `yaml:"appsecret"`
+	EncodingAESKey string `yaml:"aeskey"`
 }
 
 type Server struct {

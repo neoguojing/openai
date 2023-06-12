@@ -41,10 +41,11 @@ func init() {
 	aiSpeechServer = wc.GetAiSpeech(cfg)
 
 	officeCfg := &offConfig.Config{
-		AppID:     config.OfficeAccount.AppID,
-		AppSecret: config.OfficeAccount.AppSecret,
-		Token:     config.OfficeAccount.Token,
-		Cache:     memory,
+		AppID:          config.OfficeAccount.AppID,
+		AppSecret:      config.OfficeAccount.AppSecret,
+		Token:          config.OfficeAccount.Token,
+		EncodingAESKey: config.OfficeAccount.EncodingAESKey,
+		Cache:          memory,
 	}
 	officialAccount = wc.GetOfficialAccount(officeCfg)
 
