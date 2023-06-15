@@ -1,6 +1,9 @@
 package openai
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // OpenAIRole 是 OpenAI 的角色类型
 type OpenAIRole string
@@ -122,6 +125,19 @@ type ChatRequest struct {
 	} `json:"messages"`
 }
 
+type ChatResponseOption func(*ChatResponse)
+
+func WithContentLengthLimit(length int) ChatResponseOption {
+	return func(resp *ChatResponse) {
+		if len(resp.Choices) > 0 {
+			if len(resp.Choices[0].Message.Content) > length {
+				trimContent := resp.Choices[0].Message.Content[:length]
+				resp.Choices[0].Message.Content = fmt.Sprintf("%s,[content longger than %v] ", trimContent, length)
+			}
+		}
+	}
+}
+
 // ChatResponse represents a response to generate a chat response.
 type ChatResponse struct {
 	// ID is the ID of the response.
@@ -156,7 +172,7 @@ type ChatResponse struct {
 }
 
 // CheckChatResponse checks if the chat response is valid.
-func (r *ChatResponse) GetContent() (string, error) {
+func (r *ChatResponse) GetContent(options ...ChatResponseOption) (string, error) {
 	if r == nil {
 		return "", errors.New("response is nil")
 	}
