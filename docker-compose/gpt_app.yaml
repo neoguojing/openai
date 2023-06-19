@@ -53,6 +53,17 @@ services:
       - /data/file:/app/file
     networks:
       - appnet
+  mytelegram:
+    image: guojingneo/telegram:v1.0.0
+    restart: always
+    env_file:
+      - ./app.env
+    volumes:
+      - ./mofeise.session:/app/mofeise.session
+      - /data/db:/app/db
+      - /data/file:/app/file
+    networks:
+      - appnet
 networks:
   appnet:
     driver: bridge
