@@ -52,6 +52,15 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 
 	// user := update.SentFrom()
 
+	if update.Message != nil && update.Message.IsCommand() {
+		b.handleCommand(update.Message)
+		return
+	}
+	if update.ChannelPost != nil && update.ChannelPost.IsCommand() {
+		b.handleCommand(update.ChannelPost)
+		return
+	}
+
 	var msg *tgbotapi.MessageConfig
 	chatType := update.FromChat()
 	if chatType.IsChannel() {
