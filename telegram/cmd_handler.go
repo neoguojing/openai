@@ -19,9 +19,11 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 		reply = b.handleStart(args)
 	case "/help":
 		reply = b.handleHelp(args)
-	case "/search":
+	case "/key":
 		reply = b.handleSearch(args)
 		// Create a message with a photo
+	case "/locate":
+	case "/username":
 	case "/photo":
 		photoConfig := tgbotapi.NewPhoto(message.Chat.ID, nil)
 		photoConfig.Caption = "This is a random photo"
