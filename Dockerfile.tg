@@ -7,9 +7,11 @@ WORKDIR /app
 RUN mkdir /app/logs
 RUN mkdir /app/file
 RUN mkdir /app/db
+RUN mkdir /app/dict
 
 COPY ./telegram/telegram  /app/
 COPY ./role/role.yaml  /app/
+COPY ./dict  /app/dict
 
 # 启动 supervisor 进程管理器
 CMD ["/usr/bin/supervisord", "-n"]

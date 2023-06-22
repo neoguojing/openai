@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -12,6 +14,7 @@ import (
 	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/openai/role"
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
+	"github.com/yanyiwu/gojieba"
 )
 
 var (
@@ -21,7 +24,8 @@ var (
 
 // Define a struct to hold the bot and its configuration
 type Bot struct {
-	bot *tgbotapi.BotAPI
+	bot   *tgbotapi.BotAPI
+	jieba *gojieba.Jieba
 }
 
 // Define a struct to hold the bot's configuration
@@ -36,10 +40,16 @@ func NewBot(config config.Config) (*Bot, error) {
 
 	// Set the bot's debug mode
 	bot.Debug = false
-
+	dictDir := filepath.Join(filepath.Dir(os.Args[0]), "dict")
+	jiebaPath := filepath.Join(dictDir, "jieba.dict.utf8")
+	hmmPath := filepath.Join(dictDir, "hmm_model.utf8")
+	idfPath := filepath.Join(dictDir, "idf.utf8")
+	stopwordPath := filepath.Join(dictDir, "stop_words.utf8")
+	userPath := filepath.Join(dictDir, "user.dict.utf8")
 	// Return the bot instance
 	return &Bot{
-		bot: bot,
+		bot:   bot,
+		jieba: gojieba.NewJieba(jiebaPath, hmmPath, idfPath, stopwordPath, userPath),
 	}, nil
 }
 
@@ -265,6 +275,12 @@ func (b *Bot) Start() error {
 	return nil
 }
 
+func (b *Bot) Destroy() {
+	if b.jieba != nil {
+		b.jieba.Free()
+	}
+}
+
 // Download file from url use resty
 func (b *Bot) DownloadFile(url string) (io.ReadCloser, error) {
 	// Create a new Resty client
@@ -311,6 +327,7 @@ func main() {
 
 	// Start the bot
 	if err := bot.Start(); err != nil {
+		bot.Destroy()
 		logger.Fatalf("Error starting bot: %s", err)
 	}
 }

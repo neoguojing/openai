@@ -9,7 +9,6 @@ import (
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai/models"
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
-	"github.com/yanyiwu/gojieba"
 )
 
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
@@ -207,13 +206,11 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 	if len(args) == 0 {
 		return nil, nil, errors.New("please provide a sentence to analyze")
 	}
-	x := gojieba.NewJieba()
-	defer x.Free()
 
 	var locations []string
 	var nv []string
 	for _, arg := range args {
-		words := x.Tag(arg)
+		words := b.jieba.Tag(arg)
 		for _, word := range words {
 			tags := strings.Split(word, "/")
 			logger.Info(tags...)
