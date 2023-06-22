@@ -154,18 +154,20 @@ func (t *TelegramProfile) FindByLocationAndKeyword(locations []string, keywords 
 	} else if limit < 1 {
 		limit = 6
 	}
+
 	query := ""
-	args := make([]interface{}, len(locations)*len(keywords))
+	args := make([]interface{}, len(locations)*len(keywords)*2)
 	for i, location := range locations {
 		for j, keyword := range keywords {
 			if i > 0 || j > 0 {
 				query += " OR "
 			}
-			query += "location LIKE ? AND keywords LIKE ?"
-			args[i*len(keywords)+j] = "%" + location + "%"
-			args[i*len(keywords)+j+1] = "%" + keyword + "%"
+			query += "(location LIKE ? AND keywords LIKE ?)"
+			args[(i*len(keywords)+j)*2] = "%" + location + "%"
+			args[(i*len(keywords)+j)*2+1] = "%" + keyword + "%"
 		}
 	}
+
 	if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 		return nil, err
 	}
