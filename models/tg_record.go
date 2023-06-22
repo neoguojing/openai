@@ -14,6 +14,9 @@ var (
 	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
+const maxLimit = 50
+const minLimit = 20
+
 // CREATE TABLE telegram_user_info (
 //
 //	chat_id INTEGER NOT NULL,
@@ -69,7 +72,8 @@ func (t *TelegramUserInfo) FindByChatIDs(chatIDs []int64) ([]TelegramUserInfo, e
 	db := tgDB.DB()
 	var userInfos []TelegramUserInfo
 	if len(chatIDs) > 0 {
-		if err := db.Where("chat_id IN (?)", chatIDs).Find(&userInfos).Error; err != nil {
+		if err := db.Where("chat_id IN (?) and bio IS NOT NULL", chatIDs).
+			Order("updated_at DESC").Find(&userInfos).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -108,11 +112,13 @@ func (t *TelegramProfile) FindByKeywords(keywords []string, limit int, offset in
 	db := tgDB.DB()
 	var profiles []TelegramProfile
 	if len(keywords) > 0 {
-		if limit > 20 {
-			limit = 20
+
+		if limit > maxLimit {
+			limit = maxLimit
 		} else if limit < 1 {
-			limit = 6
+			limit = minLimit
 		}
+
 		query := "keywords LIKE ?"
 		for i := 1; i < len(keywords); i++ {
 			query += " OR keywords LIKE ?"
@@ -132,10 +138,10 @@ func (t *TelegramProfile) FindByLocations(locations []string, limit int, offset 
 	db := tgDB.DB()
 	var profiles []TelegramProfile
 	if len(locations) > 0 {
-		if limit > 20 {
-			limit = 20
+		if limit > maxLimit {
+			limit = maxLimit
 		} else if limit < 1 {
-			limit = 6
+			limit = minLimit
 		}
 		query := "location LIKE ?"
 		for i := 1; i < len(locations); i++ {
@@ -156,10 +162,11 @@ func (t *TelegramProfile) FindByLocations(locations []string, limit int, offset 
 func (t *TelegramProfile) FindByLocationAndKeyword(locations []string, keywords []string, limit int, offset int) ([]TelegramProfile, error) {
 	db := tgDB.DB()
 	var profiles []TelegramProfile
-	if limit > 20 {
-		limit = 20
+
+	if limit > maxLimit {
+		limit = maxLimit
 	} else if limit < 1 {
-		limit = 6
+		limit = minLimit
 	}
 
 	query := ""

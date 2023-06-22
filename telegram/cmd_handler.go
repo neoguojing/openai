@@ -92,9 +92,10 @@ func (b *Bot) handleSearch(args []string) string {
 		return "No results found"
 	}
 
+	logger.Infof("generateTelegramMessages")
 	messages := generateTelegramMessages(results)
 	reply := strings.Join(messages, "\n")
-
+	logger.Infof("generateTelegramMessages-----Done")
 	return reply
 }
 
@@ -105,16 +106,14 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 		logger.Errorf("Error handling POS: %s", err)
 		return nil, err
 	}
-
+	logger.Infof("TelegramProfile find-------------")
+	p := &models.TelegramProfile{}
 	var profiles []models.TelegramProfile
 	if len(locations) != 0 && len(keyword) != 0 {
-		p := &models.TelegramProfile{}
 		profiles, err = p.FindByLocationAndKeyword(locations, keyword, 6, 0)
 	} else if len(locations) != 0 {
-		p := &models.TelegramProfile{}
 		profiles, err = p.FindByLocations(locations, 6, 0)
 	} else if len(keyword) != 0 {
-		p := &models.TelegramProfile{}
 		profiles, err = p.FindByKeywords(keyword, 6, 0)
 	} else {
 		err = errors.New("please provide a query to search for")
@@ -126,8 +125,9 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 		logger.Errorf("Error searching: %s", err)
 		return nil, err
 	}
-
+	logger.Infof("found %d TelegramProfiles", len(profiles))
 	if len(profiles) != 0 {
+		logger.Infof("TelegramUserInfo find-------------")
 		var chatIDs []int64
 		for _, profile := range profiles {
 			chatIDs = append(chatIDs, profile.ChatID)
@@ -139,7 +139,7 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 			logger.Errorf("Error finding users: %s", err)
 			return nil, err
 		}
-
+		logger.Infof("found %d TelegramProfiles", len(users))
 		return users, nil
 	}
 	err = errors.New("no results found")
@@ -203,6 +203,7 @@ func (b *Bot) handleUserName(args []string) string {
 }
 
 func (b *Bot) handlePos(args []string) ([]string, []string, error) {
+	logger.Infof("handlePos-------------")
 	if len(args) == 0 {
 		return nil, nil, errors.New("please provide a sentence to analyze")
 	}
@@ -226,7 +227,8 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 			}
 		}
 	}
-
+	logger.Infof("locations=%v", locations)
+	logger.Infof("nv=%v", nv)
 	return locations, nv, nil
 }
 
