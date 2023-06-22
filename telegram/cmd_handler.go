@@ -147,7 +147,7 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 			logger.Errorf("Error finding users: %s", err)
 			return nil, err
 		}
-		logger.Infof("found %d TelegramProfiles", len(users))
+		logger.Infof("found %d TelegramUserInfo", len(users))
 		return users, nil
 	}
 	err = errors.New("no results found")
