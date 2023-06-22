@@ -12,7 +12,7 @@ BUILD := `git rev-parse --short HEAD`
 
 .PHONY: build clean doc image
 
-build:
+build: clean
 	go build -o $(CUR_DIR)/chatbot/ $(CUR_DIR)/chatbot/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/chatbot/config.yaml
 	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/chatbot/role.yaml
@@ -38,7 +38,7 @@ doc:
 	cd $(CUR_DIR)/server && swag init --parseDependency
 
  
-image:
+image: build
 	# Build Docker image
 	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.server .
 	docker build -t guojingneo/wechat:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.wechat .
