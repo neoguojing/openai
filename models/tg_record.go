@@ -45,6 +45,10 @@ type TelegramUserInfo struct {
 	UpdatedAt   time.Time
 }
 
+func (m *TelegramUserInfo) TableName() string {
+	return "telegram_user_info"
+}
+
 // FindByChatIDOrUsername finds TelegramUserInfo by ChatID or Username
 func (t *TelegramUserInfo) FindByChatIDOrUsername(chatID int64, username string) (*TelegramUserInfo, error) {
 	db := tgDB.DB()
@@ -97,6 +101,9 @@ type TelegramProfile struct {
 	UpdatedAt time.Time
 }
 
+func (m *TelegramProfile) TableName() string {
+	return "telegram_profile"
+}
 func (t *TelegramProfile) FindByKeywords(keywords []string, limit int, offset int) ([]TelegramProfile, error) {
 	db := tgDB.DB()
 	var profiles []TelegramProfile
@@ -195,6 +202,10 @@ type TelegramChat struct {
 	UpdatedAt  time.Time
 }
 
+func (m *TelegramChat) TableName() string {
+	return "telegram_chat"
+}
+
 // FindByChatID finds TelegramChat by ChatID
 func (t *TelegramChat) FindByChatID(chatID int64) (*TelegramChat, error) {
 	db := tgDB.DB()
@@ -230,4 +241,8 @@ type TelegramChatMessage struct {
 	MediaPath string `gorm:"type:varchar(255)"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func (m *TelegramChatMessage) TableName() string {
+	return "telegram_chat_message"
 }
