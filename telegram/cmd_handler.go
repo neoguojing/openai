@@ -13,6 +13,11 @@ import (
 )
 
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("handleCommand recovered:", r)
+		}
+	}()
 	log.Infof("recieve a command message:%v", message.Text)
 	// Split the command into its parts
 	command := strings.Split(message.Text, " ")[0]

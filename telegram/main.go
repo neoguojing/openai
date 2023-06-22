@@ -53,11 +53,11 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	// user := update.SentFrom()
 
 	if update.Message != nil && update.Message.IsCommand() {
-		b.handleCommand(update.Message)
+		go b.handleCommand(update.Message)
 		return
 	}
 	if update.ChannelPost != nil && update.ChannelPost.IsCommand() {
-		b.handleCommand(update.ChannelPost)
+		go b.handleCommand(update.ChannelPost)
 		return
 	}
 
@@ -66,7 +66,7 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	if chatType.IsChannel() {
 		logger.Infof("receive channel msg:%v", update.ChannelPost)
 		if !b.IsAtMe(update.ChannelPost.Text) {
-			b.MessageTypeHandler(update.ChannelPost)
+			go b.MessageTypeHandler(update.ChannelPost)
 			return
 		}
 		msg = b.publicMessge(update)
@@ -82,7 +82,7 @@ func (b *Bot) HandleMessage(update tgbotapi.Update) {
 	} else if chatType.IsGroup() || chatType.IsSuperGroup() {
 		logger.Infof("receive group or supper group msg:%v", update.Message.Text)
 		if !b.IsAtMe(update.Message.Text) {
-			b.MessageTypeHandler(update.Message)
+			go b.MessageTypeHandler(update.Message)
 			return
 		}
 		msg = b.privateMessage(update)
@@ -158,6 +158,11 @@ func (b *Bot) getSendUserName(text string) (userName string, content string) {
 }
 
 func (b *Bot) MessageTypeHandler(msg *tgbotapi.Message) error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("MessageTypeHandler recovered:", r)
+		}
+	}()
 	var err error
 	var fileID string
 	var mediaType models.MediaType
@@ -276,6 +281,11 @@ func (b *Bot) DownloadFile(url string) (io.ReadCloser, error) {
 
 // Define the main function
 func main() {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("main recovered:", r)
+		}
+	}()
 	config, err := config.LoadConfig("config.yaml")
 	if err != nil {
 		logger.Fatalf("Error creating bot: %s", err)
