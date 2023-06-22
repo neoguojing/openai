@@ -26,9 +26,10 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 		reply = b.handleHelp(args)
 	case "/key":
 		reply = b.handleSearch(args)
-		// Create a message with a photo
 	case "/locate":
+		reply = b.handleLocate(args)
 	case "/username":
+		reply = b.handleUserName(args)
 	case "/photo":
 		photoConfig := tgbotapi.NewPhoto(message.Chat.ID, nil)
 		photoConfig.Caption = "This is a random photo"
@@ -51,15 +52,26 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 }
 
 func (b *Bot) handleStart(args []string) string {
-	return "Welcome to my bot!"
+	var reply string
+	if len(args) == 0 {
+		reply = "Welcome!"
+	} else {
+		reply = fmt.Sprintf("Welcome, %s!", args[0])
+	}
+	return reply
 }
 
 func (b *Bot) handleHelp(args []string) string {
-	return "Here are the available commands:\n/search [query] - search for something\n/help - show this help message"
+	var commands []string
+	commands = append(commands, "/search [query] - search for something")
+	commands = append(commands, "/help - show this help message")
+	reply := strings.Join(commands, "\n")
+	return reply
 }
 
 func (b *Bot) handleSearch(args []string) string {
 	if len(args) == 0 {
+		logger.Errorf("Error searching: please provide a query to search for")
 		return "Please provide a query to search for"
 	}
 
@@ -70,19 +82,21 @@ func (b *Bot) handleSearch(args []string) string {
 	}
 
 	if len(results) == 0 {
+		logger.Errorf("Error searching: no results found")
 		return "No results found"
 	}
 
-	var reply strings.Builder
-	reply.WriteString("Results:\n")
+	messages := generateTelegramMessages(results)
+	reply := strings.Join(messages, "\n")
 
-	return reply.String()
+	return reply
 }
 
-func (b *Bot) search(args []string) ([]models.TelegramProfile, error) {
+func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 	// TODO: Implement search functionality
 	locations, keyword, err := b.handlePos(args)
 	if err != nil {
+		logger.Errorf("Error handling POS: %s", err)
 		return nil, err
 	}
 
@@ -97,9 +111,34 @@ func (b *Bot) search(args []string) ([]models.TelegramProfile, error) {
 		p := &models.TelegramProfile{}
 		profiles, err = p.FindByKeywords(keyword, 6, 0)
 	} else {
-		return nil, errors.New("Please provide a query to search for")
+		err = errors.New("please provide a query to search for")
+		logger.Errorf("Error searching: %s", err)
+		return nil, err
 	}
-	return profiles, err
+
+	if err != nil {
+		logger.Errorf("Error searching: %s", err)
+		return nil, err
+	}
+
+	if len(profiles) != 0 {
+		var chatIDs []int64
+		for _, profile := range profiles {
+			chatIDs = append(chatIDs, profile.ChatID)
+		}
+
+		u := &models.TelegramUserInfo{}
+		users, err := u.FindByChatIDs(chatIDs)
+		if err != nil {
+			logger.Errorf("Error finding users: %s", err)
+			return nil, err
+		}
+
+		return users, nil
+	}
+	err = errors.New("no results found")
+	logger.Errorf("Error searching: %s", err)
+	return nil, err
 }
 
 func (b *Bot) handleLocate(args []string) string {
@@ -109,7 +148,13 @@ func (b *Bot) handleLocate(args []string) string {
 	p := &models.TelegramProfile{}
 	profiles, err := p.FindByLocations(args, 6, 0)
 	if err != nil {
+		logger.Errorf("Error finding profiles: %s", err)
 		return err.Error()
+	}
+
+	if len(profiles) == 0 {
+		logger.Errorf("Error finding profiles: no results found")
+		return "No results found"
 	}
 
 	var chatIDs []int64
@@ -120,32 +165,32 @@ func (b *Bot) handleLocate(args []string) string {
 	u := &models.TelegramUserInfo{}
 	users, err := u.FindByChatIDs(chatIDs)
 	if err != nil {
+		logger.Errorf("Error finding users: %s", err)
 		return err.Error()
 	}
 
-	var reply strings.Builder
-	reply.WriteString("Users:\n")
-	for _, user := range users {
-		reply.WriteString(user.Username)
-		reply.WriteString("\n")
-	}
+	messages := generateTelegramMessages(users)
+	reply := strings.Join(messages, "\n")
 
-	return reply.String()
+	return reply
 
 }
 
 func (b *Bot) handleUserName(args []string) string {
 	if len(args) == 0 {
-		return "pls input user name"
+		logger.Errorf("Error handling user name: please provide a user name")
+		return "Please provide a user name"
 	}
 	u := &models.TelegramUserInfo{}
 	user, err := u.FindByChatIDOrUsername(0, args[0])
 	if err != nil {
+		logger.Errorf("Error finding user: %s", err)
 		return err.Error()
 	}
 
 	replay, err := generateRecommendationMessage(*user)
 	if err != nil {
+		logger.Errorf("Error generating recommendation message: %s", err)
 		return err.Error()
 	}
 	return replay
@@ -153,7 +198,7 @@ func (b *Bot) handleUserName(args []string) string {
 
 func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 	if len(args) == 0 {
-		return nil, nil, errors.New("Please provide a sentence to analyze")
+		return nil, nil, errors.New("please provide a sentence to analyze")
 	}
 	x := gojieba.NewJieba()
 	defer x.Free()
@@ -163,12 +208,15 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 	for _, arg := range args {
 		words := x.Tag(arg)
 		for _, word := range words {
-			if word.Tag == "ns" {
-				locations = append(locations, word.Word)
-			} else if word.Tag == "n" {
-				nv = append(nv, word.Word)
-			} else if word.Tag == "v" {
-				nv = append(nv, word.Word)
+			tags := strings.Split(word, "/")
+			logger.Info(tags...)
+			if len(tags) > 1 {
+				switch tags[1] {
+				case "ns":
+					locations = append(locations, tags[0])
+				case "n", "v":
+					nv = append(nv, tags[0])
+				}
 			}
 		}
 	}
