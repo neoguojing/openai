@@ -11,6 +11,10 @@ import (
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
 )
 
+var (
+	NO_JIEBA_ERROR = errors.New("b.jieba was nil")
+)
+
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -102,8 +106,13 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 	// TODO: Implement search functionality
 	locations, keyword, err := b.handlePos(args)
 	if err != nil {
-		logger.Errorf("Error handling POS: %s", err)
-		return nil, err
+		if err != NO_JIEBA_ERROR {
+			logger.Errorf("Error handling POS: %s", err)
+			return nil, err
+		} else {
+			keyword = args
+		}
+
 	}
 	logger.Infof("TelegramProfile find-------------")
 	p := &models.TelegramProfile{}
@@ -206,7 +215,9 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 	if len(args) == 0 {
 		return nil, nil, errors.New("please provide a sentence to analyze")
 	}
-
+	if b.jieba == nil {
+		return nil, nil, NO_JIEBA_ERROR
+	}
 	var locations []string
 	var nv []string
 	for _, arg := range args {
