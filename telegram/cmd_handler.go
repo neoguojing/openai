@@ -6,13 +6,14 @@ import (
 	"html/template"
 	"strings"
 
+	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai/models"
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
 	"github.com/yanyiwu/gojieba"
 )
 
 func (b *Bot) handleCommand(message *tgbotapi.Message) {
-
+	log.Infof("recieve a command message:%v", message.Text)
 	// Split the command into its parts
 	command := strings.Split(message.Text, " ")[0]
 	args := strings.Split(message.Text, " ")[1:]

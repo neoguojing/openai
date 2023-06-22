@@ -10,8 +10,8 @@ import (
 
 var (
 	basepath = os.Getenv("DB_PATH")
-	dbPath   = filepath.Join(basepath, "telegram.db")
-	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(dbPath))
+	tgDBPath = filepath.Join(basepath, "telegram.db")
+	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
 // CREATE TABLE telegram_user_info (
