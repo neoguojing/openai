@@ -12,8 +12,8 @@ RUN mkdir /app/db
 ADD . /app
 RUN make telegram
 
-COPY ./telegram/telegram  /app/
-COPY ./role/role.yaml  /app/tg
+COPY ./telegram/telegram  /app/tg
+COPY ./role/role.yaml  /app/
 COPY ./dict  /app/dict
 
 # 启动 supervisor 进程管理器
