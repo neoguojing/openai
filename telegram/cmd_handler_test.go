@@ -13,7 +13,7 @@ func TestGenerateRecommendationMessage(t *testing.T) {
 	}
 
 	full := &UserInfoFull{
-		User: &userInfo,
+		User: userInfo,
 	}
 	resp, err := generateRecommendationMessage(full)
 	if err != nil {

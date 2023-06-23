@@ -46,7 +46,8 @@ func NewBot(config config.Config) (*Bot, error) {
 	// userPath := filepath.Join(dictDir, "user.dict.utf8")
 	// Return the bot instance
 	return &Bot{
-		bot: bot,
+		bot:   bot,
+		jieba: gojieba.NewJieba(),
 		// jieba: gojieba.NewJieba(jiebaPath, hmmPath, idfPath, stopwordPath, userPath),
 	}, nil
 }
