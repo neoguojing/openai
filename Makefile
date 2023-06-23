@@ -23,7 +23,7 @@ wechat:
 	go build -o $(CUR_DIR)/wechat/ $(CUR_DIR)/wechat/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/wechat/config.yaml
 	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/wechat/role.yaml
-telegram:
+telegram: clean
 	go build -o $(CUR_DIR)/telegram/ $(CUR_DIR)/telegram/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/telegram/config.yaml
 	cp $(CUR_DIR)/role/role.yaml $(CUR_DIR)/telegram/role.yaml
