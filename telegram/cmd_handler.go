@@ -119,11 +119,11 @@ func (b *Bot) search(args []string) (UserMap, error) {
 	p := &models.TelegramProfile{}
 	var profiles []models.TelegramProfile
 	if len(locations) != 0 && len(keyword) != 0 {
-		profiles, err = p.FindByLocationAndKeyword(locations, keyword, 6, 0)
+		profiles, err = p.FindByLocationAndKeyword(locations, keyword, 0, 0)
 	} else if len(locations) != 0 {
-		profiles, err = p.FindByLocations(locations, 6, 0)
+		profiles, err = p.FindByLocations(locations, 0, 0)
 	} else if len(keyword) != 0 {
-		profiles, err = p.FindByKeywords(keyword, 6, 0)
+		profiles, err = p.FindByKeywords(keyword, 0, 0)
 	} else {
 		err = errors.New("please provide a query to search for")
 		logger.Errorf("Error searching: %s", err)
@@ -163,7 +163,7 @@ func (b *Bot) handleLocate(args []string) string {
 		return "pls input location"
 	}
 	p := &models.TelegramProfile{}
-	profiles, err := p.FindByLocations(args, 6, 0)
+	profiles, err := p.FindByLocations(args, 0, 0)
 	if err != nil {
 		logger.Errorf("Error finding profiles: %s", err)
 		return err.Error()
@@ -254,13 +254,15 @@ type UserInfoFull struct {
 	Score   float64
 }
 
-type UserMap []*UserInfoFull
+type UserMap []UserInfoFull
+
+const TOPK = 5
 
 func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo,
 	profiles []models.TelegramProfile) UserMap {
 	uMap := make(UserMap, 0)
 	for _, u := range userInfos {
-		uFull := &UserInfoFull{
+		uFull := UserInfoFull{
 			User:  &u,
 			Score: 100,
 		}
@@ -277,7 +279,10 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 	})
 
 	logger.Infof("dataRecall result:%v", uMap)
-	return uMap
+	if len(uMap) <= TOPK {
+		return uMap
+	}
+	return uMap[:TOPK]
 }
 
 // 打分逻辑，匹配的关键值越靠前，则得分越低，得分越低则匹配度越高
@@ -337,9 +342,10 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	messageTemplate := `👤 {{.Username}}
 📝 {{.Bio}}
 🕒 {{.UpdatedAt}}
+🎖️ {{.Score}}
 🔍 {{.Keywords}}
 📍  {{.Location}}
-📩 {{LastMessageTime}}:{{.LastMessage}}
+📩 {{.LastMessageTime}}:{{.LastMessage}}
 💬 {{.MessageTotal}}`
 
 	tpl, err := template.New("recommendationMessage").Parse(messageTemplate)
@@ -359,7 +365,9 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 		LastMessageTime string
 		LastMessage     string
 		MessageTotal    int64
+		Score           float64
 	}
+
 	tplData.FirstName = userInfo.User.FirstName
 	tplData.LastName = userInfo.User.LastName
 	tplData.Username = userInfo.User.Username
@@ -370,6 +378,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.LastMessageTime = userInfo.Message.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.LastMessage = userInfo.Message.Message
 	tplData.MessageTotal = userInfo.Count
+	tplData.Score = userInfo.Score
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
 	if err != nil {
@@ -395,7 +404,7 @@ func generateTelegramMessages(userInfos UserMap) []string {
 		}
 		userInfo.Message = m
 		userInfo.Count = count
-		recomend, err := generateRecommendationMessage(userInfo)
+		recomend, err := generateRecommendationMessage(&userInfo)
 		if err != nil {
 			log.Error(err.Error())
 		} else {
