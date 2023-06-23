@@ -13,7 +13,7 @@ ADD . /app
 RUN make telegram
 
 COPY ./telegram/telegram  /app/
-COPY ./role/role.yaml  /app/
+COPY ./role/role.yaml  /app/tg
 COPY ./dict  /app/dict
 
 # 启动 supervisor 进程管理器
