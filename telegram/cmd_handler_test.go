@@ -12,7 +12,10 @@ func TestGenerateRecommendationMessage(t *testing.T) {
 		Bio:      "wordl",
 	}
 
-	resp, err := generateRecommendationMessage(userInfo)
+	full := &UserInfoFull{
+		User: &userInfo,
+	}
+	resp, err := generateRecommendationMessage(full)
 	if err != nil {
 		t.Error(err.Error())
 		return

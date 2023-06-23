@@ -16,7 +16,7 @@ func init() {
 	gormboot.DefaultDB.RegisterModel(&Role{}, &ChatRecord{})
 	db = gormboot.DefaultDB.AutoMigrate().DB()
 	recoder = NewRecorder()
-	log.Infof("telegram db path", tgDBPath)
+	log.Infof("telegram db path：%s", tgDBPath)
 }
 
 type Recorder struct {

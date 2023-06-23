@@ -250,6 +250,7 @@ type UserInfoFull struct {
 	User    *models.TelegramUserInfo
 	Profile *models.TelegramProfile
 	Message *models.TelegramChatMessage
+	Count   int64
 	Score   float64
 }
 
@@ -275,7 +276,7 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 		return uMap[i].Score < uMap[j].Score
 	})
 
-	log.Infof("dataRecall result:", uMap)
+	logger.Infof("dataRecall result:%v", uMap)
 	return uMap
 }
 
@@ -357,7 +358,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 		Location        string
 		LastMessageTime string
 		LastMessage     string
-		MessageTotal    string
+		MessageTotal    int64
 	}
 	tplData.FirstName = userInfo.User.FirstName
 	tplData.LastName = userInfo.User.LastName
@@ -366,7 +367,9 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.Keywords = userInfo.Profile.Keywords
 	tplData.Location = userInfo.Profile.Location
-
+	tplData.LastMessageTime = userInfo.Message.UpdatedAt.Format("2006-01-02 15:04:05")
+	tplData.LastMessage = userInfo.Message.Message
+	tplData.MessageTotal = userInfo.Count
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
 	if err != nil {
@@ -379,10 +382,27 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 
 func generateTelegramMessages(userInfos UserMap) []string {
 	var messages []string
+	msg := &models.TelegramChatMessage{}
 	for i, userInfo := range userInfos {
-		recomend, _ := generateRecommendationMessage(userInfo)
-		message := fmt.Sprintf("%d. %s", i+1, recomend)
-		messages = append(messages, message)
+		m, err := msg.FindLatestMessageByChatID(userInfo.User.ChatID)
+		if err != nil {
+			log.Error(err.Error())
+			m = msg
+		}
+		count, err := msg.CountMessagesByChatID(userInfo.User.ChatID)
+		if err != nil {
+			log.Error(err.Error())
+		}
+		userInfo.Message = m
+		userInfo.Count = count
+		recomend, err := generateRecommendationMessage(userInfo)
+		if err != nil {
+			log.Error(err.Error())
+		} else {
+			message := fmt.Sprintf("%d. %s", i+1, recomend)
+			messages = append(messages, message)
+		}
+
 	}
 	return messages
 }

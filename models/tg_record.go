@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/neoguojing/gormboot/v2"
+	"github.com/neoguojing/log"
 )
 
 var (
@@ -127,6 +128,7 @@ func (t *TelegramProfile) FindByKeywords(keywords []string, limit int, offset in
 		for i, keyword := range keywords {
 			args[i] = "%" + keyword + "%"
 		}
+		log.Infof(query, args...)
 		if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 			return nil, err
 		}
@@ -151,6 +153,7 @@ func (t *TelegramProfile) FindByLocations(locations []string, limit int, offset 
 		for i, location := range locations {
 			args[i] = "%" + location + "%"
 		}
+		log.Infof(query, args...)
 		if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 			return nil, err
 		}
@@ -181,7 +184,7 @@ func (t *TelegramProfile) FindByLocationAndKeyword(locations []string, keywords 
 			args[(i*len(keywords)+j)*2+1] = "%" + keyword + "%"
 		}
 	}
-
+	log.Infof(query, args...)
 	if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 		return nil, err
 	}
