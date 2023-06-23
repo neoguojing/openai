@@ -1,5 +1,5 @@
 # FROM ubuntu:latest AS bot
-FROM golang:alpine
+FROM golang:latest
 RUN chmod a+rwxt /tmp
 RUN apt-get update && apt-get install -y supervisor sqlite3 libsqlite3-dev ca-certificates make
 RUN apt-get clean
