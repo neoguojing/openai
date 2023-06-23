@@ -14,8 +14,8 @@ var (
 	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
-const maxLimit = 50
-const minLimit = 20
+const maxLimit = 100
+const minLimit = 50
 
 // CREATE TABLE telegram_user_info (
 //
@@ -252,4 +252,24 @@ type TelegramChatMessage struct {
 
 func (m *TelegramChatMessage) TableName() string {
 	return "telegram_chat_message"
+}
+
+// CountMessagesByChatID counts the number of messages in a chat
+func (t *TelegramChatMessage) CountMessagesByChatID(chatID int64) (int64, error) {
+	db := tgDB.DB()
+	var count int64
+	if err := db.Model(&TelegramChatMessage{}).Where("chat_id = ?", chatID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+// FindLatestMessageByChatID finds the latest message in a chat
+func (t *TelegramChatMessage) FindLatestMessageByChatID(chatID int64) (*TelegramChatMessage, error) {
+	db := tgDB.DB()
+	var message TelegramChatMessage
+	if err := db.Where("chat_id = ?", chatID).Order("created_at DESC").First(&message).Error; err != nil {
+		return nil, err
+	}
+	return &message, nil
 }

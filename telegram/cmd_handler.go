@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"sort"
 	"strings"
 
 	"github.com/neoguojing/log"
@@ -102,7 +103,7 @@ func (b *Bot) handleSearch(args []string) string {
 	return reply
 }
 
-func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
+func (b *Bot) search(args []string) (UserMap, error) {
 	// TODO: Implement search functionality
 	locations, keyword, err := b.handlePos(args)
 	if err != nil {
@@ -148,7 +149,9 @@ func (b *Bot) search(args []string) ([]models.TelegramUserInfo, error) {
 			return nil, err
 		}
 		logger.Infof("found %d TelegramUserInfo", len(users))
-		return users, nil
+		useFullArr := dataRecall(keyword, locations, users, profiles)
+
+		return useFullArr, nil
 	}
 	err = errors.New("no results found")
 	logger.Errorf("Error searching: %s", err)
@@ -183,7 +186,8 @@ func (b *Bot) handleLocate(args []string) string {
 		return err.Error()
 	}
 
-	messages := generateTelegramMessages(users)
+	useFullArr := dataRecall(nil, args, users, profiles)
+	messages := generateTelegramMessages(useFullArr)
 	reply := strings.Join(messages, "\n")
 
 	return reply
@@ -201,8 +205,10 @@ func (b *Bot) handleUserName(args []string) string {
 		logger.Errorf("Error finding user: %s", err)
 		return err.Error()
 	}
-
-	replay, err := generateRecommendationMessage(*user)
+	userFule := &UserInfoFull{
+		User: user,
+	}
+	replay, err := generateRecommendationMessage(userFule)
 	if err != nil {
 		logger.Errorf("Error generating recommendation message: %s", err)
 		return err.Error()
@@ -240,10 +246,101 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 	return locations, nv, nil
 }
 
-func generateRecommendationMessage(userInfo models.TelegramUserInfo) (string, error) {
+type UserInfoFull struct {
+	User    *models.TelegramUserInfo
+	Profile *models.TelegramProfile
+	Message *models.TelegramChatMessage
+	Score   float64
+}
+
+type UserMap []*UserInfoFull
+
+func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo,
+	profiles []models.TelegramProfile) UserMap {
+	uMap := make(UserMap, 0)
+	for _, u := range userInfos {
+		uFull := &UserInfoFull{
+			User:  &u,
+			Score: 100,
+		}
+		for _, p := range profiles {
+			if u.ChatID == p.ChatID {
+				uFull.Profile = &p
+				uFull.Score = scoreUser(&p, keywords, location)
+			}
+		}
+		uMap = append(uMap, uFull)
+	}
+	sort.Slice(uMap, func(i, j int) bool {
+		return uMap[i].Score < uMap[j].Score
+	})
+
+	log.Infof("dataRecall result:", uMap)
+	return uMap
+}
+
+// 打分逻辑，匹配的关键值越靠前，则得分越低，得分越低则匹配度越高
+func scoreUser(profile *models.TelegramProfile, keyword []string, location []string) float64 {
+	score := 0.0
+	kScore := 0.0
+	lScore := 0.0
+
+	if len(keyword) != 0 {
+		for _, k := range keyword {
+			pKeyWords := strings.Split(profile.Keywords, ",")
+			for i, word := range pKeyWords {
+				if len(k) > len(word) {
+					if strings.Contains(k, word) {
+						kScore += float64(i)
+					}
+				} else if len(word) > len(k) {
+					if strings.Contains(word, k) {
+						kScore += float64(i)
+					}
+				} else {
+					if k == word {
+						kScore += float64(i)
+					}
+				}
+			}
+		}
+		kScore = kScore / float64(len(keyword))
+	}
+
+	if len(location) != 0 {
+		for _, k := range location {
+			pKeyWords := strings.Split(profile.Location, ",")
+			for i, word := range pKeyWords {
+				if len(k) > len(word) {
+					if strings.Contains(k, word) {
+						lScore += float64(i)
+					}
+				} else if len(word) > len(k) {
+					if strings.Contains(word, k) {
+						lScore += float64(i)
+					}
+				} else {
+					if k == word {
+						lScore += float64(i)
+					}
+				}
+			}
+		}
+		lScore = lScore / float64(len(location))
+	}
+	score = (lScore + kScore) / 2.0
+	return score
+}
+
+func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	messageTemplate := `👤 {{.Username}}
 📝 {{.Bio}}
-🕒 {{.UpdatedAt}}`
+🕒 {{.UpdatedAt}}
+🔍 {{.Keywords}}
+📍  {{.Location}}
+📩 {{LastMessageTime}}:{{.LastMessage}}
+💬 {{.MessageTotal}}`
+
 	tpl, err := template.New("recommendationMessage").Parse(messageTemplate)
 	if err != nil {
 		logger.Errorf("Error parsing message template: %s", err)
@@ -251,17 +348,24 @@ func generateRecommendationMessage(userInfo models.TelegramUserInfo) (string, er
 	}
 
 	var tplData struct {
-		FirstName string
-		LastName  string
-		Username  string
-		Bio       string
-		UpdatedAt string
+		FirstName       string
+		LastName        string
+		Username        string
+		Bio             string
+		UpdatedAt       string
+		Keywords        string
+		Location        string
+		LastMessageTime string
+		LastMessage     string
+		MessageTotal    string
 	}
-	tplData.FirstName = userInfo.FirstName
-	tplData.LastName = userInfo.LastName
-	tplData.Username = userInfo.Username
-	tplData.Bio = userInfo.Bio
-	tplData.UpdatedAt = userInfo.UpdatedAt.Format("2006-01-02 15:04:05")
+	tplData.FirstName = userInfo.User.FirstName
+	tplData.LastName = userInfo.User.LastName
+	tplData.Username = userInfo.User.Username
+	tplData.Bio = userInfo.User.Bio
+	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
+	tplData.Keywords = userInfo.Profile.Keywords
+	tplData.Location = userInfo.Profile.Location
 
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
@@ -273,7 +377,7 @@ func generateRecommendationMessage(userInfo models.TelegramUserInfo) (string, er
 	return message.String(), nil
 }
 
-func generateTelegramMessages(userInfos []models.TelegramUserInfo) []string {
+func generateTelegramMessages(userInfos UserMap) []string {
 	var messages []string
 	for i, userInfo := range userInfos {
 		recomend, _ := generateRecommendationMessage(userInfo)
