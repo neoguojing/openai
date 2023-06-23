@@ -199,14 +199,14 @@ func (b *Bot) handleUserName(args []string) string {
 		logger.Errorf("Error handling user name: please provide a user name")
 		return "Please provide a user name"
 	}
-	u := &models.TelegramUserInfo{}
+	u := models.TelegramUserInfo{}
 	user, err := u.FindByChatIDOrUsername(0, args[0])
 	if err != nil {
 		logger.Errorf("Error finding user: %s", err)
 		return err.Error()
 	}
 	userFule := &UserInfoFull{
-		User: user,
+		User: *user,
 	}
 	replay, err := generateRecommendationMessage(userFule)
 	if err != nil {
@@ -247,9 +247,9 @@ func (b *Bot) handlePos(args []string) ([]string, []string, error) {
 }
 
 type UserInfoFull struct {
-	User    *models.TelegramUserInfo
-	Profile *models.TelegramProfile
-	Message *models.TelegramChatMessage
+	User    models.TelegramUserInfo
+	Profile models.TelegramProfile
+	Message models.TelegramChatMessage
 	Count   int64
 	Score   float64
 }
@@ -263,12 +263,12 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 	uMap := make(UserMap, 0)
 	for _, u := range userInfos {
 		uFull := UserInfoFull{
-			User:  &u,
+			User:  u,
 			Score: 100,
 		}
 		for _, p := range profiles {
 			if u.ChatID == p.ChatID {
-				uFull.Profile = &p
+				uFull.Profile = p
 				uFull.Score = scoreUser(&p, keywords, location)
 			}
 		}
@@ -402,7 +402,7 @@ func generateTelegramMessages(userInfos UserMap) []string {
 		if err != nil {
 			log.Error(err.Error())
 		}
-		userInfo.Message = m
+		userInfo.Message = *m
 		userInfo.Count = count
 		recomend, err := generateRecommendationMessage(&userInfo)
 		if err != nil {
