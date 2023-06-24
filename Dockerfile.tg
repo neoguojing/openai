@@ -15,7 +15,7 @@ RUN mkdir /app/db
 RUN mkdir /app/build
 RUN mkdir /app/dict
 
-COPY /build/telegram/telegram  /app/telegram
+RUN cp /build/telegram/telegram  /app/telegram
 COPY ./role/role.yaml  /app/
 COPY ./dict  /app/dict
 
