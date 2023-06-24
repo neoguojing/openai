@@ -66,7 +66,7 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 func (b *Bot) handleReport(args []string) string {
 	var reply string
 	if len(args) < 2 {
-		reply = "need username and tag type:\n f: female\n m: man\n c: cheater\n a: admin\n other: "
+		reply = "need username and tag type:\n f: female\n m: man\n s: cheater\n a: admin\n other: "
 
 	} else {
 		u := models.TelegramUserInfo{}
@@ -289,7 +289,15 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 				uFull.Profile = p
 				uFull.Score = scoreUser(&p, keywords, location)
 				if u.Tag == string(models.WOMAN) {
-					uFull.Score *= 0.5
+					uFull.Score *= 1
+				} else if u.Tag == string(models.MAN) {
+					uFull.Score *= 10
+				} else if u.Tag == string(models.CHEATER) {
+					uFull.Score *= 100
+				} else if u.Tag == string(models.ADMIN) {
+					uFull.Score *= 5
+				} else if u.Tag == string(models.MERCHANT) {
+					uFull.Score *= 10
 				}
 			}
 		}
@@ -392,7 +400,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.FirstName = userInfo.User.FirstName
 	tplData.LastName = userInfo.User.LastName
 	tplData.Username = "@" + userInfo.User.Username
-	tplData.Bio = userInfo.User.Bio + userInfo.Profile.Urls
+	tplData.Bio = userInfo.User.Bio + ";" + userInfo.Profile.Urls
 	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.Keywords = userInfo.Profile.Keywords
 	tplData.Location = userInfo.Profile.Location
