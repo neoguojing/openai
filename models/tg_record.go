@@ -3,6 +3,7 @@ package models
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/neoguojing/gormboot/v2"
@@ -29,11 +30,22 @@ const minLimit = 50
 //	accesshash VARCHAR(20),
 //	is_bot BOOLEAN,
 //	image_path VARCHAR(255),
+//  tag VARCHAR(20),
 //	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
 //	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
 //	PRIMARY KEY (chat_id)
 //
 // );
+
+type USER_TAG string
+
+const (
+	MAN      USER_TAG = "m"
+	WOMAN    USER_TAG = "f"
+	CHEATER  USER_TAG = "s"
+	ADMIN    USER_TAG = "a"
+	MERCHANT USER_TAG = "other"
+)
 
 type TelegramUserInfo struct {
 	ChatID      int64  `gorm:"primary_key"`
@@ -45,12 +57,24 @@ type TelegramUserInfo struct {
 	AccessHash  string `gorm:"type:varchar(20)"`
 	IsBot       bool   `gorm:"type:boolean"`
 	ImagePath   string `gorm:"type:varchar(255)"`
+	Tag         string `gorm:"type:varchar(20)"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
 
 func (m *TelegramUserInfo) TableName() string {
 	return "telegram_user_info"
+}
+
+// UpdateTagByUsername updates the tag field of TelegramUserInfo by username
+func (t *TelegramUserInfo) UpdateTagByUsername(username string, tag USER_TAG) error {
+	db := tgDB.DB()
+
+	username = strings.TrimPrefix(username, "@")
+	if err := db.Model(&TelegramUserInfo{}).Where("username = ?", username).Update("tag", tag).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // FindByChatIDOrUsername finds TelegramUserInfo by ChatID or Username

@@ -40,6 +40,8 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 		reply = b.handleLocate(args)
 	case "/username":
 		reply = b.handleUserName(args)
+	case "/report":
+		reply = b.handleReport(args)
 	case "/photo":
 		photoConfig := tgbotapi.NewPhoto(message.Chat.ID, nil)
 		photoConfig.Caption = "This is a random photo"
@@ -59,6 +61,21 @@ func (b *Bot) handleCommand(message *tgbotapi.Message) {
 	if err != nil {
 		logger.Errorf("Error sending message: %s", err)
 	}
+}
+
+func (b *Bot) handleReport(args []string) string {
+	var reply string
+	if len(args) < 2 {
+		reply = "need username and tag type:\n f: female\n m: man\n c: cheater\n a: admin\n other: "
+
+	} else {
+		u := models.TelegramUserInfo{}
+		err := u.UpdateTagByUsername(args[0], models.USER_TAG(args[1]))
+		if err != nil {
+			logger.Errorf("Error handleStart: %s", err)
+		}
+	}
+	return reply
 }
 
 func (b *Bot) handleStart(args []string) string {
@@ -270,6 +287,9 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 			if u.ChatID == p.ChatID {
 				uFull.Profile = p
 				uFull.Score = scoreUser(&p, keywords, location)
+				if u.Tag == string(models.WOMAN) {
+					uFull.Score *= 0.5
+				}
 			}
 		}
 		uMap = append(uMap, uFull)
@@ -370,7 +390,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 
 	tplData.FirstName = userInfo.User.FirstName
 	tplData.LastName = userInfo.User.LastName
-	tplData.Username = userInfo.User.Username
+	tplData.Username = "@" + userInfo.User.Username
 	tplData.Bio = userInfo.User.Bio + userInfo.Profile.Urls
 	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.Keywords = userInfo.Profile.Keywords
