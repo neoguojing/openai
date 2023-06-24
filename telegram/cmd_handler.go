@@ -368,6 +368,7 @@ func scoreUser(profile *models.TelegramProfile, keyword []string, location []str
 func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	messageTemplate := `👤 {{.Username}}
 📝 {{.Bio}}
+📝 {{.Urls}}
 🕒 {{.UpdatedAt}}
 🎖️ {{.Score}}
 🔍 {{.Keywords}}
@@ -386,6 +387,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 		LastName        string
 		Username        string
 		Bio             string
+		Urls            string
 		UpdatedAt       string
 		Keywords        string
 		Location        string
@@ -399,6 +401,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.LastName = userInfo.User.LastName
 	tplData.Username = "@" + userInfo.User.Username
 	tplData.Bio = userInfo.User.Bio + "   " + userInfo.Profile.Urls
+	tplData.Urls = strings.Join(strings.Split(userInfo.Profile.Urls, ","), "\n")
 	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.Keywords = userInfo.Profile.Keywords
 	tplData.Location = userInfo.Profile.Location
