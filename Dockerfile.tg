@@ -11,8 +11,7 @@ RUN mkdir /app/db
 RUN mkdir /app/build
 # RUN mkdir /app/dict
 ADD . /app/build
-WORKDIR /app/build
-RUN make telegram
+RUN cd /app/build && make telegram
 
 COPY /app/build/telegram/telegram  /app/telegram
 COPY ./role/role.yaml  /app/
