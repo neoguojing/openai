@@ -74,6 +74,7 @@ func (b *Bot) handleReport(args []string) string {
 		if err != nil {
 			logger.Errorf("Error handleStart: %s", err)
 		}
+		reply = "report success"
 	}
 	return reply
 }
