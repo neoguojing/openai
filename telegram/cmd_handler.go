@@ -289,13 +289,13 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 				uFull.Profile = p
 				uFull.Score = scoreUser(&p, keywords, location)
 				if u.Tag == string(models.WOMAN) {
-					uFull.Score *= 1
+					uFull.Score *= 100
 				} else if u.Tag == string(models.MAN) {
 					uFull.Score *= 10
 				} else if u.Tag == string(models.CHEATER) {
-					uFull.Score *= 100
+					uFull.Score *= 0.1
 				} else if u.Tag == string(models.ADMIN) {
-					uFull.Score *= 5
+					uFull.Score *= 20
 				} else if u.Tag == string(models.MERCHANT) {
 					uFull.Score *= 10
 				}
@@ -304,7 +304,7 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 		uMap = append(uMap, uFull)
 	}
 	sort.Slice(uMap, func(i, j int) bool {
-		return uMap[i].Score < uMap[j].Score
+		return uMap[i].Score > uMap[j].Score
 	})
 
 	logger.Infof("dataRecall result:%v", uMap)
@@ -314,7 +314,7 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 	return uMap[:TOPK]
 }
 
-// 打分逻辑，匹配的关键值越靠前，则得分越低，得分越低则匹配度越高
+// 打分逻辑，匹配的关键值越靠前，则得分越高，得分越高则匹配度越高
 func scoreUser(profile *models.TelegramProfile, keyword []string, location []string) float64 {
 	score := 0.0
 	kScore := 0.0
@@ -326,20 +326,19 @@ func scoreUser(profile *models.TelegramProfile, keyword []string, location []str
 			for i, word := range pKeyWords {
 				if len(k) > len(word) {
 					if strings.Contains(k, word) {
-						kScore += float64(i)
+						kScore += float64(len(pKeyWords) - i)
 					}
 				} else if len(word) > len(k) {
 					if strings.Contains(word, k) {
-						kScore += float64(i)
+						kScore += float64(len(pKeyWords) - i)
 					}
 				} else {
 					if k == word {
-						kScore += float64(i)
+						kScore += float64(len(pKeyWords) - i)
 					}
 				}
 			}
 		}
-		kScore = kScore / float64(len(keyword))
 	}
 
 	if len(location) != 0 {
@@ -348,20 +347,19 @@ func scoreUser(profile *models.TelegramProfile, keyword []string, location []str
 			for i, word := range pKeyWords {
 				if len(k) > len(word) {
 					if strings.Contains(k, word) {
-						lScore += float64(i)
+						lScore += float64(len(pKeyWords) - i)
 					}
 				} else if len(word) > len(k) {
 					if strings.Contains(word, k) {
-						lScore += float64(i)
+						lScore += float64(len(pKeyWords) - i)
 					}
 				} else {
 					if k == word {
-						lScore += float64(i)
+						lScore += float64(len(pKeyWords) - i)
 					}
 				}
 			}
 		}
-		lScore = lScore / float64(len(location))
 	}
 	score = (lScore + kScore) / 2.0
 	return score
