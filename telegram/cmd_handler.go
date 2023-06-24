@@ -400,7 +400,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.FirstName = userInfo.User.FirstName
 	tplData.LastName = userInfo.User.LastName
 	tplData.Username = "@" + userInfo.User.Username
-	tplData.Bio = userInfo.User.Bio + ";" + userInfo.Profile.Urls
+	tplData.Bio = userInfo.User.Bio + "   " + userInfo.Profile.Urls
 	tplData.UpdatedAt = userInfo.User.UpdatedAt.Format("2006-01-02 15:04:05")
 	tplData.Keywords = userInfo.Profile.Keywords
 	tplData.Location = userInfo.Profile.Location
