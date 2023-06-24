@@ -4,17 +4,19 @@ RUN chmod a+rwxt /tmp
 RUN apt-get update && apt-get install -y supervisor sqlite3 libsqlite3-dev ca-certificates make
 RUN apt-get clean
 # Set the working directory to /app
-WORKDIR /app
+
 RUN mkdir /app/logs
 RUN mkdir /app/file
 RUN mkdir /app/db
+RUN mkdir /app/build
 # RUN mkdir /app/dict
-ADD . /app
+ADD . /app/build
+WORKDIR /app/build
 RUN make telegram
 
-COPY ./telegram/telegram  /app/tg
+COPY /app/build/telegram/telegram  /app/telegram
 COPY ./role/role.yaml  /app/
 COPY ./dict  /app/dict
-
+WORKDIR /app
 # 启动 supervisor 进程管理器
 CMD ["/usr/bin/supervisord", "-n"]
