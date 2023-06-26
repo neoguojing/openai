@@ -298,6 +298,8 @@ func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo
 					uFull.Score *= 20
 				} else if u.Tag == string(models.MERCHANT) {
 					uFull.Score *= 10
+				} else {
+					uFull.Score *= 100
 				}
 			}
 		}
