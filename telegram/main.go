@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -38,16 +40,16 @@ func NewBot(config config.Config) (*Bot, error) {
 
 	// Set the bot's debug mode
 	bot.Debug = false
-	// dictDir := filepath.Join(filepath.Dir(os.Args[0]), "dict")
+	dictDir := filepath.Join(filepath.Dir(os.Args[0]), "dict")
 	// jiebaPath := filepath.Join(dictDir, "jieba.dict.utf8")
 	// hmmPath := filepath.Join(dictDir, "hmm_model.utf8")
 	// idfPath := filepath.Join(dictDir, "idf.utf8")
 	// stopwordPath := filepath.Join(dictDir, "stop_words.utf8")
-	// userPath := filepath.Join(dictDir, "user.dict.utf8")
+	userPath := filepath.Join(dictDir, "user.dict.utf8")
 	// Return the bot instance
 	return &Bot{
 		bot:   bot,
-		jieba: gojieba.NewJieba(),
+		jieba: gojieba.NewJieba(userPath),
 		// jieba: gojieba.NewJieba(jiebaPath, hmmPath, idfPath, stopwordPath, userPath),
 	}, nil
 }
