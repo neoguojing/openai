@@ -42,16 +42,16 @@ doc:
 	cd $(CUR_DIR)/server && swag init --parseDependency
 
 
-cs:
+cs: server
 	docker build -t guojingneo/chat-server:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.server .
 
-wc:
+wc: wechat
 	docker build -t guojingneo/wechat:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.wechat .
 
 tg:
 	docker build -t guojingneo/tg:$(PROJECT_VERSION)-$(BUILD)-$(BUILD_ARCH)-$(BUILD_DEVICE) -f Dockerfile.tg .
 
-image: build cs wc tg
+image: cs wc tg
 	# Build Docker image
 	
 # Run Docker container

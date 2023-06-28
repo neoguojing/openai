@@ -71,7 +71,12 @@ func (t *TelegramUserInfo) UpdateTagByUsername(username string, tag USER_TAG) er
 	db := tgDB.DB()
 
 	username = strings.TrimPrefix(username, "@")
-	if err := db.Model(&TelegramUserInfo{}).Where("username = ?", username).Update("tag", tag).Error; err != nil {
+	now := time.Now()
+	isoFormat := now.Format("2006-01-02 15:04:05")
+	if err := db.Model(&TelegramUserInfo{}).Where("username = ?", username).Updates(map[string]interface{}{
+		"tag":        tag,
+		"updated_at": isoFormat,
+	}).Error; err != nil {
 		return err
 	}
 	return nil
