@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	midware "github.com/neoguojing/gin-midware"
 	"github.com/neoguojing/openai"
+	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
 	docs "github.com/neoguojing/openai/server/docs"
 	swaggerfiles "github.com/swaggo/files"
@@ -37,7 +38,13 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	docs.SwaggerInfo.BasePath = "/openai/api/v1"
 
 	api = openai.NewOpenAI(apiKey)
-	chat = api.Chat(openai.WithPlatform(models.HttpServer))
+	proxy := config.GetConfig().OpenAI.Proxy
+	if proxy != "" {
+		chat = api.Chat(openai.WithPlatform(models.HttpServer), openai.WithProxy(proxy))
+	} else {
+		chat = api.Chat(openai.WithPlatform(models.HttpServer))
+	}
+
 	openaiGroup := router.Group("/openai/api/v1")
 	openaiGroup.POST("/files/upload", uploadFile)
 	openaiGroup.DELETE("/files/:file_id", deleteFile)

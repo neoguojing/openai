@@ -23,6 +23,7 @@ var (
 type OpenAIConfig struct {
 	ApiKey string `yaml:"api_key"`
 	Role   string `yaml:"role"`
+	Proxy  string `yaml:"proxy"`
 }
 
 type TelegramConfig struct {
