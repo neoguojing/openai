@@ -77,8 +77,7 @@ func officeAccountHandler(c *gin.Context) {
 			log.Infof("-------------msg exist:%v，%v", msgId, msgs)
 			if msgs != nil {
 				replys := msgs.([]message.Reply)
-				officialAccountServer.Send(replys)
-				log.Infof("-------------msg send:%v,%v", msgId, msgs)
+				log.Infof("-------------msg send:%v,%v", msgId, replys)
 				return replys
 			}
 		} else {
@@ -122,7 +121,7 @@ func officeAccountHandler(c *gin.Context) {
 			}
 
 			officialAccount.GetContext().Cache.Set(msgId, replys, time.Second*30)
-			log.Infof("-------------msg reply finished:%v,%v", msgId, replys)
+			log.Infof("-------------msg reply prepare finished:%v,%v", msgId, replys)
 		}
 
 		return replys
@@ -134,4 +133,6 @@ func officeAccountHandler(c *gin.Context) {
 		log.Error(err.Error())
 		return
 	}
+
+	officialAccountServer.Send()
 }
