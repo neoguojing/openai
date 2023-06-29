@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/neoguojing/log"
@@ -60,6 +62,45 @@ func aispeechHandler(c *gin.Context) {
 	aiSpeechServer.ServeHTTP(c.Writer, c.Request)
 }
 
+var officeAccountHandlerStand = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello from myHttpHandler!")
+	log.Info(r.Host)
+
+	// 传入request和responseWriter
+	officialAccountServer = officialAccount.GetServer(r, w)
+	// 设置接收消息的处理方法
+	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
+		var aiText string
+		var err error
+		if msg.MsgType == message.MsgTypeText {
+			aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+			if err != nil {
+				log.Error(err.Error())
+				return &message.Reply{}
+			}
+		} else if msg.MsgType == message.MsgTypeVoice {
+
+		} else {
+
+		}
+		text := message.NewText(aiText)
+		return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+	})
+
+	// 处理消息接收以及回复
+	err := officialAccountServer.Serve()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	// 发送回复的消息
+	err = officialAccountServer.Send()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+})
+
 func officeAccountHandler(c *gin.Context) {
 	log.Info(c.Request.Host)
 
@@ -91,5 +132,9 @@ func officeAccountHandler(c *gin.Context) {
 		return
 	}
 	// 发送回复的消息
-	officialAccountServer.Send()
+	err = officialAccountServer.Send()
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
 }

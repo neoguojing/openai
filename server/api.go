@@ -64,10 +64,22 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	openaiGroup.POST("/completions", completeText)
 	openaiGroup.POST("/moderations", moderation)
 	openaiGroup.POST("/aispeech", aispeechHandler)
-	openaiGroup.POST("/officeaccount", officeAccountHandler)
-	openaiGroup.GET("/officeaccount", officeAccountHandler)
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	// 将原生的 HTTP Handler 转换为 Gin 的 HandlerFunc
+	officeAccountGinHandlerFunc := toGinHandlerFunc(officeAccountHandlerStand)
+	openaiGroup.POST("/officeaccount", officeAccountGinHandlerFunc)
+	openaiGroup.GET("/officeaccount", officeAccountGinHandlerFunc)
+
 	return router
+}
+
+// toGinHandlerFunc 将原生的 HTTP Handler 转换为 Gin 的 HandlerFunc
+func toGinHandlerFunc(httpHandler http.Handler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		httpHandler.ServeHTTP(c.Writer, c.Request)
+	}
 }
 
 type ErrorResponse struct {
