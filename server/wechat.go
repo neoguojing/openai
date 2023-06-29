@@ -2,7 +2,9 @@ package main
 
 import (
 	"math"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/neoguojing/log"
 
@@ -67,44 +69,59 @@ func officeAccountHandler(c *gin.Context) {
 	officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
 	// 设置接收消息的处理方法
 	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) []message.Reply {
-		var aiText string
-		var err error
-		if msg.MsgType == message.MsgTypeText {
-			aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
-			if err != nil {
-				log.Error(err.Error())
-				return []message.Reply{{MsgType: message.MsgTypeText, MsgData: "ops"}}
-			}
-		} else if msg.MsgType == message.MsgTypeVoice {
-
-		} else {
-
-		}
-
-		// 计算消息内容的长度
-		messageLength := len(aiText)
-
-		// 计算消息需要分成多少段
-		segmentCount := int(math.Ceil(float64(messageLength) / 2048.0))
 		replys := []message.Reply{}
-		// 分段发送消息
-		for i := 0; i < segmentCount; i++ {
-			// 计算当前段的起始位置和长度
-			start := i * 2048
-			length := 2048
-			if start+length > messageLength {
-				length = messageLength - start
+		msgId := strconv.FormatInt(msg.MsgID, 10)
+		if officialAccount.GetContext().Cache.IsExist(msgId) {
+			msgs := officialAccount.GetContext().Cache.Get(msgId)
+			if msgs != nil {
+				replys := msgs.([]message.Reply)
+				officialAccountServer.Send(replys)
+				return replys
+			}
+		} else {
+			officialAccount.GetContext().Cache.Set(msgId, nil, time.Second*30)
+
+			var aiText string
+			var err error
+			if msg.MsgType == message.MsgTypeText {
+				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+				if err != nil {
+					log.Error(err.Error())
+					return []message.Reply{{MsgType: message.MsgTypeText, MsgData: "ops"}}
+				}
+			} else if msg.MsgType == message.MsgTypeVoice {
+
+			} else {
+
 			}
 
-			// 截取当前段的消息内容
-			segment := aiText[start : start+length]
-			text := message.NewText(segment)
-			reply := message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-			replys = append(replys, reply)
+			// 计算消息内容的长度
+			messageLength := len(aiText)
 
+			// 计算消息需要分成多少段
+			segmentCount := int(math.Ceil(float64(messageLength) / 2048.0))
+			replys := []message.Reply{}
+			// 分段发送消息
+			for i := 0; i < segmentCount; i++ {
+				// 计算当前段的起始位置和长度
+				start := i * 2048
+				length := 2048
+				if start+length > messageLength {
+					length = messageLength - start
+				}
+
+				// 截取当前段的消息内容
+				segment := aiText[start : start+length]
+				text := message.NewText(segment)
+				reply := message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+				replys = append(replys, reply)
+
+			}
+
+			log.Infof("segmentCount:%v", segmentCount)
+			officialAccount.GetContext().Cache.Set(msgId, replys, time.Second*10)
 		}
 
-		log.Infof("segmentCount:%v", segmentCount)
 		return replys
 	})
 
