@@ -37,6 +37,13 @@ func WithChatModel(model string) ChatOption {
 	}
 }
 
+func WithProxy(proxyURL string) ChatOption {
+
+	return func(c *Chat) {
+		c.client.SetProxy(proxyURL)
+	}
+}
+
 func WithPlatform(p models.Platform) ChatOption {
 	return func(c *Chat) {
 		c.platform = p
@@ -172,6 +179,7 @@ func (c *Chat) Complete(content string) (*ChatResponse, error) {
 			},
 		},
 	}
+
 	resp, err := c.client.R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+c.apiKey).

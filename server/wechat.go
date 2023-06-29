@@ -114,7 +114,7 @@ func officeAccountHandler(c *gin.Context) {
 			aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 			if err != nil {
 				log.Error(err.Error())
-				return &message.Reply{}
+				return &message.Reply{MsgType: message.MsgTypeText, MsgData: "ops"}
 			}
 		} else if msg.MsgType == message.MsgTypeVoice {
 
