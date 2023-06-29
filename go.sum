@@ -773,8 +773,8 @@ github.com/neoguojing/openwechat v0.0.1 h1:/9jZvj8uRWTLHv99dlm+1i7k6cLDQLMInIBA/
 github.com/neoguojing/openwechat v0.0.1/go.mod h1:dUxfjcrXVXbNGhNUC+1grdaJs6wc902AhSsHolt9YCE=
 github.com/neoguojing/telegram-bot-api/v5 v5.0.0-20230531031237-325d1a80b0c0 h1:eK5fbz7pu5Tzeu5h4H2shHYp/gzCENPVQBUgySYHtGQ=
 github.com/neoguojing/telegram-bot-api/v5 v5.0.0-20230531031237-325d1a80b0c0/go.mod h1:P8fYPBa89ivV4Agk9QZHDo+JiUvvpDW2Gcyi9JSxAJM=
-github.com/neoguojing/wechat/v2 v2.0.5 h1:E/9FQKU+JAkzYr3ENL8aFj9YGtaDsk95RcSE8e2cN54=
-github.com/neoguojing/wechat/v2 v2.0.5/go.mod h1:/xWw45xWmUGYDUafDTC92UgPq1Cpkh8pWX1+Tk19Bk4=
+github.com/neoguojing/wechat/v2 v2.0.1 h1:VWE2FPfLrV6DbCwU8ERFz+nG2xmCMezaDXXY6+W0uPw=
+github.com/neoguojing/wechat/v2 v2.0.1/go.mod h1:/xWw45xWmUGYDUafDTC92UgPq1Cpkh8pWX1+Tk19Bk4=
 github.com/networkplumbing/go-nft v0.2.0/go.mod h1:HnnM+tYvlGAsMU7yoYwXEVLLiDW9gdMmb5HoGcwpuQs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
