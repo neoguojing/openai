@@ -74,19 +74,7 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// 将原生的 HTTP Handler 转换为 Gin 的 HandlerFunc
-	officeAccountGinHandlerFunc := toGinHandlerFunc(officeAccountHandlerStand)
-	openaiGroup.POST("/officeaccount", officeAccountGinHandlerFunc)
-	openaiGroup.GET("/officeaccount", officeAccountGinHandlerFunc)
-
 	return router
-}
-
-// toGinHandlerFunc 将原生的 HTTP Handler 转换为 Gin 的 HandlerFunc
-func toGinHandlerFunc(httpHandler http.Handler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		httpHandler.ServeHTTP(c.Writer, c.Request)
-	}
 }
 
 type ErrorResponse struct {
