@@ -12,7 +12,7 @@ require (
 	github.com/neoguojing/log v0.0.9
 	github.com/neoguojing/openwechat v0.0.1
 	github.com/neoguojing/telegram-bot-api/v5 v5.0.0-20230531031237-325d1a80b0c0
-	github.com/neoguojing/wechat/v2 v2.0.0
+	github.com/neoguojing/wechat/v2 v2.0.1
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1
@@ -74,7 +74,6 @@ require (
 	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/cobra v1.1.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

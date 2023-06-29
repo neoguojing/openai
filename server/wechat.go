@@ -62,16 +62,12 @@ func aispeechHandler(c *gin.Context) {
 
 func officeAccountHandler(c *gin.Context) {
 	log.Info(c.Request.Host)
-	syncChan := make(chan struct{})
 	// 传入request和responseWriter
 	officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
 	// 设置接收消息的处理方法
 	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
 		var aiText string
 		var err error
-		defer func() {
-			close(syncChan)
-		}()
 		if msg.MsgType == message.MsgTypeText {
 			aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 			if err != nil {
@@ -89,14 +85,6 @@ func officeAccountHandler(c *gin.Context) {
 
 	// 处理消息接收以及回复
 	err := officialAccountServer.Serve()
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-
-	<-syncChan
-	// 发送回复的消息
-	err = officialAccountServer.Send()
 	if err != nil {
 		log.Error(err.Error())
 		return
