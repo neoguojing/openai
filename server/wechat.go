@@ -71,11 +71,14 @@ func officeAccountHandler(c *gin.Context) {
 	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) []message.Reply {
 		replys := []message.Reply{}
 		msgId := strconv.FormatInt(msg.MsgID, 10)
+		log.Infof("-------------receive msg:%v,%s", msgId, msg.Content)
 		if officialAccount.GetContext().Cache.IsExist(msgId) {
 			msgs := officialAccount.GetContext().Cache.Get(msgId)
+			log.Infof("-------------msg exist:%v，%v", msgId, msgs)
 			if msgs != nil {
 				replys := msgs.([]message.Reply)
 				officialAccountServer.Send(replys)
+				log.Infof("-------------msg send:%v,%v", msgId, msgs)
 				return replys
 			}
 		} else {
@@ -118,8 +121,8 @@ func officeAccountHandler(c *gin.Context) {
 
 			}
 
-			log.Infof("segmentCount:%v", segmentCount)
-			officialAccount.GetContext().Cache.Set(msgId, replys, time.Second*10)
+			officialAccount.GetContext().Cache.Set(msgId, replys, time.Second*30)
+			log.Infof("-------------msg reply finished:%v,%v", msgId, replys)
 		}
 
 		return replys
