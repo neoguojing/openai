@@ -86,6 +86,7 @@ func (t *TelegramUserInfo) UpdateTagByUsername(username string, tag USER_TAG) er
 func (t *TelegramUserInfo) FindByChatIDOrUsername(chatID int64, username string) (*TelegramUserInfo, error) {
 	db := tgDB.DB()
 	if chatID == 0 && username != "" {
+		username = strings.TrimPrefix(username, "@")
 		if err := db.Where("username = ?", username).First(t).Error; err != nil {
 			return nil, err
 		}
@@ -102,8 +103,8 @@ func (t *TelegramUserInfo) FindByChatIDs(chatIDs []int64) ([]TelegramUserInfo, e
 	db := tgDB.DB()
 	var userInfos []TelegramUserInfo
 	if len(chatIDs) > 0 {
-		if err := db.Where("chat_id IN (?) and bio IS NOT NULL", chatIDs).
-			Order("updated_at DESC").Find(&userInfos).Error; err != nil {
+		if err := db.Where("chat_id IN (?) and bio IS NOT NULL and (tag = ? or tag = ?)",
+		 chatIDs,"f","m").Order("updated_at DESC").Find(&userInfos).Error; err != nil {
 			return nil, err
 		}
 	}
