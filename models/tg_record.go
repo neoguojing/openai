@@ -16,8 +16,8 @@ var (
 	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
-const maxLimit = 1000
-const minLimit = 500
+const maxLimit = 30000
+const minLimit = 10000
 
 // CREATE TABLE telegram_user_info (
 //
@@ -104,7 +104,7 @@ func (t *TelegramUserInfo) FindByChatIDs(chatIDs []int64) ([]TelegramUserInfo, e
 	var userInfos []TelegramUserInfo
 	if len(chatIDs) > 0 {
 		if err := db.Where("chat_id IN (?) and bio IS NOT NULL and (tag = ? or tag = ?)",
-		 chatIDs,"f","m").Order("updated_at DESC").Find(&userInfos).Error; err != nil {
+			chatIDs, "f", "m").Order("updated_at DESC").Find(&userInfos).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -305,4 +305,45 @@ func (t *TelegramChatMessage) FindLatestMessageByChatID(chatID int64) (*Telegram
 		return nil, err
 	}
 	return &message, nil
+}
+
+// CREATE TABLE telegram_user_summary (
+// 	chat_id INTEGER NOT NULL,
+// 	summary TEXT,
+// 	origin TEXT,
+// 	label VARCHAR(20),
+// 	confidence FLOAT,
+// 	whatfor VARCHAR(20),
+// 	predict VARCHAR(20),
+// 	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+// 	updated_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+// 	PRIMARY KEY (chat_id)
+// 	)
+
+type TelegramUserSummary struct {
+	ChatID     int64   `gorm:"primary_key"`
+	Summary    string  `gorm:"type:text"`
+	Origin     string  `gorm:"type:text"`
+	Label      string  `gorm:"type:varchar(20)"`
+	Confidence float64 `gorm:"type:float"`
+	WhatFor    string  `gorm:"type:varchar(20)"`
+	Predict    string  `gorm:"type:varchar(20)"`
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+func (m *TelegramUserSummary) TableName() string {
+	return "telegram_user_summary"
+}
+
+func (t *TelegramUserSummary) FindByChatIDs(chatIDs []int64) ([]TelegramUserSummary, error) {
+	db := tgDB.DB()
+	var userInfos []TelegramUserSummary
+	if len(chatIDs) > 0 {
+		if err := db.Where("chat_id IN (?) and label = ? ",
+			chatIDs, "f").Find(&userInfos).Error; err != nil {
+			return nil, err
+		}
+	}
+	return userInfos, nil
 }

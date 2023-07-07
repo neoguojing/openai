@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"math"
 	"sort"
 	"strings"
 
@@ -155,19 +156,39 @@ func (b *Bot) search(args []string) (UserMap, error) {
 	logger.Infof("found %d TelegramProfiles", len(profiles))
 	if len(profiles) != 0 {
 		logger.Infof("TelegramUserInfo find-------------")
-		var chatIDs []int64
+		var profileMap = make(map[int64]models.TelegramProfile)
+		var chatIDs = make([]int64, 0)
 		for _, profile := range profiles {
 			chatIDs = append(chatIDs, profile.ChatID)
+			profileMap[profile.ChatID] = profile
+		}
+
+		s := &models.TelegramUserSummary{}
+		var summrayMap = make(map[int64]models.TelegramUserSummary)
+		summarys, err := s.FindByChatIDs(chatIDs)
+		if err != nil {
+			logger.Errorf("TelegramUserSummary Error finding users: %s", err)
+			return nil, err
+		}
+		chatIDs = make([]int64, 0)
+		for _, item := range summarys {
+			chatIDs = append(chatIDs, item.ChatID)
+			summrayMap[item.ChatID] = item
 		}
 
 		u := &models.TelegramUserInfo{}
+		var userMap = make(map[int64]models.TelegramUserInfo)
 		users, err := u.FindByChatIDs(chatIDs)
 		if err != nil {
-			logger.Errorf("Error finding users: %s", err)
+			logger.Errorf("TelegramUserInfo Error finding users: %s", err)
 			return nil, err
 		}
+		for _, item := range users {
+			chatIDs = append(chatIDs, item.ChatID)
+			userMap[item.ChatID] = item
+		}
 		logger.Infof("found %d TelegramUserInfo", len(users))
-		useFullArr := dataRecall(keyword, locations, users, profiles)
+		useFullArr := dataRecall(userMap, profileMap, summrayMap)
 
 		return useFullArr, nil
 	}
@@ -192,19 +213,40 @@ func (b *Bot) handleLocate(args []string) string {
 		return "No results found"
 	}
 
-	var chatIDs []int64
+	var profileMap = make(map[int64]models.TelegramProfile)
+	var chatIDs = make([]int64, 0)
 	for _, profile := range profiles {
 		chatIDs = append(chatIDs, profile.ChatID)
+		profileMap[profile.ChatID] = profile
+	}
+
+	s := &models.TelegramUserSummary{}
+	var summrayMap = make(map[int64]models.TelegramUserSummary)
+	summarys, err := s.FindByChatIDs(chatIDs)
+	if err != nil {
+		logger.Errorf("TelegramUserSummary Error finding users: %s", err)
+		return err.Error()
+	}
+
+	chatIDs = make([]int64, 0)
+	for _, item := range summarys {
+		chatIDs = append(chatIDs, item.ChatID)
+		summrayMap[item.ChatID] = item
 	}
 
 	u := &models.TelegramUserInfo{}
+	var userMap = make(map[int64]models.TelegramUserInfo)
 	users, err := u.FindByChatIDs(chatIDs)
 	if err != nil {
 		logger.Errorf("Error finding users: %s", err)
 		return err.Error()
 	}
+	for _, item := range users {
+		chatIDs = append(chatIDs, item.ChatID)
+		userMap[item.ChatID] = item
+	}
 
-	useFullArr := dataRecall(nil, args, users, profiles)
+	useFullArr := dataRecall(userMap, profileMap, summrayMap)
 	messages := generateTelegramMessages(useFullArr)
 	reply := strings.Join(messages, "\n")
 
@@ -276,33 +318,23 @@ type UserMap []UserInfoFull
 
 const TOPK = 5
 
-func dataRecall(keywords, location []string, userInfos []models.TelegramUserInfo,
-	profiles []models.TelegramProfile) UserMap {
+func dataRecall(userInfos map[int64]models.TelegramUserInfo,
+	profiles map[int64]models.TelegramProfile, summrays map[int64]models.TelegramUserSummary) UserMap {
 	uMap := make(UserMap, 0)
-	for _, u := range userInfos {
+	for id, u := range userInfos {
 		uFull := UserInfoFull{
 			User:  u,
 			Score: 100,
 		}
-		for _, p := range profiles {
-			if u.ChatID == p.ChatID {
-				uFull.Profile = p
-				uFull.Score = scoreUser(&p, keywords, location)
-				if u.Tag == string(models.WOMAN) {
-					uFull.Score *= 100
-				} else if u.Tag == string(models.MAN) {
-					uFull.Score *= 10
-				} else if u.Tag == string(models.CHEATER) {
-					uFull.Score *= 0.1
-				} else if u.Tag == string(models.ADMIN) {
-					uFull.Score *= 20
-				} else if u.Tag == string(models.MERCHANT) {
-					uFull.Score *= 10
-				} else {
-					uFull.Score *= 100
-				}
-			}
+
+		if p, ok := profiles[id]; ok {
+			uFull.Profile = p
 		}
+
+		if s, ok := summrays[id]; ok {
+			uFull.Score *= math.Round(s.Confidence*100) / 100
+		}
+
 		uMap = append(uMap, uFull)
 	}
 	sort.Slice(uMap, func(i, j int) bool {
