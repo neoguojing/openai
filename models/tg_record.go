@@ -82,6 +82,20 @@ func (t *TelegramUserInfo) UpdateTagByUsername(username string, tag USER_TAG) er
 	return nil
 }
 
+func (t *TelegramUserInfo) UpdateTag(chatId int64, tag USER_TAG) error {
+	db := tgDB.DB()
+
+	now := time.Now()
+	isoFormat := now.Format("2006-01-02 15:04:05")
+	if err := db.Model(&TelegramUserInfo{}).Where("chat_id = ?", chatId).Updates(map[string]interface{}{
+		"tag":        tag,
+		"updated_at": isoFormat,
+	}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 // FindByChatIDOrUsername finds TelegramUserInfo by ChatID or Username
 func (t *TelegramUserInfo) FindByChatIDOrUsername(chatID int64, username string) (*TelegramUserInfo, error) {
 	db := tgDB.DB()
@@ -346,4 +360,17 @@ func (t *TelegramUserSummary) FindByChatIDs(chatIDs []int64) ([]TelegramUserSumm
 		}
 	}
 	return userInfos, nil
+}
+
+func (t *TelegramUserSummary) UpdateLabel(chatId int64, tag USER_TAG) error {
+	db := tgDB.DB()
+	now := time.Now()
+	isoFormat := now.Format("2006-01-02 15:04:05")
+	if err := db.Model(&TelegramUserSummary{}).Where("chat_id = ?", chatId).Updates(map[string]interface{}{
+		"label":      tag,
+		"updated_at": isoFormat,
+	}).Error; err != nil {
+		return err
+	}
+	return nil
 }

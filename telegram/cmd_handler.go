@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/neoguojing/log"
@@ -70,8 +71,25 @@ func (b *Bot) handleReport(args []string) string {
 		reply = "need username and tag type:\n f: female\n m: man\n s: cheater\n a: admin\n other: "
 
 	} else {
+		userName := ""
+		chatId, err := strconv.ParseInt(args[0], 10, 64)
+		if err != nil {
+			userName = args[0]
+		}
 		u := models.TelegramUserInfo{}
-		err := u.UpdateTagByUsername(args[0], models.USER_TAG(args[1]))
+		user, err := u.FindByChatIDOrUsername(chatId, userName)
+		if err != nil {
+			logger.Errorf("Error finding user: %s", err)
+			return err.Error()
+		}
+
+		err = u.UpdateTag(user.ChatID, models.USER_TAG(args[1]))
+		if err != nil {
+			logger.Errorf("Error handleStart: %s", err)
+		}
+
+		s := models.TelegramUserSummary{}
+		err = s.UpdateLabel(user.ChatID, models.USER_TAG(args[1]))
 		if err != nil {
 			logger.Errorf("Error handleStart: %s", err)
 		}
@@ -400,7 +418,7 @@ func scoreUser(profile *models.TelegramProfile, keyword []string, location []str
 }
 
 func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
-	messageTemplate := `👤 {{.Username}}
+	messageTemplate := `👤 {{.Username}}-{{.ChatId}}
 📝 {{.Bio}}
 📝 {{.Urls}}
 🕒 {{.UpdatedAt}}
@@ -429,6 +447,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 		LastMessage     string
 		MessageTotal    int64
 		Score           float64
+		ChatId          int64
 	}
 
 	tplData.FirstName = userInfo.User.FirstName
@@ -443,6 +462,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.LastMessage = userInfo.Message.Message
 	tplData.MessageTotal = userInfo.Count
 	tplData.Score = userInfo.Score
+	tplData.ChatId = userInfo.User.ChatID
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
 	if err != nil {
