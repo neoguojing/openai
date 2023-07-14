@@ -8,11 +8,15 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"math/rand"
+    "time"
 
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai/models"
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
 )
+
+
 
 var (
 	NO_JIEBA_ERROR = errors.New("b.jieba was nil")
@@ -338,6 +342,7 @@ const TOPK = 5
 
 func dataRecall(userInfos map[int64]models.TelegramUserInfo,
 	profiles map[int64]models.TelegramProfile, summrays map[int64]models.TelegramUserSummary) UserMap {
+	rand.Seed(time.Now().UnixNano())
 	uMap := make(UserMap, 0)
 	for id, u := range userInfos {
 		uFull := UserInfoFull{
@@ -363,7 +368,13 @@ func dataRecall(userInfos map[int64]models.TelegramUserInfo,
 	if len(uMap) <= TOPK {
 		return uMap
 	}
-	return uMap[:TOPK]
+
+	selected := make(UserMap, TOPK)
+	for i:=0;i<TOPK;i++ {
+		index := rand.Intn(len(uMap))
+		selected[i] = uMap[index]
+	}
+	return selected
 }
 
 // 打分逻辑，匹配的关键值越靠前，则得分越高，得分越高则匹配度越高
