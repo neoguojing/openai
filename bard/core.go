@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -73,13 +74,13 @@ func NewBard(token string, timeout int, proxies map[string]string, session *http
 	return b
 }
 
-func (b *Bard) GetAnswer(inputText string) map[string]interface{} {
+func (b *Bard) GetAnswer(inputText string) (map[string]interface{},error) {
 	// Make POST request and parse response
 	// ...
 	if b.GoogleTranslatorAPIKey != "" {
 		googleOfficialTranslator, err := translate.NewClient(context.Background(), option.WithAPIKey(b.GoogleTranslatorAPIKey))
 		if err != nil {
-			panic(fmt.Sprintf("Failed to create Google Translator client: %v", err))
+			return nil,errors.New(fmt.Sprintf("Failed to create Google Translator client: %v", err))
 		}
 	}
 
@@ -88,12 +89,12 @@ func (b *Bard) GetAnswer(inputText string) map[string]interface{} {
 		translatorToEng := googletrans.NewGoogleTranslator("auto", "en")
 		inputText, err = translatorToEng.Translate(inputText)
 		if err != nil {
-			panic(fmt.Sprintf("Failed to translate input text to English: %v", err))
+			return nil,errors.New(fmt.Sprintf("Failed to translate input text to English: %v", err))
 		}
 	} else if b.Language != "" && !contains(ALLOWED_LANGUAGES, b.Language) && b.GoogleTranslatorAPIKey != "" {
 		inputText, err = googleOfficialTranslator.Translate(context.Background(), inputText, language.English, nil)
 		if err != nil {
-			panic(fmt.Sprintf("Failed to translate input text to English: %v", err))
+			return nil,errors.New(fmt.Sprintf("Failed to translate input text to English: %v", err))
 		}
 	}
 
@@ -105,28 +106,29 @@ func (b *Bard) GetAnswer(inputText string) map[string]interface{} {
 	}
 
 	// Get response
-	resp, err := b.Session.Post("https://bard.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate", params, data, b.Timeout, b.Proxies)
+	resp, err := b.Session.Post("https://bard.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate", 
+	params, data, b.Timeout, b.Proxies)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to make POST request: %v", err))
+		return nil,errors.New(fmt.Sprintf("Failed to make POST request: %v", err))
 	}
 
 	// Post-processing of response
 	respDict := make(map[string]interface{})
 	err = json.Unmarshal([]byte(strings.Split(string(resp.Content), "\n")[3]), &respDict)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to parse response: %v", err))
+		return nil,errors.New(fmt.Sprintf("Failed to parse response: %v", err))
 	}
 
 	if len(respDict) == 0 {
 		return map[string]interface{}{
 			"content": fmt.Sprintf("Response Error: %s. \nTemporarily unavailable due to traffic or an error in cookie values. Please double-check the cookie values and verify your network environment.", resp.Content),
-		}
+		}, nil
 	}
 
 	respJSON := make(map[string]interface{})
 	err = json.Unmarshal([]byte(respDict["2"].(string)), &respJSON)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to parse response JSON: %v", err))
+		return nil,errors.New(fmt.Sprintf("Failed to parse response JSON: %v", err))
 	}
 
 	// Gather image links (optional)
@@ -142,7 +144,7 @@ func (b *Bard) GetAnswer(inputText string) map[string]interface{} {
 	parsedAnswer := make(map[string]interface{})
 	err = json.Unmarshal([]byte(respDict["2"].(string)), &parsedAnswer)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to parse parsed answer: %v", err))
+		return nil,errors.New(fmt.Sprintf("Failed to parse parsed answer: %v", err))
 	}
 
 	// Translated by Google Translator (optional)
@@ -201,11 +203,11 @@ func (b *Bard) GetAnswer(inputText string) map[string]interface{} {
 		fmt.Println(bardAnswer["code"])
 		_, err = govaluate.NewEvaluableExpression(bardAnswer["code"].(string)).Evaluate(nil)
 		if err != nil {
-			panic(fmt.Sprintf("Failed to execute code: %v", err))
+			return nil,errors.New(fmt.Sprintf("Failed to execute code: %v", err))
 		}
 	}
 
-	return bardAnswer
+	return bardAnswer,nil
 }
 
 func (b *Bard) Speech(inputText string, lang string) []byte {

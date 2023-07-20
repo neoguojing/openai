@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
-	"github.com/danielpark/bardapi"
 )
 
 type ChatBard struct {
 	userPrompt  string
-	bard        *bardapi.Bard
+	bard        *Bard
 	chatHistory []map[string]string
 	language    string
 	timeout     int
@@ -19,7 +17,7 @@ type ChatBard struct {
 }
 
 func NewChatBard(token string, timeout int, language string) *ChatBard {
-	bard := bardapi.NewBard(token, language, timeout)
+	bard := NewBard(token, timeout, nil, nil, "", language, false, "")
 	return &ChatBard{
 		userPrompt:  ">>> ",
 		bard:        bard,
@@ -56,7 +54,7 @@ func (c *ChatBard) Start() {
 			fmt.Println("Error occurred:", err.Error())
 		} else {
 			c.displayResponse(response)
-			c.addToChatHistory(userInput, response.Content)
+			c.addToChatHistory(userInput, response["content"].(string))
 		}
 	}
 
@@ -73,11 +71,11 @@ func (c *ChatBard) isValidInput(userInput string) bool {
 	return true
 }
 
-func (c *ChatBard) displayResponse(response *bardapi.Response) {
-	if len(response.Images) > 0 {
-		fmt.Printf("Chatbot: %s\n\nImage links: %v\n", response.Content, response.Images)
+func (c *ChatBard) displayResponse(response map[string]interface{}) {
+	if len(response["images"].(map[string]interface{})) > 0 {
+		fmt.Printf("Chatbot: %s\n\nImage links: %v\n", response["content"], response["images"])
 	} else {
-		fmt.Println("Chatbot:", response.Content)
+		fmt.Println("Chatbot:", response["content"])
 	}
 }
 
