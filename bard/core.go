@@ -292,15 +292,16 @@ func (b *Bard) uploadImage(image []byte, filename string) string {
 	// Upload image into bard bucket on Google API
 	// ...
 	client := &http.Client{}
-	req, err := http.NewRequest("OPTIONS", "https://content-push.googleapis.com/upload/", nil)
+	req, _ := http.NewRequest("OPTIONS", "https://content-push.googleapis.com/upload/", nil)
+
+	resp, err := client.Do(req)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to make OPTIONS request: %v", err))
 	}
-	resp, err := client.Do(req)
 	defer resp.Body.Close()
 
 	data := "File name: " + filename
-	req, err = http.NewRequest("POST", "https://content-push.googleapis.com/upload/", strings.NewReader(data))
+	req, _ = http.NewRequest("POST", "https://content-push.googleapis.com/upload/", strings.NewReader(data))
 	size := len(image)
 
 	req.Header.Set("size", strconv.Itoa(size))
@@ -311,14 +312,14 @@ func (b *Bard) uploadImage(image []byte, filename string) string {
 	resp.Body.Close()
 	uploadURL := resp.Header.Get("X-Goog-Upload-Url")
 
-	req, err = http.NewRequest("OPTIONS", uploadURL, nil)
+	req, _ = http.NewRequest("OPTIONS", uploadURL, nil)
 	resp, err = client.Do(req)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to make OPTIONS request: %v", err))
 	}
 	resp.Body.Close()
 
-	req, err = http.NewRequest("POST", uploadURL, bytes.NewReader(image))
+	req, _ = http.NewRequest("POST", uploadURL, bytes.NewReader(image))
 	req.Header.Set("x-goog-upload-command", "upload, finalize")
 	req.Header.Set("X-Goog-Upload-Offset", "0")
 	resp, err = client.Do(req)
@@ -369,37 +370,48 @@ func (b *Bard) askAboutImage(inputText string, image []byte, lang string, filena
 		},
 	}
 
-	params := map[string]string{
-		"bl":     "boq_assistant-bard-web-server_20230419.00_p1",
-		"_reqid": strconv.Itoa(b.ReqId),
-		"rt":     "c",
-	}
-
-	inputDataStruct[1] = json.Marshal(inputDataStruct[1])
+	inputDataStruct[1], _ = json.Marshal(inputDataStruct[1])
+	req, _ := json.Marshal(inputDataStruct)
 	data := map[string]interface{}{
-		"f.req": json.Marshal(inputDataStruct),
+		"f.req": req,
 		"at":    b.SNlM0e,
 	}
 
+	params := url.Values{}
+	params.Set("bl", "boq_assistant-bard-web-server_20230419.00_p1")
+	params.Set("_reqid", strconv.Itoa(b.ReqId))
+	params.Set("rt", "c")
+	reqURL := "https://bard.google.com/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate?" + params.Encode()
+
+	dataBytes, _ := json.Marshal(data)
+	reqBody := bytes.NewBuffer(dataBytes)
 	resp, err := b.Session.Post(
-		"https://bard.google.com/u/1/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate",
-		params,
-		data,
+		reqURL,
+		"",
+		reqBody,
 	)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to make POST request: %v", err))
 	}
 
+	defer resp.Body.Close()
+
+	// Read the response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+
 	// Post-processing of response
 	respDict := make([]interface{}, 0)
-	err = json.Unmarshal([]byte(strings.Split(string(resp.Content), "\n")[3]), &respDict)
+	err = json.Unmarshal(respBody, &respDict)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to parse response: %v", err))
 	}
 
 	if len(respDict) == 0 {
 		return map[string]interface{}{
-			"content": fmt.Sprintf("Response Error: %s. \nTemporarily unavailable due to traffic or an error in cookie values. Please double-check the cookie values and verify your network environment.", resp.Content),
+			"content": fmt.Sprintf("Response Error:. \nTemporarily unavailable due to traffic or an error in cookie values. Please double-check the cookie values and verify your network environment."),
 		}
 	}
 
@@ -443,13 +455,6 @@ func (b *Bard) exportConversation(bardAnswer map[string]interface{}, title strin
 	respID := bardAnswer["response_id"].(string)
 	choiceID := bardAnswer["choices"].([]map[string]interface{})[0]["id"].(string)
 
-	params := map[string]string{
-		"rpcids":      "fuVx7",
-		"source-path": "/",
-		"bl":          "boq_assistant-bard-web-server_20230713.13_p0",
-		"rt":          "c",
-	}
-
 	elem, _ := json.Marshal([]interface{}{
 		nil,
 		[]interface{}{
@@ -478,23 +483,43 @@ func (b *Bard) exportConversation(bardAnswer map[string]interface{}, title strin
 		"at":    b.SNlM0e,
 	}
 
+	params := url.Values{}
+	params.Set("bl", "boq_assistant-bard-web-server_20230713.13_p0")
+	params.Set("rpcids", "fuVx7")
+	params.Set("rt", "c")
+	params.Set("source-path", "/")
+	reqURL := "https://bard.google.com/_/BardChatUi/data/batchexecute?" + params.Encode()
+
+	dataBytes, _ := json.Marshal(data)
+	reqBody := bytes.NewBuffer(dataBytes)
 	resp, err := b.Session.Post(
-		"https://bard.google.com/_/BardChatUi/data/batchexecute",
-		params,
-		data,
+		reqURL,
+		"",
+		reqBody,
 	)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to make POST request: %v", err))
 	}
+	defer resp.Body.Close()
 
+	// Read the response body
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return ""
+	}
 	// Post-processing of response
 	respDict := make([]interface{}, 0)
-	err = json.Unmarshal([]byte(strings.Split(string(resp.Content), "\n")[3]), &respDict)
+	err = json.Unmarshal(respBody, &respDict)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to parse response: %v", err))
 	}
 
-	urlID := json.Unmarshal([]byte(respDict[0].([]interface{})[2].(string)))[2]
+	var urlID string
+	err = json.Unmarshal([]byte(respDict[0].([]interface{})[2].(string)), &urlID)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to parse urlID: %v", err))
+	}
+
 	url := fmt.Sprintf("https://g.co/bard/share/%s", urlID)
 
 	// increment request ID
@@ -520,7 +545,7 @@ func (b *Bard) extractLinks(data interface{}) []string {
 func (b *Bard) ExtractCookie() string {
 	// Extract __Secure-1PSID cookie from browsers
 	// ...
-	browsers := []func(string) ([]*http.Cookie, error){
+	browsers := []func(string) ([]selenium.Cookie, error){
 		getCookieFromChrome,
 		getCookieFromFirfox,
 	}
@@ -571,7 +596,7 @@ func (b *Bard) GetSNlM0e() string {
 
 }
 
-func getCookieFromChrome(url string) ([]*http.Cookie, error) {
+func getCookieFromChrome(url string) ([]selenium.Cookie, error) {
 	caps := selenium.Capabilities{"browserName": "chrome"}
 	wd, err := selenium.NewRemote(caps, "")
 	if err != nil {
@@ -589,10 +614,10 @@ func getCookieFromChrome(url string) ([]*http.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cookie
+	return cookie, nil
 }
 
-func getCookieFromFirfox(url, string) ([]*http.Cookie, error) {
+func getCookieFromFirfox(url string) ([]selenium.Cookie, error) {
 	caps := selenium.Capabilities{"browserName": "firefox"}
 	wd, err := selenium.NewRemote(caps, "")
 	if err != nil {
@@ -610,17 +635,5 @@ func getCookieFromFirfox(url, string) ([]*http.Cookie, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cookie
+	return cookie, nil
 }
-
-// func main() {
-// 	bard := &Bard{
-// 		Token: os.Getenv("_BARD_API_KEY"),
-// 	}
-
-// 	bardAnswer := bard.GetAnswer("Hello!")
-
-// 	audio := bard.Speech("Tell me a joke.", "en-US")
-
-// 	cookie := bard.ExtractCookie()
-// }
