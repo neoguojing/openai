@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -15,17 +16,17 @@ import (
 )
 
 type BardCookies struct {
-	CookieDict      map[string]string
-	Timeout         int
-	Proxies         map[string]string
-	Session         *http.Client
-	Language        string
-	RunCode         bool
-	Reqid           int
-	ConversationId  string
-	ResponseId      string
-	ChoiceId        string
-	SNlM0e          string
+	CookieDict     map[string]string
+	Timeout        int
+	Proxies        map[string]string
+	Session        *http.Client
+	Language       string
+	RunCode        bool
+	Reqid          int
+	ConversationId string
+	ResponseId     string
+	ChoiceId       string
+	SNlM0e         string
 }
 
 func NewBardCookies(cookieDict map[string]string, timeout int, proxies map[string]string, session *http.Client, language string, runCode bool) *BardCookies {
@@ -40,11 +41,7 @@ func NewBardCookies(cookieDict map[string]string, timeout int, proxies map[strin
 			{Name: k, Value: v},
 		})
 	}
-	sNlM0e, _ := getSNlM0e(session, timeout, proxies)
-	if language == "" {
-		language = os.Getenv("_BARD_API_LANG")
-	}
-	return &BardCookies{
+	cookie := &BardCookies{
 		CookieDict:     cookieDict,
 		Timeout:        timeout,
 		Proxies:        proxies,
@@ -55,16 +52,21 @@ func NewBardCookies(cookieDict map[string]string, timeout int, proxies map[strin
 		ConversationId: "",
 		ResponseId:     "",
 		ChoiceId:       "",
-		SNlM0e:         sNlM0e,
 	}
+
+	cookie.SNlM0e, _ = cookie.getSNlM0e()
+	if language == "" {
+		language = os.Getenv("_BARD_API_LANG")
+	}
+	return cookie
 }
 
 func (b *BardCookies) GetAnswer(inputText string) (map[string]interface{}, error) {
 	// implementation of GetAnswer function
 	params := map[string]string{
-		"bl":    "boq_assistant-bard-web-server_20230419.00_p1",
+		"bl":     "boq_assistant-bard-web-server_20230419.00_p1",
 		"_reqid": strconv.Itoa(b.Reqid),
-		"rt":    "c",
+		"rt":     "c",
 	}
 
 	// Set language (optional)
@@ -127,24 +129,33 @@ func (b *BardCookies) GetAnswer(inputText string) (map[string]interface{}, error
 	if strings.Contains(parsedAnswer[0][0], "```") {
 		code = strings.Split(parsedAnswer[0][0], "```")[1][6:]
 	}
-
+	var textQuery interface{}
+	if parsedAnswer[2] != nil {
+		textQuery = parsedAnswer[2][0]
+	}
+	choices := []map[string]interface{}{}
+	for _, c := range parsedAnswer[4] {
+		choices = append(choices, map[string]interface{}{
+			"id":      c[0],
+			"content": c[1],
+		})
+	}
 	// Return dictionary object
 	bardAnswer := map[string]interface{}{
 		"content":           parsedAnswer[0][0],
 		"conversation_id":   parsedAnswer[1][0],
 		"response_id":       parsedAnswer[1][1],
 		"factualityQueries": parsedAnswer[3],
-		"textQuery":         parsedAnswer[2][0] if parsedAnswer[2] else "",
-		"choices":           [{"id": x[0], "content": x[1]} for x in parsedAnswer[4]],
+		"textQuery":         textQuery,
+		"choices":           choices,
 		"links":             b.extractLinks(parsedAnswer[4]),
 		"images":            images,
 		"code":              code,
 	}
-	b.ConversationId, b.ResponseId, b.ChoiceId = (
-		bardAnswer["conversation_id"],
-		bardAnswer["response_id"],
-		bardAnswer["choices"][0]["id"],
-	)
+	b.ConversationId, b.ResponseId, b.ChoiceId =
+		bardAnswer["conversation_id"].(string),
+		bardAnswer["response_id"].(string),
+		bardAnswer["choices"][0]["id"].(string)
 	b.Reqid += 100000
 
 	// Execute Code

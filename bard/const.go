@@ -4,7 +4,7 @@ import "strings"
 
 // import "github.com/fatih/color"
 
-var ALLOWED_LANGUAGES = []string{"en", "ko", "ja", "english", "korean", "japanese"}
+var ALLOWED_LANGUAGES = []string{"en", "ko", "ja", "english", "korean", "japanese", "chinese"}
 var DEFAULT_LANGUAGE = "en"
 var SEPARATOR_LINE = strings.Repeat("=", 36)
 var USER_PROMPT = "You: "
