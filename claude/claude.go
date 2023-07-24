@@ -35,7 +35,7 @@ func NewClaudeClient(apiKey string) *ClaudeClient {
 		"Content-Type":      "application/json",
 		"X-Api-Key":         apiKey,
 	})
-	return &ClaudeClient{client: client}
+	return &ClaudeClient{client: client, model: CLAUDE_V2}
 }
 
 func (c *ClaudeClient) Complete(input string) (*CompletionResponse, error) {
