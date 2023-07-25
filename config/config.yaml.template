@@ -1,5 +1,12 @@
 server:
   port: 8080
+baidu:
+  key: 
+  secret:
+bard:
+  token: 
+claude:
+  api_key:
 openai:
   api_key: 
   role: 职业

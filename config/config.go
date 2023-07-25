@@ -43,6 +43,18 @@ type OfficeAccountConfig struct {
 	EncodingAESKey string `yaml:"aeskey"`
 }
 
+type BaiduConfig struct {
+	Key    int `yaml:"key"`
+	Secret int `yaml:"secret"`
+}
+
+type BardConfig struct {
+	Token int `yaml:"token"`
+}
+
+type ClaudeConfig struct {
+	ApiKey string `yaml:"api_key"`
+}
 type Server struct {
 	Port int `yaml:"port"`
 }
