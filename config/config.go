@@ -65,6 +65,9 @@ type Config struct {
 	Telegram      TelegramConfig      `yaml:"telegram"`
 	AISpeech      AISpeechConfig      `yaml:"aispeech"`
 	OfficeAccount OfficeAccountConfig `yaml:"officeaccount"`
+	Baidu         BaiduConfig         `yaml:"baidu"`
+	Bard          BardConfig          `yaml:"bard"`
+	Claude        ClaudeConfig        `yaml:"claude"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {
