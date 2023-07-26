@@ -19,14 +19,15 @@ var (
 )
 
 type Chat struct {
-	apiKey   string
-	url      string
-	model    string
-	role     OpenAIRole
-	audio    *Audio
-	client   *resty.Client
-	recorder *models.Recorder
-	platform models.Platform
+	apiKey    string
+	url       string
+	model     string
+	role      OpenAIRole
+	audio     *Audio
+	client    *resty.Client
+	recorder  *models.Recorder
+	platform  models.Platform
+	completor IChat
 }
 
 type ChatOption func(*Chat)
@@ -47,6 +48,12 @@ func WithProxy(proxyURL string) ChatOption {
 func WithPlatform(p models.Platform) ChatOption {
 	return func(c *Chat) {
 		c.platform = p
+	}
+}
+
+func WithComplete(completor IChat) ChatOption {
+	return func(c *Chat) {
+		c.completor = completor
 	}
 }
 
@@ -162,9 +169,14 @@ func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	return reply, nil
 }
 
+// 默认对话
 func (c *Chat) Complete(content string) (*ChatResponse, error) {
 	if content == "" {
 		return nil, errors.New("empty input")
+	}
+
+	if c.completor != nil {
+		return c.completor.Complete(content)
 	}
 
 	req := ChatRequest{

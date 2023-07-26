@@ -1,5 +1,5 @@
 package openai
 
 type IChat interface {
-	Complete(string) (string, error)
+	Complete(string) (*ChatResponse, error)
 }

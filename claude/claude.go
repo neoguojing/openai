@@ -1,6 +1,8 @@
 package claude
 
 import (
+	"encoding/json"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
 )
@@ -39,19 +41,24 @@ func NewClaudeClient(apiKey string) *ClaudeClient {
 }
 
 func (c *ClaudeClient) Complete(input string) (*CompletionResponse, error) {
-	resp := &CompletionResponse{}
-	_, err := c.client.R().
+	resp, err := c.client.R().
 		SetBody(Request{
 			Model:             c.model,
 			Prompt:            input,
 			MaxTokensToSample: 256,
 		}).
-		SetResult(resp).
 		Post("https://api.anthropic.com/v1/complete")
 
 	if err != nil {
 		log.Error(err.Error())
 		return nil, err
 	}
-	return resp, nil
+
+	var result CompletionResponse
+	err = json.Unmarshal(resp.Body(), &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
