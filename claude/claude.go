@@ -5,24 +5,13 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
+	"github.com/neoguojing/openai"
 )
 
 const (
 	CLAUDE_V2      = "claude-2"
 	CLAUDE_INSTANT = "claude-instant-1"
 )
-
-type CompletionResponse struct {
-	Completion string `json:"completion"`
-	StopReason string `json:"stop_reason"`
-	Model      string `json:"model"`
-}
-
-type Request struct {
-	Model             string `json:"model"`
-	Prompt            string `json:"prompt"`
-	MaxTokensToSample int    `json:"max_tokens_to_sample"`
-}
 
 type ClaudeClient struct {
 	client *resty.Client
@@ -40,9 +29,9 @@ func NewClaudeClient(apiKey string) *ClaudeClient {
 	return &ClaudeClient{client: client, model: CLAUDE_V2}
 }
 
-func (c *ClaudeClient) Complete(input string) (*CompletionResponse, error) {
+func (c *ClaudeClient) Complete(input string) (*openai.ChatResponse, error) {
 	resp, err := c.client.R().
-		SetBody(Request{
+		SetBody(openai.ClaudeRequest{
 			Model:             c.model,
 			Prompt:            input,
 			MaxTokensToSample: 256,
@@ -54,11 +43,11 @@ func (c *ClaudeClient) Complete(input string) (*CompletionResponse, error) {
 		return nil, err
 	}
 
-	var result CompletionResponse
+	var result openai.ClaudeResponse
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
 		return nil, err
 	}
 
-	return &result, nil
+	return openai.ConvertClaudeToOpenai(&result), nil
 }

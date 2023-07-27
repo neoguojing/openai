@@ -9,5 +9,5 @@ func TestBaidu(t *testing.T) {
 		t.Error(err)
 	}
 
-	t.Log(resp.Result)
+	t.Log(resp)
 }

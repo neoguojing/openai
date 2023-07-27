@@ -7,29 +7,10 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
+	"github.com/neoguojing/openai"
 )
 
-// ErnieBotResponse represents the response from ERNIE Bot
-type ErnieBotResponse struct {
-	ID               string                 `json:"id"`
-	Object           string                 `json:"object"`
-	Created          int64                  `json:"created"`
-	Result           string                 `json:"result"`
-	IsTruncated      bool                   `json:"is_truncated"`
-	NeedClearHistory bool                   `json:"need_clear_history"`
-	Usage            map[string]interface{} `json:"usage"`
-}
-
-// UserMessage represents the user message structure for the Baidu API
-type UserMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-// Update Request structure to use UserMessage
-type Request struct {
-	Messages []UserMessage `json:"messages"`
-}
+// BaiduResponse represents the response from ERNIE Bot
 type BaiduClient struct {
 	client      *resty.Client
 	credentials Credentials
@@ -100,13 +81,13 @@ func (bc *BaiduClient) GetAccessToken() string {
 	return result["access_token"].(string)
 }
 
-func (bc *BaiduClient) Complete(text string) (*ErnieBotResponse, error) {
+func (bc *BaiduClient) Complete(text string) (*openai.ChatResponse, error) {
 	resp, err := bc.client.R().
 		SetQueryParams(map[string]string{
 			"access_token": bc.token,
 		}).
-		SetBody(Request{
-			Messages: []UserMessage{
+		SetBody(openai.BaiduRequest{
+			Messages: []openai.UserMessage{
 				{
 					Role:    "user",
 					Content: text,
@@ -120,12 +101,12 @@ func (bc *BaiduClient) Complete(text string) (*ErnieBotResponse, error) {
 		return nil, err
 	}
 
-	var result ErnieBotResponse
+	var result openai.BaiduResponse
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
 		return nil, err
 	}
-	return &result, nil
+	return openai.ConvertBaiduToOpenai(&result), nil
 }
 
 func (bc *BaiduClient) Close() {

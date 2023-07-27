@@ -147,28 +147,34 @@ type ChatResponse struct {
 	// Created is the timestamp for when the response was created.
 	Created int `json:"created"`
 	// Choices is an array of choices for text completion.
-	Choices []struct {
-		// Index is the index of the choice.
-		Index int `json:"index"`
-		// Message is the message object for the choice.
-		Message struct {
-			// Role is the role of the message sender (system, user, or assistant).
-			Role string `json:"role"`
-			// Content is the content of the message.
-			Content string `json:"content"`
-		} `json:"message"`
-		// FinishReason is the reason for finishing the choice.
-		FinishReason string `json:"finish_reason"`
-	} `json:"choices"`
+	Choices []Choice `json:"choices"`
 	// Usage is the usage statistics for the response.
-	Usage struct {
-		// PromptTokens is the number of tokens in the prompt.
-		PromptTokens int `json:"prompt_tokens"`
-		// CompletionTokens is the number of tokens in the completion.
-		CompletionTokens int `json:"completion_tokens"`
-		// TotalTokens is the total number of tokens.
-		TotalTokens int `json:"total_tokens"`
-	} `json:"usage"`
+	Usage Usage `json:"usage"`
+}
+
+type Choice struct {
+	// Index is the index of the choice.
+	Index int `json:"index"`
+	// Message is the message object for the choice.
+	Message Message `json:"message"`
+	// FinishReason is the reason for finishing the choice.
+	FinishReason string `json:"finish_reason"`
+}
+
+type Message struct {
+	// Role is the role of the message sender (system, user, or assistant).
+	Role string `json:"role"`
+	// Content is the content of the message.
+	Content string `json:"content"`
+}
+
+type Usage struct {
+	// PromptTokens is the number of tokens in the prompt.
+	PromptTokens int `json:"prompt_tokens"`
+	// CompletionTokens is the number of tokens in the completion.
+	CompletionTokens int `json:"completion_tokens"`
+	// TotalTokens is the total number of tokens.
+	TotalTokens int `json:"total_tokens"`
 }
 
 // CheckChatResponse checks if the chat response is valid.
@@ -498,4 +504,91 @@ type DialogRequest struct {
 	Instruction string `json:"instruction"`
 	// Input is the input for the dialog.
 	Input string `json:"input"`
+}
+
+type BaiduResponse struct {
+	ID               string     `json:"id"`
+	Object           string     `json:"object"`
+	Created          int64      `json:"created"`
+	Result           string     `json:"result"`
+	IsTruncated      bool       `json:"is_truncated"`
+	NeedClearHistory bool       `json:"need_clear_history"`
+	Usage            BaiduUsage `json:"usage"`
+}
+
+type BaiduUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+// UserMessage represents the user message structure for the Baidu API
+type UserMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+// Update BaiduRequest structure to use UserMessage
+type BaiduRequest struct {
+	Messages []UserMessage `json:"messages"`
+}
+
+type ClaudeResponse struct {
+	Completion string `json:"completion"`
+	StopReason string `json:"stop_reason"`
+	Model      string `json:"model"`
+}
+
+type ClaudeRequest struct {
+	Model             string `json:"model"`
+	Prompt            string `json:"prompt"`
+	MaxTokensToSample int    `json:"max_tokens_to_sample"`
+}
+
+func ConvertClaudeToOpenai(claude *ClaudeResponse) *ChatResponse {
+	// Create a new ChatResponse instance
+	res := ChatResponse{
+		Choices: []Choice{},
+	}
+
+	// Populate the Choices field with a single choice containing the completed prompt
+	res.Choices = append(res.Choices, Choice{
+		Index:        0,
+		Message:      Message{Role: "user", Content: claude.Completion},
+		FinishReason: claude.StopReason,
+	})
+
+	// Populate the Usage field with the length of the prompt and completion
+	res.Usage.PromptTokens = 0
+	res.Usage.CompletionTokens = 0
+
+	// Calculate the total number of tokens (prompt + completion)
+	res.Usage.TotalTokens = res.Usage.PromptTokens + res.Usage.CompletionTokens
+
+	return &res
+}
+
+func ConvertBaiduToOpenai(baidu *BaiduResponse) *ChatResponse {
+	// Create a new ChatResponse instance
+	res := ChatResponse{
+		ID:      baidu.ID,
+		Object:  baidu.Object,
+		Created: int(baidu.Created),
+		Choices: []Choice{},
+	}
+
+	// Populate the Choices field with a single choice containing the completed prompt
+	res.Choices = append(res.Choices, Choice{
+		Index:   0,
+		Message: Message{Role: "user", Content: baidu.Result},
+	})
+
+	// Populate the Usage field with the length of the prompt and completion
+	res.Usage.PromptTokens = baidu.Usage.PromptTokens
+	res.Usage.CompletionTokens = baidu.Usage.CompletionTokens
+
+	// Calculate the total number of tokens (prompt + completion)
+	res.Usage.TotalTokens = baidu.Usage.TotalTokens
+
+	return &res
 }
