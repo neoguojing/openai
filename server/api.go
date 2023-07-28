@@ -40,9 +40,9 @@ func GenerateGinRouter(apiKey string) *gin.Engine {
 	api = openai.NewOpenAI(apiKey)
 	proxy := config.GetConfig().OpenAI.Proxy
 	if proxy != "" {
-		chat = api.Chat(openai.WithPlatform(models.HttpServer), openai.WithProxy(proxy))
+		chat = api.Chat(openai.WithPlatform(models.HttpServer), openai.WithComplete(openai.Baidu), openai.WithProxy(proxy))
 	} else {
-		chat = api.Chat(openai.WithPlatform(models.HttpServer))
+		chat = api.Chat(openai.WithPlatform(models.HttpServer), openai.WithComplete(openai.Baidu))
 	}
 
 	openaiGroup := router.Group("/openai/api/v1")
