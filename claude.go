@@ -1,11 +1,10 @@
-package claude
+package openai
 
 import (
 	"encoding/json"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
-	"github.com/neoguojing/openai"
 )
 
 const (
@@ -29,9 +28,9 @@ func NewClaudeClient(apiKey string) *ClaudeClient {
 	return &ClaudeClient{client: client, model: CLAUDE_V2}
 }
 
-func (c *ClaudeClient) Complete(input string) (*openai.ChatResponse, error) {
+func (c *ClaudeClient) Complete(input string) (*ChatResponse, error) {
 	resp, err := c.client.R().
-		SetBody(openai.ClaudeRequest{
+		SetBody(ClaudeRequest{
 			Model:             c.model,
 			Prompt:            input,
 			MaxTokensToSample: 256,
@@ -43,11 +42,11 @@ func (c *ClaudeClient) Complete(input string) (*openai.ChatResponse, error) {
 		return nil, err
 	}
 
-	var result openai.ClaudeResponse
+	var result ClaudeResponse
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
 		return nil, err
 	}
 
-	return openai.ConvertClaudeToOpenai(&result), nil
+	return ConvertClaudeToOpenai(&result), nil
 }

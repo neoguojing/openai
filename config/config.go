@@ -44,12 +44,12 @@ type OfficeAccountConfig struct {
 }
 
 type BaiduConfig struct {
-	Key    int `yaml:"key"`
-	Secret int `yaml:"secret"`
+	Key    string `yaml:"key"`
+	Secret string `yaml:"secret"`
 }
 
 type BardConfig struct {
-	Token int `yaml:"token"`
+	Token string `yaml:"token"`
 }
 
 type ClaudeConfig struct {

@@ -1,4 +1,4 @@
-package baidu
+package openai
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/log"
-	"github.com/neoguojing/openai"
 )
 
 // BaiduResponse represents the response from ERNIE Bot
@@ -81,13 +80,13 @@ func (bc *BaiduClient) GetAccessToken() string {
 	return result["access_token"].(string)
 }
 
-func (bc *BaiduClient) Complete(text string) (*openai.ChatResponse, error) {
+func (bc *BaiduClient) Complete(text string) (*ChatResponse, error) {
 	resp, err := bc.client.R().
 		SetQueryParams(map[string]string{
 			"access_token": bc.token,
 		}).
-		SetBody(openai.BaiduRequest{
-			Messages: []openai.UserMessage{
+		SetBody(BaiduRequest{
+			Messages: []UserMessage{
 				{
 					Role:    "user",
 					Content: text,
@@ -101,12 +100,12 @@ func (bc *BaiduClient) Complete(text string) (*openai.ChatResponse, error) {
 		return nil, err
 	}
 
-	var result openai.BaiduResponse
+	var result BaiduResponse
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
 		return nil, err
 	}
-	return openai.ConvertBaiduToOpenai(&result), nil
+	return ConvertBaiduToOpenai(&result), nil
 }
 
 func (bc *BaiduClient) Close() {
