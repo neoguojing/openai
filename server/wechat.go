@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
 	"strconv"
 	"sync"
 	"time"
@@ -68,20 +67,17 @@ func officeAccountHandler(c *gin.Context) {
 	// 传入request和responseWriter
 	officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
 	// 设置接收消息的处理方法
-	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) []message.Reply {
-		replys := []message.Reply{}
+	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
+		reply := message.Reply{}
 		msgId := strconv.FormatInt(msg.MsgID, 10)
 		log.Infof("-------------receive msg:%v,%s", msgId, msg.Content)
-		if officialAccount.GetContext().Cache.IsExist(msgId) {
-			msgs := officialAccount.GetContext().Cache.Get(msgId)
-			log.Infof("-------------msg exist:%v，%v", msgId, msgs)
+		if officialAccount.GetContext().Cache.IsExist(msg.Content) {
+			msgs := officialAccount.GetContext().Cache.Get(msg.Content)
 			if msgs != nil {
-				replys := msgs.([]message.Reply)
-				log.Infof("-------------msg send:%v,%v", msgId, replys)
-				return replys
+				reply = msgs.(message.Reply)
+				log.Infof("-------------msg cached:%v，%v", msgId, msgs)
 			}
 		} else {
-			officialAccount.GetContext().Cache.Set(msgId, nil, time.Second*30)
 
 			var aiText string
 			var err error
@@ -89,8 +85,9 @@ func officeAccountHandler(c *gin.Context) {
 				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 				if err != nil {
 					log.Error(err.Error())
-					return []message.Reply{{MsgType: message.MsgTypeText, MsgData: "ops"}}
+					return &message.Reply{MsgType: message.MsgTypeText, MsgData: "ops"}
 				}
+				log.Infof("-------------chat.Dialogue:%v", aiText)
 			} else if msg.MsgType == message.MsgTypeVoice {
 
 			} else {
@@ -100,31 +97,22 @@ func officeAccountHandler(c *gin.Context) {
 			// 计算消息内容的长度
 			messageLength := len(aiText)
 
-			// 计算消息需要分成多少段
-			segmentCount := int(math.Ceil(float64(messageLength) / 2048.0))
-			replys := []message.Reply{}
-			// 分段发送消息
-			for i := 0; i < segmentCount; i++ {
-				// 计算当前段的起始位置和长度
-				start := i * 2048
+			if messageLength > 2048 {
+				start := 0
 				length := 2048
-				if start+length > messageLength {
-					length = messageLength - start
-				}
-
-				// 截取当前段的消息内容
 				segment := aiText[start : start+length]
 				text := message.NewText(segment)
-				reply := message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-				replys = append(replys, reply)
-
+				reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+			} else {
+				text := message.NewText(aiText)
+				reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
 			}
 
-			officialAccount.GetContext().Cache.Set(msgId, replys, time.Second*30)
-			log.Infof("-------------msg reply prepare finished:%v,%v", msgId, replys)
+			officialAccount.GetContext().Cache.Set(msg.Content, reply, time.Minute*10)
+			log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
 		}
 
-		return replys
+		return &reply
 	})
 
 	// 处理消息接收以及回复
