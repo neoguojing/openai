@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"strconv"
 	"sync"
 	"time"
@@ -82,11 +83,31 @@ func officeAccountHandler(c *gin.Context) {
 			var aiText string
 			var err error
 			if msg.MsgType == message.MsgTypeText {
-				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+				defer cancel()
+
+				done := make(chan bool)
+				go func() {
+					aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+					done <- true
+
+				}()
+
+				select {
+				case <-done:
+				case <-ctx.Done():
+					if ctx.Err() == context.DeadlineExceeded {
+						// 上下文对象已超时，返回固定内容
+						text := message.NewText("内容生成中，请重试~")
+						return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+					}
+				}
+
 				if err != nil {
 					log.Error(err.Error())
 					return &message.Reply{MsgType: message.MsgTypeText, MsgData: "ops"}
 				}
+
 				log.Infof("-------------chat.Dialogue:%v", aiText)
 			} else if msg.MsgType == message.MsgTypeVoice {
 
