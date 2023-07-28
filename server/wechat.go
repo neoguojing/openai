@@ -89,6 +89,22 @@ func officeAccountHandler(c *gin.Context) {
 				done := make(chan bool)
 				go func() {
 					aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+					// 计算消息内容的长度
+					messageLength := len(aiText)
+
+					if messageLength > 2048 {
+						start := 0
+						length := 2048
+						segment := aiText[start : start+length]
+						text := message.NewText(segment)
+						reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+					} else {
+						text := message.NewText(aiText)
+						reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+					}
+
+					officialAccount.GetContext().Cache.Set(msg.Content, reply, time.Minute*10)
+					log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
 					done <- true
 
 				}()
@@ -115,22 +131,6 @@ func officeAccountHandler(c *gin.Context) {
 
 			}
 
-			// 计算消息内容的长度
-			messageLength := len(aiText)
-
-			if messageLength > 2048 {
-				start := 0
-				length := 2048
-				segment := aiText[start : start+length]
-				text := message.NewText(segment)
-				reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-			} else {
-				text := message.NewText(aiText)
-				reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-			}
-
-			officialAccount.GetContext().Cache.Set(msg.Content, reply, time.Minute*10)
-			log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
 		}
 
 		return &reply
