@@ -8,9 +8,9 @@ import (
 )
 
 type CacheItem struct {
-	Key    string
-	Value  interface{}
-	expiry time.Time
+	Key       string
+	Value     interface{}
+	expiry    time.Time
 	frequency int
 }
 
@@ -20,14 +20,16 @@ type LRUCache struct {
 	Queue    *list.List
 	Lock     sync.Mutex
 	stopChan chan bool
+	callback LRUCallback
 }
 
-func NewLRUCache(capacity int) *LRUCache {
+func NewLRUCache(capacity int, callback LRUCallback) *LRUCache {
 	cache := &LRUCache{
 		Capacity: capacity,
 		Items:    make(map[string]*list.Element),
 		Queue:    list.New(),
 		stopChan: make(chan bool),
+		callback: callback,
 	}
 	go cache.ExpiryKeyScanner()
 	return cache
@@ -86,6 +88,8 @@ func (c *LRUCache) Delete(key string) error {
 	return errors.New("Key not found")
 }
 
+type LRUCallback func(key string, value interface{}, freq int)
+
 func (c *LRUCache) ExpiryKeyScanner() {
 	for {
 		select {
@@ -99,8 +103,12 @@ func (c *LRUCache) ExpiryKeyScanner() {
 					continue
 				}
 
-				if item.Value.(*CacheItem).expiry.After(time.Now()) {
+				if item.Value.(*CacheItem).expiry.Before(time.Now()) {
+					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
 					c.Delete(key)
+				} else if item.Value.(*CacheItem).frequency > 0 {
+					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					item.Value.(*CacheItem).frequency = 0
 				}
 
 			}
@@ -113,4 +121,3 @@ func (c *LRUCache) ExpiryKeyScanner() {
 func (c *LRUCache) StopExpiryKeyScanner() {
 	c.stopChan <- true
 }
-

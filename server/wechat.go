@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/neoguojing/log"
@@ -11,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
-	"github.com/neoguojing/openai/utils"
 	"github.com/neoguojing/wechat/v2"
 	"github.com/neoguojing/wechat/v2/aispeech"
 	speechConfig "github.com/neoguojing/wechat/v2/aispeech/config"
@@ -25,7 +23,6 @@ var (
 	aiSpeechServer        *aispeech.CustomerService
 	wc                    *wechat.Wechat
 	officialAccount       *officialaccount.OfficialAccount
-	once                  sync.Once
 	officialAccountServer *server.Server
 )
 
@@ -37,14 +34,13 @@ func aiBot(in string) string {
 func init() {
 	config := config.GetConfig()
 	wc = wechat.NewWechat()
-	memory := utils.NewLRUCache(100)
 
 	cfg := &speechConfig.Config{
 		AppID:          config.AISpeech.AppID,
 		Token:          config.AISpeech.Token,
 		EncodingAESKey: config.AISpeech.EncodingAESKey,
-		Cache:          memory,
-		AiBot:          aiBot,
+
+		AiBot: aiBot,
 	}
 	aiSpeechServer = wc.GetAiSpeech(cfg)
 
@@ -53,7 +49,6 @@ func init() {
 		AppSecret:      config.OfficeAccount.AppSecret,
 		Token:          config.OfficeAccount.Token,
 		EncodingAESKey: config.OfficeAccount.EncodingAESKey,
-		Cache:          memory,
 	}
 	officialAccount = wc.GetOfficialAccount(officeCfg)
 
@@ -72,64 +67,53 @@ func officeAccountHandler(c *gin.Context) {
 		reply := message.Reply{}
 		msgId := strconv.FormatInt(msg.MsgID, 10)
 		log.Infof("-------------receive msg:%v,%s", msgId, msg.Content)
-		if officialAccount.GetContext().Cache.IsExist(msg.Content) {
-			msgs := officialAccount.GetContext().Cache.Get(msg.Content)
-			if msgs != nil {
-				reply = msgs.(message.Reply)
-				log.Infof("-------------msg cached:%v，%v", msgId, msgs)
+		var aiText string
+		var err error
+		if msg.MsgType == message.MsgTypeText {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+			defer cancel()
+
+			done := make(chan bool)
+			go func() {
+				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
+				// 计算消息内容的长度
+				messageLength := len(aiText)
+
+				if messageLength > 2048 {
+					start := 0
+					length := 2048
+					segment := aiText[start : start+length]
+					text := message.NewText(segment)
+					reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+				} else {
+					text := message.NewText(aiText)
+					reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+				}
+
+				log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
+				done <- true
+
+			}()
+
+			select {
+			case <-done:
+			case <-ctx.Done():
+				if ctx.Err() == context.DeadlineExceeded {
+					// 上下文对象已超时，返回固定内容
+					text := message.NewText("内容生成中，请重试~")
+					return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+				}
 			}
+
+			if err != nil {
+				log.Error(err.Error())
+				return &message.Reply{MsgType: message.MsgTypeText, MsgData: "ops"}
+			}
+
+			log.Infof("-------------chat.Dialogue:%v", aiText)
+		} else if msg.MsgType == message.MsgTypeVoice {
+
 		} else {
-
-			var aiText string
-			var err error
-			if msg.MsgType == message.MsgTypeText {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-				defer cancel()
-
-				done := make(chan bool)
-				go func() {
-					aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
-					// 计算消息内容的长度
-					messageLength := len(aiText)
-
-					if messageLength > 2048 {
-						start := 0
-						length := 2048
-						segment := aiText[start : start+length]
-						text := message.NewText(segment)
-						reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-					} else {
-						text := message.NewText(aiText)
-						reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-					}
-
-					officialAccount.GetContext().Cache.Set(msg.Content, reply, 0)
-					log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
-					done <- true
-
-				}()
-
-				select {
-				case <-done:
-				case <-ctx.Done():
-					if ctx.Err() == context.DeadlineExceeded {
-						// 上下文对象已超时，返回固定内容
-						text := message.NewText("内容生成中，请重试~")
-						return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
-					}
-				}
-
-				if err != nil {
-					log.Error(err.Error())
-					return &message.Reply{MsgType: message.MsgTypeText, MsgData: "ops"}
-				}
-
-				log.Infof("-------------chat.Dialogue:%v", aiText)
-			} else if msg.MsgType == message.MsgTypeVoice {
-
-			} else {
-
-			}
 
 		}
 

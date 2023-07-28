@@ -85,6 +85,7 @@ func main() {
 	logger.Info(fmt.Sprintf("groups: %v, err: %v", groups, err))
 
 	bot.MessageHandler = MessageHandler
+	defer models.GetRecorder().Exit()
 
 	// 阻塞主goroutine, 直到发生异常或者用户主动退出
 	bot.Block()

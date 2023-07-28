@@ -280,6 +280,8 @@ func (b *Bot) Destroy() {
 	if b.jieba != nil {
 		b.jieba.Free()
 	}
+
+	models.GetRecorder().Exit()
 }
 
 // Download file from url use resty

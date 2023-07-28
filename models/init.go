@@ -19,13 +19,25 @@ func init() {
 	log.Infof("telegram db path：%s", tgDBPath)
 }
 
+type Operation string
+
+const (
+	Create Operation = "create"
+	Update Operation = "update"
+)
+
+type Element struct {
+	Operation  Operation
+	ChatRecord *ChatRecord
+}
+
 type Recorder struct {
-	syncer chan ChatRecord
+	syncer chan Element
 }
 
 func NewRecorder() *Recorder {
 	r := &Recorder{
-		syncer: make(chan ChatRecord, 100),
+		syncer: make(chan Element, 100),
 	}
 	go r.loop()
 	return r
@@ -34,21 +46,33 @@ func NewRecorder() *Recorder {
 func (r *Recorder) loop() {
 	for {
 		select {
-		case record := <-r.syncer:
-			err := record.CreateChatRecord()
-			if err != nil {
-				log.Error(err.Error())
+		case elem, ok := <-r.syncer:
+			if !ok {
+				return
+			}
+			switch elem.Operation {
+			case Create:
+				err := elem.ChatRecord.CreateChatRecord()
+				if err != nil {
+					log.Error(err.Error())
+				}
+			case Update:
+				err := elem.ChatRecord.UpdateFrequency(elem.ChatRecord.Request, elem.ChatRecord.Frequency)
+				if err != nil {
+					log.Error(err.Error())
+				}
 			}
 		}
 	}
+
 }
 
 func (r *Recorder) Exit() {
 	close(r.syncer)
 }
 
-func (r *Recorder) Send(record ChatRecord) {
-	r.syncer <- record
+func (r *Recorder) Send(elem Element) {
+	r.syncer <- elem
 }
 
 func GetRecorder() *Recorder {

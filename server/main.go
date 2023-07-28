@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cmd "github.com/neoguojing/commander"
 	"github.com/neoguojing/openai/config"
+	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/openai/role"
 )
 
@@ -47,7 +48,7 @@ func (s *Server) Stop() {
 	if err := s.serv.Shutdown(ctx); err != nil {
 		logger.Fatal(err.Error())
 	}
-
+	models.GetRecorder().Exit()
 	gormboot.DefaultDB.Close()
 }
 

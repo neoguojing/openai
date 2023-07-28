@@ -12,6 +12,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
+	"github.com/neoguojing/openai/utils"
 )
 
 var (
@@ -28,6 +29,7 @@ type Chat struct {
 	recorder  *models.Recorder
 	platform  models.Platform
 	completor IChat
+	cache     *utils.LRUCache
 }
 
 type ChatOption func(*Chat)
@@ -58,6 +60,10 @@ func WithComplete(chatType ChatType) ChatOption {
 	}
 }
 
+func lruCallBack(key string, value interface{}, freq int) {
+
+}
+
 func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 	c := &Chat{
 		url:      "https://api.openai.com/v1/chat/completions",
@@ -67,12 +73,29 @@ func (o *OpenAI) Chat(opts ...ChatOption) *Chat {
 		client:   resty.New(),
 		audio:    o.Audio(),
 		recorder: models.GetRecorder(),
+		cache:    utils.NewLRUCache(500, lruCallBack),
 	}
 
 	for _, opt := range opts {
 		opt(c)
 	}
+	c.init()
 	return c
+}
+
+func (c *Chat) init() {
+	// load cache
+	record := models.ChatRecord{}
+	records, err := record.GetChatRecordsByFrequency(0, 500)
+	if err != nil {
+		log.Error("Chat:init:%v", err.Error())
+	} else {
+		for i := len(records) - 1; i >= 0; i-- {
+			c.cache.Set(records[i].Request, records[i].Reply, 0)
+		}
+
+	}
+
 }
 
 func (c *Chat) Prepare(roleName string) *Chat {
@@ -148,6 +171,11 @@ func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 	} else if media == models.File {
 	}
 
+	if value := c.cache.Get(input); value != nil {
+		reply := value.(string)
+		return reply, nil
+	}
+
 	resp, err := c.Complete(input)
 	if err != nil {
 		log.Error(err.Error())
@@ -159,13 +187,20 @@ func (c *Chat) Dialogue(media models.MediaType, text string, filePath string,
 		return "", err
 	}
 
+	c.cache.Set(input, reply, 0)
+
 	record := models.ChatRecord{
 		Request:   input,
 		Reply:     reply,
 		MediaType: media,
 		FilePath:  dstFilePath,
+		Frequency: 1,
 	}
-	c.recorder.Send(record)
+	elem := models.Element{
+		Operation:  models.Create,
+		ChatRecord: &record,
+	}
+	c.recorder.Send(elem)
 
 	return reply, nil
 }
@@ -206,6 +241,7 @@ func (c *Chat) Complete(content string) (*ChatResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &chatResponse, nil
 }
 
@@ -269,6 +305,11 @@ func (c *Chat) Recorder(media models.MediaType, text string, filePath string,
 		return errors.New("not support type")
 	}
 	record.FilePath = dstFilePath
-	c.recorder.Send(record)
+
+	elem := models.Element{
+		Operation:  models.Create,
+		ChatRecord: &record,
+	}
+	c.recorder.Send(elem)
 	return nil
 }
