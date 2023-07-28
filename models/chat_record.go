@@ -41,14 +41,22 @@ type ChatRecord struct {
 	MediaType MediaType
 	FilePath  string
 	Platform  Platform
+	Frequency int
 }
 
 func (o *ChatRecord) CreateChatRecord() error {
 
-	if err := db.Create(o).Error; err != nil {
+	if err := db.First(o, o.Request).Error; err == nil {
+		o.Frequency += 1
+		if err := db.Save(o).Error; err != nil {
+			log.Error(err.Error())
+			return err
+		}
+	} else if err := db.Create(o).Error; err != nil {
 		log.Error(err.Error())
 		return err
 	}
+
 	return nil
 }
 
@@ -85,6 +93,29 @@ func (o *ChatRecord) DeleteChatRecord(id uint) error {
 		return err
 	}
 	if err := db.Delete(chatRecord).Error; err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+func (o *ChatRecord) GetChatRecordsByFrequency(offset int, limit int) ([]*ChatRecord, error) {
+	chatRecords := []*ChatRecord{}
+	if err := db.Order("frequency desc").Offset(offset).Limit(limit).Find(&chatRecords).Error; err != nil {
+		log.Error(err.Error())
+		return nil, err
+	}
+	return chatRecords, nil
+}
+
+func (o *ChatRecord) UpdateFrequency(request string, frequency int) error {
+	chatRecord := &ChatRecord{}
+	if err := db.First(chatRecord, request).Error; err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	chatRecord.Frequency += frequency
+	if err := db.Save(chatRecord).Error; err != nil {
 		log.Error(err.Error())
 		return err
 	}

@@ -11,10 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
+	"github.com/neoguojing/openai/utils"
 	"github.com/neoguojing/wechat/v2"
 	"github.com/neoguojing/wechat/v2/aispeech"
 	speechConfig "github.com/neoguojing/wechat/v2/aispeech/config"
-	"github.com/neoguojing/wechat/v2/cache"
 	"github.com/neoguojing/wechat/v2/officialaccount"
 	offConfig "github.com/neoguojing/wechat/v2/officialaccount/config"
 	"github.com/neoguojing/wechat/v2/officialaccount/message"
@@ -37,7 +37,7 @@ func aiBot(in string) string {
 func init() {
 	config := config.GetConfig()
 	wc = wechat.NewWechat()
-	memory := cache.NewMemory()
+	memory := utils.NewLRUCache(100)
 
 	cfg := &speechConfig.Config{
 		AppID:          config.AISpeech.AppID,
@@ -103,7 +103,7 @@ func officeAccountHandler(c *gin.Context) {
 						reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
 					}
 
-					officialAccount.GetContext().Cache.Set(msg.Content, reply, time.Minute*10)
+					officialAccount.GetContext().Cache.Set(msg.Content, reply, 0)
 					log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
 					done <- true
 
