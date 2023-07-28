@@ -51,7 +51,8 @@ func WithPlatform(p models.Platform) ChatOption {
 	}
 }
 
-func WithComplete(completor IChat) ChatOption {
+func WithComplete(chatType ChatType) ChatOption {
+	completor := GlobalChatFactory.GetChat(chatType)
 	return func(c *Chat) {
 		c.completor = completor
 	}

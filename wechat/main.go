@@ -33,7 +33,7 @@ func main() {
 		return
 	}
 	gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
-	chat = gpt.Chat(openai.WithPlatform(models.Wechat))
+	chat = gpt.Chat(openai.WithPlatform(models.Wechat), openai.WithComplete(openai.Baidu))
 	if config.OpenAI.Role != "" {
 		chat.Prepare(config.OpenAI.Role)
 	}

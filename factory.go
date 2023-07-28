@@ -16,6 +16,12 @@ func NewChatFactory() *ChatFactory {
 	}
 }
 
+var GlobalChatFactory *ChatFactory
+
+func init() {
+	GlobalChatFactory = NewChatFactory()
+}
+
 type ChatType string
 
 const (
@@ -40,5 +46,3 @@ func (f *ChatFactory) GetChat(chatType ChatType) IChat {
 	}
 	return nil
 }
-
-
