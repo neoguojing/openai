@@ -94,19 +94,27 @@ func (c *LRUCache) ExpiryKeyScanner() {
 	for {
 		select {
 		case <-c.stopChan:
+			c.Lock.Lock()
+			for key, item := range c.Items {
+				if item.Value.(*CacheItem).frequency > 0 {
+					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					item.Value.(*CacheItem).frequency = 0
+				}
+
+			}
+
+			c.Lock.Unlock()
 			return
 		default:
 			time.Sleep(1 * time.Minute)
 			c.Lock.Lock()
 			for key, item := range c.Items {
-				if item.Value.(*CacheItem).expiry.IsZero() {
-					continue
-				}
-
-				if item.Value.(*CacheItem).expiry.Before(time.Now()) {
+				if !item.Value.(*CacheItem).expiry.IsZero() && item.Value.(*CacheItem).expiry.Before(time.Now()) {
 					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
 					c.Delete(key)
-				} else if item.Value.(*CacheItem).frequency > 0 {
+				}
+
+				if item.Value.(*CacheItem).frequency > 0 {
 					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
 					item.Value.(*CacheItem).frequency = 0
 				}

@@ -49,7 +49,9 @@ func (s *Server) Stop() {
 		logger.Fatal(err.Error())
 	}
 	models.GetRecorder().Exit()
+	chat.Destry()
 	gormboot.DefaultDB.Close()
+
 }
 
 func init() {

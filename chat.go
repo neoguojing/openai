@@ -314,3 +314,7 @@ func (c *Chat) Recorder(media models.MediaType, text string, filePath string,
 	c.recorder.Send(elem)
 	return nil
 }
+
+func (c *Chat) Destry() {
+	c.cache.StopExpiryKeyScanner()
+}
