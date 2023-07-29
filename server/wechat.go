@@ -65,6 +65,7 @@ func officeAccountHandler(c *gin.Context) {
 	log.Info(c.Request.Host)
 	// 传入request和responseWriter
 	officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
+	openId := officialAccountServer.GetOpenID()
 	// 设置接收消息的处理方法
 	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
 		reply := message.Reply{}
@@ -78,7 +79,7 @@ func officeAccountHandler(c *gin.Context) {
 
 			done := make(chan bool)
 			go func() {
-				defer globalSession.OfficeaccountHandler(c.Writer,c.Request)
+				defer globalSession.OfficeaccountHandler(c.Writer,c.Request,openId)
 				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 				// 计算消息内容的长度
 				messageLength := len(aiText)

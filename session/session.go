@@ -22,10 +22,10 @@ func NewSession(db *gorm.DB,secret string)*Session{
 	}
 }
 
-func (s *Session)OfficeaccountHandler(w http.ResponseWriter, r *http.Request) {
+func (s *Session)OfficeaccountHandler(w http.ResponseWriter, r *http.Request,openid string) {
 	// Get a session. We're ignoring the error resulted from decoding an
 	// existing session: Get() always returns a session, even if empty.
-	session, _ := s.sessionStore.Get(r, SESSION_OFFICE_ACCOUNT)
+	session, _ := s.sessionStore.Get(r, openid)
 	// Set some session values.
 	if  session.Values["count"] == nil {
 		session.Values["count"] = 1
