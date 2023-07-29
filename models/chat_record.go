@@ -46,7 +46,7 @@ type ChatRecord struct {
 
 func (o *ChatRecord) CreateChatRecord() error {
 
-	if err := db.First(o, o.Request).Error; err == nil {
+	if err := db.Where("request = ?", o.Request).First(o).Error; err == nil {
 		o.Frequency += 1
 		if err := db.Save(o).Error; err != nil {
 			log.Error(err.Error())
@@ -72,7 +72,7 @@ func (o *ChatRecord) GetChatRecord(id uint) (*ChatRecord, error) {
 func (o *ChatRecord) UpdateChatRecord(request string, reply string,
 	mediaType MediaType) error {
 	chatRecord := &ChatRecord{}
-	if err := db.First(chatRecord, request).Error; err != nil {
+	if err := db.Where("request = ?", request).First(chatRecord).Error; err != nil {
 		log.Error(err.Error())
 		return err
 	}
@@ -110,7 +110,7 @@ func (o *ChatRecord) GetChatRecordsByFrequency(offset int, limit int) ([]*ChatRe
 
 func (o *ChatRecord) UpdateFrequency(request string, frequency int) error {
 	chatRecord := &ChatRecord{}
-	if err := db.First(chatRecord, request).Error; err != nil {
+	if err := db.Where("request = ?", request).First(chatRecord).Error; err != nil {
 		log.Error(err.Error())
 		return err
 	}
