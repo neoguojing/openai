@@ -27,8 +27,13 @@ func (s *Session)OfficeaccountHandler(w http.ResponseWriter, r *http.Request) {
 	// existing session: Get() always returns a session, even if empty.
 	session, _ := s.sessionStore.Get(r, SESSION_OFFICE_ACCOUNT)
 	// Set some session values.
-	count := session.Values["count"].(int)
-	session.Values["count"] = count+1
+	if  session.Values["count"] == nil {
+		session.Values["count"] = 1
+	} else {
+		count := session.Values["count"].(int)
+		session.Values["count"] = count+1
+	}
+	
 	log.Infof("OfficeaccountHandler session:%v",session)
 	// Save it before we write to the response/return from the handler.
 	err := s.sessionStore.Save(r, w,session)
