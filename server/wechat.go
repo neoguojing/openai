@@ -78,6 +78,7 @@ func officeAccountHandler(c *gin.Context) {
 
 			done := make(chan bool)
 			go func() {
+				defer globalSession.OfficeaccountHandler(c.Writer,c.Request)
 				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 				// 计算消息内容的长度
 				messageLength := len(aiText)

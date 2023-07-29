@@ -57,6 +57,7 @@ type ClaudeConfig struct {
 }
 type Server struct {
 	Port int `yaml:"port"`
+	Secret string `yaml:"secret"`
 }
 
 type Config struct {

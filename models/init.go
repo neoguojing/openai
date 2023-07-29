@@ -78,3 +78,7 @@ func (r *Recorder) Send(elem Element) {
 func GetRecorder() *Recorder {
 	return recoder
 }
+
+func GetDB() *gorm.DB {
+	return db
+}
