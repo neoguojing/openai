@@ -12,8 +12,8 @@ import (
 	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/wechat/v2"
 	"github.com/neoguojing/wechat/v2/aispeech"
-	"github.com/neoguojing/wechat/v2/cache"
 	speechConfig "github.com/neoguojing/wechat/v2/aispeech/config"
+	"github.com/neoguojing/wechat/v2/cache"
 	"github.com/neoguojing/wechat/v2/officialaccount"
 	offConfig "github.com/neoguojing/wechat/v2/officialaccount/config"
 	"github.com/neoguojing/wechat/v2/officialaccount/message"
@@ -65,7 +65,7 @@ func officeAccountHandler(c *gin.Context) {
 	log.Info(c.Request.Host)
 	// 传入request和responseWriter
 	officialAccountServer = officialAccount.GetServer(c.Request, c.Writer)
-	openId := officialAccountServer.GetOpenID()
+	openId := officialAccountServer.Query("openid")
 	// 设置接收消息的处理方法
 	officialAccountServer.SetMessageHandler(func(msg *message.MixMessage) *message.Reply {
 		reply := message.Reply{}
@@ -79,7 +79,7 @@ func officeAccountHandler(c *gin.Context) {
 
 			done := make(chan bool)
 			go func() {
-				defer globalSession.OfficeaccountHandler(c.Writer,c.Request,openId)
+				defer globalSession.OfficeaccountHandler(c.Writer, c.Request, openId)
 				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
 				// 计算消息内容的长度
 				messageLength := len(aiText)
