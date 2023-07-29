@@ -139,7 +139,7 @@ func (b *Bard) GetAnswer(inputText string) (map[string]interface{}, error) {
 
 	if len(respDict) == 0 {
 		return map[string]interface{}{
-			"content": fmt.Sprintf("Response Error: %s. \nTemporarily unavailable due to traffic or an error in cookie values. Please double-check the cookie values and verify your network environment."),
+			"content": fmt.Sprintf("Response Error: \nTemporarily unavailable due to traffic or an error in cookie values. Please double-check the cookie values and verify your network environment."),
 		}, nil
 	}
 
@@ -577,7 +577,7 @@ func (b *Bard) GetSNlM0e() string {
 	if err != nil {
 		panic(fmt.Sprintf("Response code not 200. Response Status is %d", resp.StatusCode))
 	}
-
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		panic(fmt.Sprintf("Response code not 200. Response Status is %d", resp.StatusCode))
 	}
@@ -586,7 +586,7 @@ func (b *Bard) GetSNlM0e() string {
 	if err != nil {
 		panic("Failed to read response body")
 	}
-
+	fmt.Println(string(body))
 	snlM0e := regexp.MustCompile(`SNlM0e":"(.*?)"`).FindStringSubmatch(string(body))
 	if len(snlM0e) == 0 {
 		panic("SNlM0e value not found. Double-check __Secure-1PSID value or pass it as token='xxxxx'.")

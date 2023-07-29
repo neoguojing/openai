@@ -61,7 +61,7 @@ func (c *LRUCache) Set(key string, value interface{}, timeout time.Duration) err
 	if timeout != 0 {
 		expiry = time.Now().Add(timeout)
 	}
-	item := &CacheItem{Key: key, Value: value, expiry: expiry, frequency: 1}
+	item := &CacheItem{Key: key, Value: value, expiry: expiry, frequency: 0}
 	entry := c.Queue.PushFront(item)
 	c.Items[key] = entry
 

@@ -1,13 +1,11 @@
 package bard
 
 import (
-	"os"
 	"testing"
 )
 
 func TestBard(t *testing.T) {
-
-	token := os.Getenv("_BARD_API_KEY")
+	token := "ZAgNd-O-K-y8Qt4qcvDCNV1hH-qn7xGpDt8Pji_T6-psf39C73zCqCUTuOn3TvTay6pWfg."
 	bard := NewBard(token, 30, nil, nil, "", "en", false, "")
 
 	bardAnswer, err := bard.GetAnswer("Hello!")
