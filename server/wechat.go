@@ -12,6 +12,7 @@ import (
 	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/wechat/v2"
 	"github.com/neoguojing/wechat/v2/aispeech"
+	"github.com/neoguojing/wechat/v2/cache"
 	speechConfig "github.com/neoguojing/wechat/v2/aispeech/config"
 	"github.com/neoguojing/wechat/v2/officialaccount"
 	offConfig "github.com/neoguojing/wechat/v2/officialaccount/config"
@@ -34,6 +35,7 @@ func aiBot(in string) string {
 func init() {
 	config := config.GetConfig()
 	wc = wechat.NewWechat()
+	memory := cache.NewMemory()
 
 	cfg := &speechConfig.Config{
 		AppID:          config.AISpeech.AppID,
@@ -49,6 +51,7 @@ func init() {
 		AppSecret:      config.OfficeAccount.AppSecret,
 		Token:          config.OfficeAccount.Token,
 		EncodingAESKey: config.OfficeAccount.EncodingAESKey,
+		Cache:          memory,
 	}
 	officialAccount = wc.GetOfficialAccount(officeCfg)
 
