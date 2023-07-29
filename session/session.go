@@ -35,7 +35,7 @@ func (s *Session)OfficeaccountHandler(w http.ResponseWriter, r *http.Request,ope
 		session.Values["count"] = count+1
 	}
 	
-	log.Infof("OfficeaccountHandler session:%v",session)
+	log.Infof("OfficeaccountHandler session:%v,%v,%v",openid,session.ID,session.Values)
 	// Save it before we write to the response/return from the handler.
 	err := s.sessionStore.Save(r, w,session)
 	if err != nil {
