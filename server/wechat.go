@@ -80,6 +80,7 @@ func officeAccountHandler(c *gin.Context) {
 			done := make(chan bool)
 			go func() {
 				session := globalSession.GetSession(openId)
+				log.Infof("-------------session:%v", *session)
 				count, ok := session.Values["count"]
 				if !ok {
 					session.SetSession(openId, "count", 1, 0)
