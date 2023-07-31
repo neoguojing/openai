@@ -26,12 +26,16 @@ func (s *Session) SetSession(id string, k string, v interface{}, duration time.D
 	s.ExpiresAt = time.Now().Add(duration)
 }
 
-func lruCallback(key string, value interface{}, freq int) {
-	if value == nil {
+func lruCallback(key string, item *utils.CacheItem) {
+	if item == nil {
 		return
 	}
 
-	session := value.(*Session)
+	if item.Value == nil {
+		return
+	}
+
+	session := item.Value.(*Session)
 	data, _ := json.Marshal(session.Values)
 	db.Where("id = ?", key).UpdateColumn("data", string(data))
 }
@@ -97,7 +101,7 @@ func (m *SessionManager) job() {
 		}
 
 		var sessions []Session
-		db.Model(&Session{}).Where("expired_at is not null and expired_at < ?", time.Now()).Find(&sessions)
+		db.Model(&Session{}).Where("expires_at is not null and expires_at < ?", time.Now()).Find(&sessions)
 
 		// 删除已过期的Session
 		for _, s := range sessions {

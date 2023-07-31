@@ -60,9 +60,13 @@ func WithComplete(chatType ChatType) ChatOption {
 	}
 }
 
-func lruCallBack(key string, value interface{}, freq int) {
-	chatRecord := models.ChatRecord{}
-	chatRecord.UpdateFrequency(key, freq)
+func lruCallBack(key string, item *utils.CacheItem) {
+	if item.GetFrequency() > 0 {
+		chatRecord := models.ChatRecord{}
+		chatRecord.UpdateFrequency(key, item.GetFrequency())
+		item.ResetFrequency()
+	}
+
 }
 
 func (o *OpenAI) Chat(opts ...ChatOption) *Chat {

@@ -14,6 +14,18 @@ type CacheItem struct {
 	frequency int
 }
 
+func (i *CacheItem) GetFrequency() int {
+	return i.frequency
+}
+
+func (i *CacheItem) ResetFrequency() {
+	i.frequency = 0
+}
+
+func (i *CacheItem) GetExpiry() time.Time {
+	return i.expiry
+}
+
 type LRUCache struct {
 	Capacity int
 	Items    map[string]*list.Element
@@ -88,7 +100,7 @@ func (c *LRUCache) Delete(key string) error {
 	return errors.New("Key not found")
 }
 
-type LRUCallback func(key string, value interface{}, freq int)
+type LRUCallback func(key string, item *CacheItem)
 
 func (c *LRUCache) ExpiryKeyScanner() {
 	for {
@@ -96,12 +108,8 @@ func (c *LRUCache) ExpiryKeyScanner() {
 		case <-c.stopChan:
 			c.Lock.Lock()
 			for key, item := range c.Items {
-				if item.Value.(*CacheItem).frequency > 0 {
-					if c.callback != nil {
-						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
-					}
-
-					item.Value.(*CacheItem).frequency = 0
+				if c.callback != nil {
+					c.callback(key, item.Value.(*CacheItem))
 				}
 
 			}
@@ -113,17 +121,11 @@ func (c *LRUCache) ExpiryKeyScanner() {
 			c.Lock.Lock()
 			for key, item := range c.Items {
 				if !item.Value.(*CacheItem).expiry.IsZero() && item.Value.(*CacheItem).expiry.Before(time.Now()) {
-					if c.callback != nil {
-						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
-					}
 					c.Delete(key)
 				}
 
-				if item.Value.(*CacheItem).frequency > 0 {
-					if c.callback != nil {
-						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
-					}
-					item.Value.(*CacheItem).frequency = 0
+				if c.callback != nil {
+					c.callback(key, item.Value.(*CacheItem))
 				}
 
 			}
