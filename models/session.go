@@ -60,7 +60,7 @@ func (m *SessionManager) GetSession(id string) *Session {
 
 	var s Session
 	s.Values = map[string]interface{}{}
-	err := db.Where("id = ?", id).First(&s).Error
+	err := db.Model(&Session{}).Where("id = ?", id).First(&s).Error
 	if err == nil {
 		json.Unmarshal([]byte(s.Data), &s.Values)
 	}
@@ -71,7 +71,7 @@ func (m *SessionManager) GetSession(id string) *Session {
 
 // DeleteSession 从数据库和缓存中删除
 func (m *SessionManager) DeleteSession(id string) error {
-	err := db.Where("id = ?", id).Delete(&Session{}).Error
+	err := db.Model(&Session{}).Where("id = ?", id).Delete(&Session{}).Error
 	if err == nil {
 		m.sessionCache.Delete(id)
 	}
@@ -80,7 +80,7 @@ func (m *SessionManager) DeleteSession(id string) error {
 
 // DeleteSession 从数据库和缓存中删除
 func (m *SessionManager) UpdateSession(id, data string) error {
-	err := db.Where("id = ?", id).UpdateColumn("data", data).Error
+	err := db.Model(&Session{}).Where("id = ?", id).UpdateColumn("data", data).Error
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func (m *SessionManager) job() {
 		}
 
 		var sessions []Session
-		db.Where("expired_at is not null and expired_at < ?", time.Now()).Find(&sessions)
+		db.Model(&Session{}).Where("expired_at is not null and expired_at < ?", time.Now()).Find(&sessions)
 
 		// 删除已过期的Session
 		for _, s := range sessions {
