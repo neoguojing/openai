@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai/utils"
+	"gorm.io/gorm"
 )
 
 type Session struct {
@@ -37,7 +39,10 @@ func lruCallback(key string, item *utils.CacheItem) {
 
 	session := item.Value.(*Session)
 	data, _ := json.Marshal(session.Values)
-	db.Where("id = ?", key).UpdateColumn("data", string(data))
+	session.Data = string(data)
+	session.UpdatedAt = time.Now()
+	log.Infof("save the session %v", *session)
+	db.Where("id = ?", key).Updates(map[string]interface{}{"data": session.Data, "updated_at": session.UpdatedAt})
 }
 
 type SessionManager struct {
@@ -63,10 +68,15 @@ func (m *SessionManager) GetSession(id string) *Session {
 	}
 
 	var s Session
+	s.ID = id
+	s.CreatedAt = time.Now()
+	s.UpdatedAt = time.Now()
 	s.Values = map[string]interface{}{}
 	err := db.Model(&Session{}).Where("id = ?", id).First(&s).Error
 	if err == nil {
 		json.Unmarshal([]byte(s.Data), &s.Values)
+	} else if err == gorm.ErrRecordNotFound {
+		db.Save(&s)
 	}
 
 	m.sessionCache.Set(id, &s, 0)
