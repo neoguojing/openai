@@ -97,7 +97,10 @@ func (c *LRUCache) ExpiryKeyScanner() {
 			c.Lock.Lock()
 			for key, item := range c.Items {
 				if item.Value.(*CacheItem).frequency > 0 {
-					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					if c.callback != nil {
+						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					}
+
 					item.Value.(*CacheItem).frequency = 0
 				}
 
@@ -110,12 +113,16 @@ func (c *LRUCache) ExpiryKeyScanner() {
 			c.Lock.Lock()
 			for key, item := range c.Items {
 				if !item.Value.(*CacheItem).expiry.IsZero() && item.Value.(*CacheItem).expiry.Before(time.Now()) {
-					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					if c.callback != nil {
+						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					}
 					c.Delete(key)
 				}
 
 				if item.Value.(*CacheItem).frequency > 0 {
-					c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					if c.callback != nil {
+						c.callback(key, item.Value.(*CacheItem).Value, item.Value.(*CacheItem).frequency)
+					}
 					item.Value.(*CacheItem).frequency = 0
 				}
 

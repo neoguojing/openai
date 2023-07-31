@@ -14,14 +14,13 @@ import (
 	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
 	"github.com/neoguojing/openai/role"
-	"github.com/neoguojing/openai/session"
 )
 
 var (
-	starter *cmd.Commander
-	port    int = 8080
-	logger      = log.NewLogger()
-	globalSession *session.Session
+	starter       *cmd.Commander
+	port          int = 8080
+	logger            = log.NewLogger()
+	globalSession *models.SessionManager
 )
 
 var Routes *gin.Engine
@@ -34,8 +33,7 @@ func (s *Server) Start() {
 	role.LoadRoles2DB()
 	apiKey := config.GetConfig().OpenAI.ApiKey
 	Routes = GenerateGinRouter(apiKey)
-	sessionSecret :=  config.GetConfig().Server.Secret
-	globalSession = session.NewSession(models.GetDB(),sessionSecret)
+	globalSession = models.NewSessionManager()
 	s.serv = &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: Routes,
@@ -53,6 +51,7 @@ func (s *Server) Stop() {
 		logger.Fatal(err.Error())
 	}
 	models.GetRecorder().Exit()
+	globalSession.Close()
 	chat.Destry()
 	gormboot.DefaultDB.Close()
 

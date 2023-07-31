@@ -18,7 +18,6 @@ require (
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.1
 	github.com/tebeka/selenium v0.9.9
-	github.com/wader/gormstore/v2 v2.0.3
 	github.com/yanyiwu/gojieba v1.3.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/gorm v1.25.1
@@ -52,8 +51,6 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
-	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

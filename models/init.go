@@ -13,7 +13,7 @@ var (
 )
 
 func init() {
-	gormboot.DefaultDB.RegisterModel(&Role{}, &ChatRecord{})
+	gormboot.DefaultDB.RegisterModel(&Role{}, &ChatRecord{}, &Session{})
 	db = gormboot.DefaultDB.AutoMigrate().DB()
 	recoder = NewRecorder()
 	log.Infof("telegram db path：%s", tgDBPath)
