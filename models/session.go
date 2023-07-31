@@ -42,7 +42,10 @@ func lruCallback(key string, item *utils.CacheItem) {
 	session.Data = string(data)
 	session.UpdatedAt = time.Now()
 	log.Infof("save the session %v", *session)
-	db.Where("id = ?", key).Updates(map[string]interface{}{"data": session.Data, "updated_at": session.UpdatedAt})
+	err := db.Model(&Session{}).Where("id = ?", key).Updates(map[string]interface{}{"data": session.Data, "updated_at": session.UpdatedAt}).Error
+	if err != nil {
+		log.Error(err.Error())
+	}
 }
 
 type SessionManager struct {
@@ -76,7 +79,10 @@ func (m *SessionManager) GetSession(id string) *Session {
 	if err == nil {
 		json.Unmarshal([]byte(s.Data), &s.Values)
 	} else if err == gorm.ErrRecordNotFound {
-		db.Save(&s)
+		err = db.Save(&s).Error
+		if err != nil {
+			log.Error(err.Error())
+		}
 	}
 
 	m.sessionCache.Set(id, &s, 0)
