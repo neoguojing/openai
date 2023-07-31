@@ -117,7 +117,7 @@ func (m *SessionManager) job() {
 		}
 
 		var sessions []Session
-		db.Model(&Session{}).Where("expires_at is not null and expires_at < ?", time.Now()).Find(&sessions)
+		db.Model(&Session{}).Where("expires_at != ? and expires_at < ?", time.Time{}, time.Now()).Find(&sessions)
 
 		// 删除已过期的Session
 		for _, s := range sessions {
