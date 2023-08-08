@@ -89,9 +89,9 @@ func officeAccountHandler(c *gin.Context) {
 				log.Infof("-------------session:%v", *session)
 				count, ok := session.Values["count"]
 				if !ok {
-					session.SetSession(openId, "count", 1, 0)
+					session.SetSession(openId, "count", 1.0, 0)
 				} else {
-					session.SetSession(openId, "count", count.(int)+1, 0)
+					session.SetSession(openId, "count", count.(float64)+1, 0)
 				}
 
 				if !userLimiters.CanAccess(openId) {
