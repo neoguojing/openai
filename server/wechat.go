@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/neoguojing/openai/config"
 	"github.com/neoguojing/openai/models"
+	"github.com/neoguojing/openai/utils"
 	"github.com/neoguojing/wechat/v2"
 	"github.com/neoguojing/wechat/v2/aispeech"
 	speechConfig "github.com/neoguojing/wechat/v2/aispeech/config"
@@ -25,6 +26,7 @@ var (
 	wc                    *wechat.Wechat
 	officialAccount       *officialaccount.OfficialAccount
 	officialAccountServer *server.Server
+	userLimiters          = utils.NewUserLimiter(10 * time.Second)
 )
 
 func aiBot(in string) string {
@@ -79,6 +81,10 @@ func officeAccountHandler(c *gin.Context) {
 
 			done := make(chan bool)
 			go func() {
+				defer func() {
+					done <- true
+				}()
+
 				session := globalSession.GetSession(openId)
 				log.Infof("-------------session:%v", *session)
 				count, ok := session.Values["count"]
@@ -86,6 +92,12 @@ func officeAccountHandler(c *gin.Context) {
 					session.SetSession(openId, "count", 1, 0)
 				} else {
 					session.SetSession(openId, "count", count.(int)+1, 0)
+				}
+
+				if !userLimiters.CanAccess(openId) {
+					text := message.NewText("访问频繁，请稍后再试")
+					reply = message.Reply{MsgType: message.MsgTypeText, MsgData: text}
+					return
 				}
 
 				aiText, err = chat.Dialogue(models.Text, msg.Content, "", nil)
@@ -104,7 +116,6 @@ func officeAccountHandler(c *gin.Context) {
 				}
 
 				log.Infof("-------------msg reply prepare finished:%v,%v", msgId, reply)
-				done <- true
 
 			}()
 
@@ -113,7 +124,7 @@ func officeAccountHandler(c *gin.Context) {
 			case <-ctx.Done():
 				if ctx.Err() == context.DeadlineExceeded {
 					// 上下文对象已超时，返回固定内容
-					text := message.NewText("内容生成中，请重试~")
+					text := message.NewText("内容生成中[点击获取](URL)")
 					return &message.Reply{MsgType: message.MsgTypeText, MsgData: text}
 				}
 			}
