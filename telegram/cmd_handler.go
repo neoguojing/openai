@@ -180,9 +180,19 @@ func (b *Bot) search(args []string) (UserMap, error) {
 		logger.Infof("TelegramUserInfo find-------------")
 		var profileMap = make(map[int64]models.TelegramProfile)
 		var chatIDs = make([]int64, 0)
-		for _, profile := range profiles {
-			chatIDs = append(chatIDs, profile.ChatID)
-			profileMap[profile.ChatID] = profile
+
+		if len(profiles) > Recalled_Num {
+			rand.Seed(time.Now().UnixNano())
+			randomIndexes := rand.Perm(len(profiles))[:Recalled_Num]
+			for _, idx := range randomIndexes {
+				chatIDs = append(chatIDs, profiles[idx].ChatID)
+				profileMap[profiles[idx].ChatID] = profiles[idx]
+			}
+		} else {
+			for _, profile := range profiles {
+				chatIDs = append(chatIDs, profile.ChatID)
+				profileMap[profile.ChatID] = profile
+			}
 		}
 
 		s := &models.TelegramUserSummary{}
@@ -219,6 +229,8 @@ func (b *Bot) search(args []string) (UserMap, error) {
 	return nil, err
 }
 
+var Recalled_Num = 500
+
 func (b *Bot) handleLocate(args []string) string {
 	if len(args) == 0 {
 		return "pls input location"
@@ -237,10 +249,21 @@ func (b *Bot) handleLocate(args []string) string {
 
 	var profileMap = make(map[int64]models.TelegramProfile)
 	var chatIDs = make([]int64, 0)
-	for _, profile := range profiles {
-		chatIDs = append(chatIDs, profile.ChatID)
-		profileMap[profile.ChatID] = profile
+
+	if len(profiles) > Recalled_Num {
+		rand.Seed(time.Now().UnixNano())
+		randomIndexes := rand.Perm(len(profiles))[:Recalled_Num]
+		for _, idx := range randomIndexes {
+			chatIDs = append(chatIDs, profiles[idx].ChatID)
+			profileMap[profiles[idx].ChatID] = profiles[idx]
+		}
+	} else {
+		for _, profile := range profiles {
+			chatIDs = append(chatIDs, profile.ChatID)
+			profileMap[profile.ChatID] = profile
+		}
 	}
+	
 
 	s := &models.TelegramUserSummary{}
 	var summrayMap = make(map[int64]models.TelegramUserSummary)
