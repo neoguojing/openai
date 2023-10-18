@@ -481,7 +481,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 		LastMessage     string
 		MessageTotal    int64
 		Score           float64
-		ChatId          int64
+		ChatId          string
 	}
 
 	tplData.FirstName = userInfo.User.FirstName
@@ -496,7 +496,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.LastMessage = userInfo.Message.Message
 	tplData.MessageTotal = userInfo.Count
 	tplData.Score = userInfo.Score
-	tplData.ChatId = userInfo.User.ChatID
+	tplData.ChatId = fmt.Sprintf("@%d",userInfo.User.ChatID)
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
 	if err != nil {
