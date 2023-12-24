@@ -16,8 +16,8 @@ var (
 	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
-const maxLimit = 1000
-const minLimit = 100
+const maxLimit = 5000
+const minLimit = 1000
 
 // CREATE TABLE telegram_user_info (
 //
