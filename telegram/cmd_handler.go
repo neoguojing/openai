@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"html/template"
 	"math"
+	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
-	"math/rand"
-    "time"
+	"time"
 
 	"github.com/neoguojing/log"
 	"github.com/neoguojing/openai/models"
 	tgbotapi "github.com/neoguojing/telegram-bot-api/v5"
 )
-
-
 
 var (
 	NO_JIEBA_ERROR = errors.New("b.jieba was nil")
@@ -263,7 +261,6 @@ func (b *Bot) handleLocate(args []string) string {
 			profileMap[profile.ChatID] = profile
 		}
 	}
-	
 
 	s := &models.TelegramUserSummary{}
 	var summrayMap = make(map[int64]models.TelegramUserSummary)
@@ -359,6 +356,16 @@ type UserInfoFull struct {
 	Score   float64
 }
 
+func IsWithinOneMonth(t time.Time) bool {
+	now := time.Now()
+	// 计算当前时间与给定时间的差值
+	diff := now.Sub(t)
+	// 获取一个月的时间间隔
+	oneMonth := 30 * 24 * time.Hour
+	// 判断差值是否小于等于一个月的时间间隔
+	return diff <= oneMonth
+}
+
 type UserMap []UserInfoFull
 
 const TOPK = 5
@@ -381,6 +388,9 @@ func dataRecall(userInfos map[int64]models.TelegramUserInfo,
 			uFull.Score *= math.Round(s.Confidence*100) / 100
 		}
 
+		if IsWithinOneMonth(u.UpdatedAt) {
+			uFull.Score += 50
+		}
 		uMap = append(uMap, uFull)
 	}
 	sort.Slice(uMap, func(i, j int) bool {
@@ -393,7 +403,7 @@ func dataRecall(userInfos map[int64]models.TelegramUserInfo,
 	}
 
 	selected := make(UserMap, TOPK)
-	for i:=0;i<TOPK;i++ {
+	for i := 0; i < TOPK; i++ {
 		index := rand.Intn(len(uMap))
 		selected[i] = uMap[index]
 	}
@@ -496,7 +506,7 @@ func generateRecommendationMessage(userInfo *UserInfoFull) (string, error) {
 	tplData.LastMessage = userInfo.Message.Message
 	tplData.MessageTotal = userInfo.Count
 	tplData.Score = userInfo.Score
-	tplData.ChatId = fmt.Sprintf("@%d",userInfo.User.ChatID)
+	tplData.ChatId = fmt.Sprintf("@%d", userInfo.User.ChatID)
 	var message strings.Builder
 	err = tpl.Execute(&message, tplData)
 	if err != nil {

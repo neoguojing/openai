@@ -16,8 +16,8 @@ var (
 	tgDB     = gormboot.New(gormboot.DefaultSqliteConfig(tgDBPath))
 )
 
-const maxLimit = 30000
-const minLimit = 10000
+const maxLimit = 1000
+const minLimit = 100
 
 // CREATE TABLE telegram_user_info (
 //
@@ -173,7 +173,7 @@ func (t *TelegramProfile) FindByKeywords(keywords []string, limit int, offset in
 			args[i] = "%" + keyword + "%"
 		}
 		log.Infof(query, args...)
-		if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
+		if err := db.Where(query, args...).Order("updated_at DESC").Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -198,7 +198,7 @@ func (t *TelegramProfile) FindByLocations(locations []string, limit int, offset 
 			args[i] = "%" + location + "%"
 		}
 		log.Infof(query, args...)
-		if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
+		if err := db.Where(query, args...).Order("updated_at DESC").Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -229,7 +229,7 @@ func (t *TelegramProfile) FindByLocationAndKeyword(locations []string, keywords 
 		}
 	}
 	log.Infof(query, args...)
-	if err := db.Where(query, args...).Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
+	if err := db.Where(query, args...).Order("updated_at DESC").Limit(limit).Offset(offset).Find(&profiles).Error; err != nil {
 		return nil, err
 	}
 	return profiles, nil
