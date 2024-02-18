@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 	"sync"
 
 	"github.com/neoguojing/log"
@@ -55,8 +55,13 @@ type BardConfig struct {
 type ClaudeConfig struct {
 	ApiKey string `yaml:"api_key"`
 }
+
+type WechatConfig struct {
+	Q string `yaml:"q"`
+	A string `yaml:"a"`
+}
 type Server struct {
-	Port int `yaml:"port"`
+	Port   int    `yaml:"port"`
 	Secret string `yaml:"secret"`
 }
 
@@ -69,12 +74,13 @@ type Config struct {
 	Baidu         BaiduConfig         `yaml:"baidu"`
 	Bard          BardConfig          `yaml:"bard"`
 	Claude        ClaudeConfig        `yaml:"claude"`
+	Wechat        []WechatConfig      `yaml:"wechat"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {
 	config := &Config{}
 
-	yamlFile, err := ioutil.ReadFile(configPath)
+	yamlFile, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Errorf("yamlFile.Get err   #%v ", err)
 		return nil, err

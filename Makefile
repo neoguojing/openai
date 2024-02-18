@@ -10,7 +10,7 @@ PROJECT_VERSION := v1.1.0
 BUILD := `git rev-parse --short HEAD`
 
 
-.PHONY: build clean doc image chatbot server tg wc cs
+.PHONY: build clean doc image chatbot server tg wc cs wechat
 chatbot:
 	go build -o $(CUR_DIR)/chatbot/ $(CUR_DIR)/chatbot/
 	cp $(CUR_DIR)/config/config.yaml.template $(CUR_DIR)/chatbot/config.yaml

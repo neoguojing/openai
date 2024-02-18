@@ -21,6 +21,8 @@ var (
 	chat *openai.Chat
 
 	logger = log.NewLogger()
+
+	NoMatchReplay = errors.New("no match wechat replay")
 )
 
 func main() {
@@ -30,12 +32,13 @@ func main() {
 	config := config.GetConfig()
 	if config.OpenAI.ApiKey == "" {
 		logger.Error("pls provide a api key")
-		return
-	}
-	gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
-	chat = gpt.Chat(openai.WithPlatform(models.Wechat), openai.WithComplete(openai.Baidu))
-	if config.OpenAI.Role != "" {
-		chat.Prepare(config.OpenAI.Role)
+		// return
+	} else {
+		gpt := openai.NewOpenAI(config.OpenAI.ApiKey)
+		chat = gpt.Chat(openai.WithPlatform(models.Wechat), openai.WithComplete(openai.Baidu))
+		if config.OpenAI.Role != "" {
+			chat.Prepare(config.OpenAI.Role)
+		}
 	}
 
 	bot := openwechat.DefaultBot(openwechat.Desktop) // 桌面模式
@@ -117,8 +120,9 @@ func MessageHandler(msg *openwechat.Message) {
 			if msg.Content == "" {
 				return
 			}
-			replayText, err := chatGPTReplay(msg)
-			if err != nil {
+			// replayText, err := chatGPTReplay(msg)
+			replayText, err := matchReplay(msg)
+			if err != nil && err != NoMatchReplay {
 				logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 				msg.ReplyText("ops...")
 				return
@@ -140,8 +144,9 @@ func MessageHandler(msg *openwechat.Message) {
 		}
 
 	} else if msg.IsSendByFriend() {
-		replayText, err := chatGPTReplay(msg)
-		if err != nil {
+		// replayText, err := chatGPTReplay(msg)
+		replayText, err := matchReplay(msg)
+		if err != nil && err != NoMatchReplay {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 			msg.ReplyText("ops...")
 			return
@@ -154,6 +159,21 @@ func MessageHandler(msg *openwechat.Message) {
 		logger.Warning("unhandled msg!!!!")
 	}
 
+}
+
+func matchReplay(msg *openwechat.Message) (string, error) {
+	config := config.GetConfig()
+	wechatConfig := config.Wechat
+
+	if msg.IsText() {
+		for _, qa := range wechatConfig {
+			if strings.Contains(msg.Content, qa.Q) {
+				return qa.A, nil
+			}
+		}
+	}
+
+	return "", NoMatchReplay
 }
 
 func chatGPTReplay(msg *openwechat.Message) (string, error) {
