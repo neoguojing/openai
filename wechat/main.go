@@ -96,12 +96,12 @@ func main() {
 
 func MessageHandler(msg *openwechat.Message) {
 	if !msg.IsText() && !msg.IsVoice() {
-		err := mutiMediaRecord(msg)
-		if err != nil {
-			logger.Error(err.Error())
-			return
-		}
-		return
+		// err := mutiMediaRecord(msg)
+		// if err != nil {
+		// 	logger.Error(err.Error())
+		// 	return
+		// }
+		// return
 	}
 
 	sender, _ := msg.Sender()
