@@ -57,9 +57,15 @@ type ClaudeConfig struct {
 }
 
 type WechatConfig struct {
+	Qas    []WechatItem `yaml:"qas"`
+	Groups []string     `yaml:"groups"`
+}
+
+type WechatItem struct {
 	Q string `yaml:"q"`
 	A string `yaml:"a"`
 }
+
 type Server struct {
 	Port   int    `yaml:"port"`
 	Secret string `yaml:"secret"`
@@ -74,7 +80,7 @@ type Config struct {
 	Baidu         BaiduConfig         `yaml:"baidu"`
 	Bard          BardConfig          `yaml:"bard"`
 	Claude        ClaudeConfig        `yaml:"claude"`
-	Wechat        []WechatConfig      `yaml:"wechat"`
+	Wechat        WechatConfig        `yaml:"wechat"`
 }
 
 func LoadConfig(configPath string) (*Config, error) {

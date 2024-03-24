@@ -24,9 +24,14 @@ officeaccount:
   appsecret: 
   aeskey: 
 wechat:
-  - q: 地址
-    a: 上海市浦东新区
-  - q: 产品
-    a: https://prodev.jd.com/mall/active/2kmaPNrGDNYo1LKwYtRoaSmsgbj6/index.html
+  qas:
+    - q: 地址
+      a: 上海市浦东新区
+    - q: 产品
+      a: https://prodev.jd.com/mall/active/2kmaPNrGDNYo1LKwYtRoaSmsgbj6/index.html
+  groups:
+    - aaa
+
+
 
 

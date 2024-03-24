@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"errors"
 
@@ -19,6 +20,8 @@ import (
 var (
 	self *openwechat.Self
 	chat *openai.Chat
+
+	tGroups openwechat.Groups
 
 	logger = log.NewLogger()
 
@@ -85,7 +88,15 @@ func main() {
 
 	// 获取所有的群组
 	groups, err := self.Groups()
-	logger.Info(fmt.Sprintf("groups: %v, err: %v", groups, err))
+	tgNames := config.Wechat.Groups
+	for _, group := range groups {
+		for _, name := range tgNames {
+			if group.NickName == name {
+				tGroups = append(tGroups, group)
+			}
+		}
+	}
+	logger.Info(fmt.Sprintf("tgroups: %v, err: %v", tGroups, err))
 
 	bot.MessageHandler = MessageHandler
 	defer models.GetRecorder().Exit()
@@ -155,6 +166,13 @@ func MessageHandler(msg *openwechat.Message) {
 		if err != nil {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 		}
+	} else if msg.IsSendBySelf() {
+		if strings.HasPrefix(msg.Content, "/s") {
+			err := self.SendTextToGroups(strings.TrimLeft(msg.Content, "/s"), time.Second*3, tGroups...)
+			if err != nil {
+				logger.Error(fmt.Sprintf("SendTextToGroups: %v", err.Error()))
+			}
+		}
 	} else {
 		logger.Warning("unhandled msg!!!!")
 	}
@@ -163,7 +181,7 @@ func MessageHandler(msg *openwechat.Message) {
 
 func matchReplay(msg *openwechat.Message) (string, error) {
 	config := config.GetConfig()
-	wechatConfig := config.Wechat
+	wechatConfig := config.Wechat.Qas
 
 	if msg.IsText() {
 		for _, qa := range wechatConfig {
