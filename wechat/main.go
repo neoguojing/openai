@@ -84,10 +84,16 @@ func main() {
 
 	// 获取所有的好友
 	friends, err := self.Friends()
-	logger.Info(fmt.Sprintf("friends: %v, err: %v", friends, err))
+	for _, f := range friends {
+		if strings.Contains(f.NickName, "斗地主") {
+			logger.Info(fmt.Sprintf("friends: %v, err: %v", f.NickName, err))
+		}
+
+	}
 
 	// 获取所有的群组
 	groups, err := self.Groups()
+	logger.Info(fmt.Sprintf("groups: %v, err: %v", groups, err))
 	tgNames := config.Wechat.Groups
 	for _, group := range groups {
 		for _, name := range tgNames {
