@@ -33,3 +33,4 @@ models/*.db
 telegram/telegram
 docker-compose/config.yaml
 telegram/__debug_bin*
+__debug_bin-*

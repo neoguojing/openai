@@ -83,8 +83,8 @@ func main() {
 	}
 
 	// 获取所有的好友
-	friends, err := self.Friends()
-	logger.Info(fmt.Sprintf("friends: %v, err: %v", friends, err))
+	// friends, err := self.Friends()
+	// logger.Info(fmt.Sprintf("friends: %v, err: %v", friends, err))
 
 	// 获取所有的群组
 	groups, err := self.Groups()
@@ -92,6 +92,7 @@ func main() {
 	for _, group := range groups {
 		for _, name := range tgNames {
 			if group.NickName == name {
+				logger.Infof("group:%v", *group.User)
 				tGroups = append(tGroups, group)
 			}
 		}
@@ -138,6 +139,11 @@ func MessageHandler(msg *openwechat.Message) {
 				msg.ReplyText("ops...")
 				return
 			}
+
+			if replayText == "" {
+				return
+			}
+
 			gSendor, err := msg.SenderInGroup()
 			if err != nil {
 				logger.Error(fmt.Sprintf("SendorInGroup: %v", err.Error()))
@@ -162,6 +168,11 @@ func MessageHandler(msg *openwechat.Message) {
 			msg.ReplyText("ops...")
 			return
 		}
+
+		if replayText == "" {
+			return
+		}
+
 		_, err = msg.ReplyText(replayText)
 		if err != nil {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
