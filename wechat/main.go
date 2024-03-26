@@ -92,7 +92,7 @@ func main() {
 	tgNames := config.Wechat.Groups
 	for _, group := range groups {
 		for _, name := range tgNames {
-			if group.NickName == name {
+			if strings.HasPrefix(group.NickName, name) {
 				logger.Infof("group:%v", *group.User)
 				tGroups = append(tGroups, group)
 			}
@@ -118,7 +118,7 @@ func MessageHandler(msg *openwechat.Message) {
 	}
 
 	sender, _ := msg.Sender()
-	logger.Info(fmt.Sprintf("sender: %v, content: %v", sender.NickName, msg.Content))
+	logger.Info(fmt.Sprintf("sender: %v, content: %v", sender.NickName, msg.Url))
 	msgByte, _ := json.Marshal(msg)
 	logger.Infof("message struct:%s", string(msgByte))
 	if msg.IsSendByGroup() {
@@ -179,12 +179,57 @@ func MessageHandler(msg *openwechat.Message) {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 		}
 	} else if msg.IsSendBySelf() {
-		if strings.HasPrefix(msg.Content, "/s") {
-			err := self.SendTextToGroups(strings.TrimLeft(msg.Content, "/s"), time.Second*3, tGroups...)
+		if msg.IsText() {
+			err := self.SendTextToGroups(msg.Content, time.Second*3, tGroups...)
 			if err != nil {
 				logger.Error(fmt.Sprintf("SendTextToGroups: %v", err.Error()))
 			}
 		}
+
+		logger.Errorf("other %v,%v", msg.MsgType, msg.Url)
+
+		if msg.IsPicture() {
+			resp, err := msg.GetPicture()
+			if err != nil {
+				return
+			}
+			defer resp.Body.Close()
+			logger.Errorf("picture %v", msg)
+			err = self.SendImageToGroups(resp.Body, time.Second*3, tGroups...)
+			if err != nil {
+				logger.Error(fmt.Sprintf("SendTextToGroups: %v", err.Error()))
+			}
+		}
+
+		if msg.IsVideo() {
+			// logger.Errorf("card %v", msg)
+			resp, err := msg.GetVideo()
+			if err != nil {
+				return
+			}
+			defer resp.Body.Close()
+			err = self.SendVideoToGroups(resp.Body, time.Second*3, tGroups...)
+			if err != nil {
+				logger.Error(fmt.Sprintf("SendTextToGroups: %v", err.Error()))
+			}
+		}
+
+		if msg.IsMedia() {
+
+			// sendMsg := openwechat.NewMediaSendMessage(msg.MsgType, msg.FromUserName, msg.ToUserName, msg.MediaId)
+			// sentMsg := openwechat.SentMessage{
+			// 	self: msg.Owner().Self(),
+			// }
+			// sentMsg.SendMessage = sendMsg
+			// sentMsg.MsgId = msg.MsgId
+
+			// err := self.ForwardMessageToGroups(sentMsg, time.Second*3, tGroups...)
+			err := self.SendTextToGroups(msg.Url, time.Second*3, tGroups...)
+			if err != nil {
+				logger.Error(fmt.Sprintf("SendTextToGroups: %v", err.Error()))
+			}
+		}
+
 	} else {
 		logger.Warning("unhandled msg!!!!")
 	}
