@@ -179,6 +179,10 @@ func MessageHandler(msg *openwechat.Message) {
 			logger.Error(fmt.Sprintf("ReplyText: %v", err.Error()))
 		}
 	} else if msg.IsSendBySelf() {
+		if msg.ToUserName != self.UserName {
+			return
+		}
+
 		if msg.IsText() {
 			err := self.SendTextToGroups(msg.Content, time.Second*3, tGroups...)
 			if err != nil {
